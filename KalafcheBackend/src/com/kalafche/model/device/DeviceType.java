@@ -1,4 +1,4 @@
-package com.kalafche.model;
+package com.kalafche.model.device;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,37 +8,26 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="kalafche_store")
-public class KalafcheStore {
-
-	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+@Table(name="device_type")
+public class DeviceType {
 	
-	@Column(name = "city", nullable = false)	
-	private String city;
+	@Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)	
+	private int id;
 	
 	@Column(name = "name", nullable = false)	
 	private String name;
 
 	public int getId() {
-		return id;
+		return this.id;
 	}
-
-	public void setId(int id) {
-		this.id = id;
+	
+	public int setId(int id) {
+		return this.id = id;
 	}
-
-	public String getCity() {
-		return city;
-	}
-
-	public void setCity(String city) {
-		this.city = city;
-	}
-
+	
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {

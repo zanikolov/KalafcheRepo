@@ -18,8 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kalafche.dao.OrderedStockDao;
 import com.kalafche.dao.StockOrderDao;
 import com.kalafche.exceptions.CommonException;
-import com.kalafche.model.OrderedStock;
 import com.kalafche.model.User;
+import com.kalafche.model.stock.OrderedStock;
 import com.kalafche.service.AuthenticationService;
 
 @Service

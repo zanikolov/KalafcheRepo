@@ -1,8 +1,8 @@
 package com.kalafche.dao;
 
-import com.kalafche.model.DeviceType;
-
 import java.util.List;
+
+import com.kalafche.model.device.DeviceType;
 
 public abstract interface DeviceTypeDao {
 	public abstract List<DeviceType> getAllDeviceTypes();

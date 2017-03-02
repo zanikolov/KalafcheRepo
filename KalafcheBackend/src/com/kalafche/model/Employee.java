@@ -1,20 +1,39 @@
 package com.kalafche.model;
 
-import java.util.List;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
 
+@Entity
+@Table(name="employee")
 public class Employee {
 
+	@Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
+	
+	@Column(name = "name", nullable = false)	
 	private String name;
-	private int kalafcheStoreId;
-	private String kalafcheStoreName;
-	private int jobResponsibilityId;
-	private String jobResponsibilityName;
-	private int userId;
-	private String username;
-	private String password;
-	private List<AuthRole> roles;
-	private boolean enabled;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "kalafche_store_id", nullable = false)
+	private KalafcheStore kalafcheStore;
+	
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "job_responsibility_id", nullable = false)	
+	private  JobResponsibility jobResponsibility;
+	
+	@OneToOne(fetch = FetchType.LAZY, mappedBy = "user_id", cascade = CascadeType.ALL)
+	private User user;
+
 
 	public int getId() {
 		return id;
@@ -32,76 +51,28 @@ public class Employee {
 		this.name = name;
 	}
 
-	public int getKalafcheStoreId() {
-		return kalafcheStoreId;
+	public KalafcheStore getKalafcheStore() {
+		return kalafcheStore;
 	}
 
-	public void setKalafcheStoreId(int kalafcheStoreId) {
-		this.kalafcheStoreId = kalafcheStoreId;
+	public void setKalafcheStore(KalafcheStore kalafcheStore) {
+		this.kalafcheStore = kalafcheStore;
 	}
 
-	public int getJobResponsibilityId() {
-		return jobResponsibilityId;
+	public JobResponsibility getJobResponsibility() {
+		return jobResponsibility;
 	}
 
-	public void setJobResponsibilityId(int jobResponsibilityId) {
-		this.jobResponsibilityId = jobResponsibilityId;
+	public void setJobResponsibility(JobResponsibility jobResponsibility) {
+		this.jobResponsibility = jobResponsibility;
 	}
 
-	public int getUserId() {
-		return userId;
+	public User getUser() {
+		return user;
 	}
 
-	public void setUserId(int userId) {
-		this.userId = userId;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public List<AuthRole> getRoles() {
-		return roles;
-	}
-
-	public void setRoles(List<AuthRole> roles) {
-		this.roles = roles;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getJobResponsibilityName() {
-		return jobResponsibilityName;
-	}
-
-	public void setJobResponsibilityName(String jobResponsibilityName) {
-		this.jobResponsibilityName = jobResponsibilityName;
-	}
-
-	public String getKalafcheStoreName() {
-		return kalafcheStoreName;
-	}
-
-	public void setKalafcheStoreName(String kalafcheStoreName) {
-		this.kalafcheStoreName = kalafcheStoreName;
-	}
-
-	public boolean isEnabled() {
-		return enabled;
-	}
-
-	public void setEnabled(boolean enabled) {
-		this.enabled = enabled;
+	public void setUser(User user) {
+		this.user = user;
 	}
 
 }

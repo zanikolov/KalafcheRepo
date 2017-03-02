@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.StockRelocationDao;
-import com.kalafche.model.StockRelocation;
+import com.kalafche.model.stock.StockRelocation;
 
 @Service
 public class StockRelocationDaoImpl extends JdbcDaoSupport implements

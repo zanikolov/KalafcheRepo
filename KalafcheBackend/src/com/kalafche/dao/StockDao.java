@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.springframework.dao.DuplicateKeyException;
 
-import com.kalafche.model.Stock;
+import com.kalafche.model.stock.Stock;
 
 public abstract interface StockDao {
 	

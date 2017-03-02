@@ -13,6 +13,7 @@
 		<log4j.version>2.3</log4j.version>
 		<jackson.version>2.7.4</jackson.version>
 		<commonslang.version>2.6</commonslang.version>
+		<hibernate.version>4.3.6.Final</hibernate.version>
 
 		<environment.dir.source>src/main/resources/environment</environment.dir.source>
 		<environment.file>environment.properties</environment.file>
@@ -60,6 +61,16 @@
 			<artifactId>spring-security-config</artifactId>
 			<version>${spring.security.version}</version>
 		</dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-tx</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
@@ -100,6 +111,11 @@
 			<version>6.0.3</version>
 		</dependency>
 
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${hibernate.version}</version>
+        </dependency>
 	</dependencies>
 
 	<build>

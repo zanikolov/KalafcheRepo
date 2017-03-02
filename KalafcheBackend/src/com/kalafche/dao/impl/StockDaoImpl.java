@@ -16,7 +16,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.StockDao;
-import com.kalafche.model.Stock;
+import com.kalafche.model.stock.Stock;
 
 @Service
 public class StockDaoImpl extends JdbcDaoSupport implements StockDao {

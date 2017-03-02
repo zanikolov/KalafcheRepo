@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.dao.StockDao;
 import com.kalafche.dao.StockRelocationDao;
-import com.kalafche.model.Stock;
-import com.kalafche.model.StockRelocation;
+import com.kalafche.model.stock.Stock;
+import com.kalafche.model.stock.StockRelocation;
 import com.kalafche.service.StockRelocationService;
 
 @CrossOrigin

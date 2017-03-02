@@ -1,23 +1,45 @@
 package com.kalafche.model;
 
+import javax.persistence.Column;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+
+import com.kalafche.model.partner.Partner;
+import com.kalafche.model.stock.Stock;
+
 public class Sale {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
-	private int stockId;
-	private String itemName;
-	private String itemProductCode;
-	private int kalafcheStoreId;
-	private String kalafcheStoreName;
-	private int deviceModelId;
-	private String deviceModelName;
-	private int deviceBrandId;
-	private String deviceBrandName;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "stock_id", nullable = false)
+	private Stock stock;
+
+	@Column(name = "sale_timestamp", nullable = false)
 	private long saleTimestamp;
-	private int partnerId;
-	private int employeeId;
-	private String employeeName;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "partner_id", nullable = true)
+	private Partner partner;
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "employee_id", nullable = true)
+	private Employee employee;
+
+	@Column(name = "cost", nullable = false)
 	private float cost;
-	private float salePrice;
-	private String partnerCode;
+
+	@Column(name = "discounted_cost", nullable = true)
+	private float discountedCost;
+
+	@Column(name = "description", nullable = true)
+	private float description;
 
 	public int getId() {
 		return this.id;
@@ -35,38 +57,6 @@ public class Sale {
 		this.saleTimestamp = saleTimestamp;
 	}
 
-	public int getPartnerId() {
-		return this.partnerId;
-	}
-
-	public void setPartnerId(int partnerId) {
-		this.partnerId = partnerId;
-	}
-
-	public float getSalePrice() {
-		return this.salePrice;
-	}
-
-	public void setSalePrice(float salePrice) {
-		this.salePrice = salePrice;
-	}
-
-	public String getPartnerCode() {
-		return partnerCode;
-	}
-
-	public void setPartnerCode(String partnerCode) {
-		this.partnerCode = partnerCode;
-	}
-
-	public int getEmployeeId() {
-		return employeeId;
-	}
-
-	public void setEmployeeId(int employeeId) {
-		this.employeeId = employeeId;
-	}
-
 	public float getCost() {
 		return cost;
 	}
@@ -75,83 +65,44 @@ public class Sale {
 		this.cost = cost;
 	}
 
-	public int getStockId() {
-		return stockId;
+	public Stock getStock() {
+		return stock;
 	}
 
-	public void setStockId(int stockId) {
-		this.stockId = stockId;
+	public void setStock(Stock stock) {
+		this.stock = stock;
 	}
 
-	public int getDeviceModelId() {
-		return deviceModelId;
+	public Partner getPartner() {
+		return partner;
 	}
 
-	public void setDeviceModelId(int deviceModelId) {
-		this.deviceModelId = deviceModelId;
+	public void setPartner(Partner partner) {
+		this.partner = partner;
 	}
 
-	public String getDeviceModelName() {
-		return deviceModelName;
+	public Employee getEmployee() {
+		return employee;
 	}
 
-	public void setDeviceModelName(String deviceModelName) {
-		this.deviceModelName = deviceModelName;
+	public void setEmployee(Employee employee) {
+		this.employee = employee;
 	}
 
-	public int getDeviceBrandId() {
-		return deviceBrandId;
+	public float getDiscountedCost() {
+		return discountedCost;
 	}
 
-	public void setDeviceBrandId(int deviceBrandId) {
-		this.deviceBrandId = deviceBrandId;
+	public void setDiscountedCost(float discountedCost) {
+		this.discountedCost = discountedCost;
 	}
 
-	public String getDeviceBrandName() {
-		return deviceBrandName;
+	public float getDescription() {
+		return description;
 	}
 
-	public void setDeviceBrandName(String deviceBrandName) {
-		this.deviceBrandName = deviceBrandName;
+	public void setDescription(float description) {
+		this.description = description;
 	}
 
-	public String getEmployeeName() {
-		return employeeName;
-	}
-
-	public void setEmployeeName(String employeeName) {
-		this.employeeName = employeeName;
-	}
-
-	public String getItemName() {
-		return itemName;
-	}
-
-	public void setItemName(String itemName) {
-		this.itemName = itemName;
-	}
-
-	public String getKalafcheStoreName() {
-		return kalafcheStoreName;
-	}
-
-	public void setKalafcheStoreName(String kalafcheStoreName) {
-		this.kalafcheStoreName = kalafcheStoreName;
-	}
-
-	public int getKalafcheStoreId() {
-		return kalafcheStoreId;
-	}
-
-	public void setKalafcheStoreId(int kalafcheStoreId) {
-		this.kalafcheStoreId = kalafcheStoreId;
-	}
-
-	public String getItemProductCode() {
-		return itemProductCode;
-	}
-
-	public void setItemProductCode(String itemProductCode) {
-		this.itemProductCode = itemProductCode;
-	}
 }

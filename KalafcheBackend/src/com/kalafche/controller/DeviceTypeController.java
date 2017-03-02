@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.dao.DeviceTypeDao;
-import com.kalafche.model.DeviceType;
+import com.kalafche.model.device.DeviceType;
 
 @CrossOrigin
 @RestController

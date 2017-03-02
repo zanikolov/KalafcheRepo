@@ -1,17 +1,43 @@
 package com.kalafche.model;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.Table;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kalafche.BaseModel;
 
+@Entity
+@Table(name="item")
 public class Item extends BaseModel {
+	
+	@Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
+	
+	@Column(name = "name", nullable = false)	
 	private String name;
+	
+	@Column(name = "online_name", nullable = false)
 	private String onlineName;
+	
+	@Column(name = "product_code", nullable = false)
 	private String productCode;
+	
+	@Column(name = "description", nullable = false)
 	private String description;
+	
+	@Column(name = "price", nullable = false)
 	private float price;
+	
+	@Column(name = "purchase_price", nullable = false)
 	private float purchasePrice;
+	
+	
 	private MultipartFile pic;
 
 	public String getProductCode() {

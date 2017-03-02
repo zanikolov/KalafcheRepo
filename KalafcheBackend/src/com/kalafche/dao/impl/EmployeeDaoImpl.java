@@ -11,8 +11,8 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.EmployeeDao;
-import com.kalafche.model.DeviceBrand;
 import com.kalafche.model.Employee;
+import com.kalafche.model.device.DeviceBrand;
 
 @Service
 public class EmployeeDaoImpl extends JdbcDaoSupport implements EmployeeDao {

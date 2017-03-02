@@ -5,8 +5,8 @@ import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.StockDao;
 import com.kalafche.dao.StockRelocationDao;
-import com.kalafche.model.Stock;
-import com.kalafche.model.StockRelocation;
+import com.kalafche.model.stock.Stock;
+import com.kalafche.model.stock.StockRelocation;
 
 @Service
 public class StockRelocationService {

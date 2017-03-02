@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.dao.DeviceModelDao;
-import com.kalafche.model.DeviceModel;
+import com.kalafche.model.device.DeviceModel;
 
 @CrossOrigin
 @RestController

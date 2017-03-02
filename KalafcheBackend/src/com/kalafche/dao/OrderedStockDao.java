@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.kalafche.exceptions.CommonException;
-import com.kalafche.model.OrderedStock;
+import com.kalafche.model.stock.OrderedStock;
 
 public interface OrderedStockDao {
 

@@ -1,19 +1,17 @@
-package com.kalafche.model;
+package com.kalafche.model.revision;
 
-public class OrderedStock {
+public class RevisionStock {
 
 	private int id;
+	private int revisionId;
 	private int itemId;
 	private String itemName;
-	private String itemProductCode;
+	private int itemProductCode;
 	private int deviceModelId;
 	private String deviceModelName;
 	private int deviceBrandId;
 	private String deviceBrandName;
-	private int stockOrderId;
 	private int quantity;
-	private long createTimestamp;
-	private int createdBy;
 
 	public int getId() {
 		return id;
@@ -21,6 +19,14 @@ public class OrderedStock {
 
 	public void setId(int id) {
 		this.id = id;
+	}
+
+	public int getRevisionId() {
+		return revisionId;
+	}
+
+	public void setRevisionId(int revisionId) {
+		this.revisionId = revisionId;
 	}
 
 	public int getItemId() {
@@ -39,6 +45,14 @@ public class OrderedStock {
 		this.itemName = itemName;
 	}
 
+	public int getItemProductCode() {
+		return itemProductCode;
+	}
+
+	public void setItemProductCode(int itemProductCode) {
+		this.itemProductCode = itemProductCode;
+	}
+
 	public int getDeviceModelId() {
 		return deviceModelId;
 	}
@@ -55,36 +69,12 @@ public class OrderedStock {
 		this.deviceModelName = deviceModelName;
 	}
 
-	public int getStockOrderId() {
-		return stockOrderId;
+	public int getDeviceBrandId() {
+		return deviceBrandId;
 	}
 
-	public void setStockOrderId(int stockOrderId) {
-		this.stockOrderId = stockOrderId;
-	}
-
-	public long getCreateTimestamp() {
-		return createTimestamp;
-	}
-
-	public void setCreateTimestamp(long createTimestamp) {
-		this.createTimestamp = createTimestamp;
-	}
-
-	public int getCreatedBy() {
-		return createdBy;
-	}
-
-	public void setCreatedBy(int createdBy) {
-		this.createdBy = createdBy;
-	}
-
-	public int getQuantity() {
-		return quantity;
-	}
-
-	public void setQuantity(int quantity) {
-		this.quantity = quantity;
+	public void setDeviceBrandId(int deviceBrandId) {
+		this.deviceBrandId = deviceBrandId;
 	}
 
 	public String getDeviceBrandName() {
@@ -95,19 +85,11 @@ public class OrderedStock {
 		this.deviceBrandName = deviceBrandName;
 	}
 
-	public int getDeviceBrandId() {
-		return deviceBrandId;
+	public int getQuantity() {
+		return quantity;
 	}
 
-	public void setDeviceBrandId(int deviceBrandId) {
-		this.deviceBrandId = deviceBrandId;
-	}
-
-	public String getItemProductCode() {
-		return itemProductCode;
-	}
-
-	public void setItemProductCode(String itemProductCode) {
-		this.itemProductCode = itemProductCode;
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
 	}
 }

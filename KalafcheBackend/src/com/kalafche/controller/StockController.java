@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.dao.StockDao;
-import com.kalafche.model.Stock;
+import com.kalafche.model.stock.Stock;
 import com.kalafche.service.StockService;
 
 @CrossOrigin

@@ -1,4 +1,4 @@
-package com.kalafche.model;
+package com.kalafche.model.partner;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,9 +8,9 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
-@Table(name="kalafche_store")
-public class KalafcheStore {
-
+@Table(name="partner_store")
+public class PartnerStore {
+	
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;

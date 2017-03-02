@@ -2,7 +2,7 @@ package com.kalafche.dao;
 
 import java.util.List;
 
-import com.kalafche.model.PartnerStore;
+import com.kalafche.model.partner.PartnerStore;
 
 public interface PartnerStoreDao {
 

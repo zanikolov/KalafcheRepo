@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.dao.PartnerStoreDao;
-import com.kalafche.model.PartnerStore;
+import com.kalafche.model.partner.PartnerStore;
 
 @CrossOrigin
 @RestController

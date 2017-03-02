@@ -1,48 +1,31 @@
 package com.kalafche.dao.impl;
 
-import com.kalafche.dao.DeviceBrandDao;
-import com.kalafche.model.DeviceBrand;
-
 import java.util.List;
 
-import javax.sql.DataSource;
+import javax.transaction.Transactional;
 
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
-import org.springframework.jdbc.core.support.JdbcDaoSupport;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Repository;
 
-@Service
-public class DeviceBrandDaoImpl extends JdbcDaoSupport implements
-		DeviceBrandDao {
-	private static final String GET_ALL_BRANDS_QUERY = "select * from device_brand";
-	private static final String INSERT_BRAND = "insert into device_brand (name) values (?)";
+import com.kalafche.dao.AbstractDao;
+import com.kalafche.dao.DeviceBrandDao;
+import com.kalafche.model.device.DeviceBrand;
 
-	private BeanPropertyRowMapper<DeviceBrand> rowMapper;
+@Repository
+@Transactional
+public class DeviceBrandDaoImpl extends AbstractDao  implements DeviceBrandDao {
 	
-	@Autowired
-	public DeviceBrandDaoImpl(DataSource dataSource) {
-		super();
-		setDataSource(dataSource);
-	}
+    @Autowired
+    private SessionFactory sessionFactory;	
 	
-	private BeanPropertyRowMapper<DeviceBrand> getRowMapper() {
-		if (rowMapper == null) {
-			rowMapper = new BeanPropertyRowMapper<DeviceBrand>(DeviceBrand.class);
-			rowMapper.setPrimitivesDefaultedForNullValue(true);
-		}
-		
-		return rowMapper;
-	}
-	
+	@SuppressWarnings("unchecked")
 	public List<DeviceBrand> getAllBrands() {		
-		List<DeviceBrand> brands = getJdbcTemplate().query(GET_ALL_BRANDS_QUERY, getRowMapper());
-
-		return brands;
+		return sessionFactory.getCurrentSession().createCriteria(DeviceBrand.class).list();
 	}
 
 	@Override
 	public void insertBrand(DeviceBrand brand) {
-		getJdbcTemplate().update(INSERT_BRAND, brand.getName());
+		save(brand);
 	}
 }

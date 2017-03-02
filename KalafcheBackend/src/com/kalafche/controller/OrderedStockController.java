@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.dao.OrderedStockDao;
 import com.kalafche.exceptions.CommonException;
-import com.kalafche.model.OrderedStock;
+import com.kalafche.model.stock.OrderedStock;
 import com.kalafche.service.OrderedStockService;
 
 @CrossOrigin

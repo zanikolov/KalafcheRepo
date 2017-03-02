@@ -1,7 +1,7 @@
 package com.kalafche.dao;
 
 import com.kalafche.exceptions.CommonException;
-import com.kalafche.model.StockOrder;
+import com.kalafche.model.stock.StockOrder;
 
 public interface StockOrderDao {
 	

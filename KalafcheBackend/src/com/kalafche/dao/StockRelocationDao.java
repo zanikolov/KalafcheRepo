@@ -2,7 +2,7 @@ package com.kalafche.dao;
 
 import java.util.List;
 
-import com.kalafche.model.StockRelocation;
+import com.kalafche.model.stock.StockRelocation;
 
 public abstract interface StockRelocationDao {
 	public abstract List<StockRelocation> getAllStockRelocations();
