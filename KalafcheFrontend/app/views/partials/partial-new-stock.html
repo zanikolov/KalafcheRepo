@@ -73,7 +73,7 @@
                         <tr ng-repeat="stock in newStocks track by $index" ng-form name="newStockFormRow">
                             <td>{{stocksWaitingForApproval.length + $index + 1}}</td>
                             <td>
-                                <input name="stockItemProductCode" class="form-control item-quantity" ng-class="{'error-form-control': newStockFormRow.stockItemProductCode.$dirty && newStockFormRow.stockItemProductCode.$invalid}" ng-model="stock.itemProductCode" ng-blur="getItemProperties(stock)" ng-focus="resetItemProperties(stock)" ng-maxlength="4" required>
+                                <input name="stockItemProductCode" class="form-control item-quantity" ng-class="{'error-form-control': newStockFormRow.stockItemProductCode.$dirty && newStockFormRow.stockItemProductCode.$invalid}" ng-model="stock.itemProductCode" ng-blur="getItemProperties(stock)" ng-focus="resetItemProperties(stock)" ng-maxlength="6" required>
                             </td>
                             <td>{{stock.itemName}}</td>
                             <td>
