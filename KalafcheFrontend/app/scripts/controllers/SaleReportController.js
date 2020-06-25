@@ -40,7 +40,7 @@ angular.module('kalafcheFrontendApp')
             };
             $scope.endDateOptions = {
                 formatYear: 'yy',
-                maxDate: new Date(2020, 5, 22),
+                maxDate: new Date(2025, 5, 22),
                 minDate: $scope.startDate,
                 startingDay: 1,
                 showWeeks: false
