@@ -1,0 +1,100 @@
+<div layout="column" ng-cloak>
+    <md-content layout-padding layout="column">
+        <div flex>
+            <form>    
+                <div layout="row" layout-xs="column" class="md-inline-form">
+<!--                     <div layout-xs="row" flex="20" flex-xs="100" ng-if="isAdmin()">
+                        <md-input-container style="width:95%">
+                            <label>Магазин</label>
+                            <md-select name="selectStore" ng-model="selectedStore.id" ng-change="searchSplit()">
+                                <md-option ng-repeat="store in stores" ng-value="store.id">
+                                    {{store.city}}, {{store.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div> -->
+                    <div layout-xs="row" flex-offset="5" flex="50" flex-xs="100">
+                        <md-input-container>
+                            <md-datepicker style="width:100%" ng-model="startDate" md-min-date="startMinDate" md-max-date="startMaxDate" ng-change="changeStartDate()"></md-datepicker>
+                        </md-input-container>
+                        <md-input-container flex-offset="5">
+                            <md-datepicker style="width:100%" ng-model="endDate" md-min-date="endMinDate" md-max-date="startMaxDate" ng-change="changeEndDate()"></md-datepicker>
+                        </md-input-container>
+                    </div>
+                    <div layout-xs="row" flex-offset="15" flex="30" flex-xs="100">
+<!--                         <md-input-container>
+                            <md-button layout-align="right" ng-click="searchSplit()" class="md-raised md-primary">Търси</md-button>
+                        </md-input-container>     -->                    
+                        <md-input-container>
+                            <md-button layout-align="right" ng-click="generateSplitInExcel()" class="md-raised md-primary">Генерирай документ</md-button>
+                        </md-input-container>
+                    </div>
+                </div>
+            </form>
+        </div>
+<!--         <div flex>
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th>
+                        </th>
+                        <th>
+                            <label>Магазин</label>
+                        </th>
+                        <th>
+                            <label>Търговец</label>
+                        </th>
+                        <th>
+                            <label>Отстъпка</label>
+                        </th>
+                        <th  ng-if="isAdmin()">
+                            <label>Плащане</label>
+                        </th>  
+                        <th  ng-if="isAdmin()">
+                            <label>Дата</label>
+                        </th>                     
+                        <th  ng-if="isAdmin()">
+                            <label>Сума</label>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-click="expand(sale)" expand dir-paginate-start="sale in report.sales | itemsPerPage:salesPerPage" current-page="currentPage" pagination-id="sale">
+                        <td>{{(currentPage - 1) * salesPerPage + $index + 1}}</td>
+                        <td>{{sale.storeName}}</td>
+                        <td>{{sale.employeeName}}</td>
+                        <td>{{sale.discountCodeCode}}</td>
+                        <td  ng-if="isAdmin()">
+                            <span ng-if="sale.isCashPayment">В брой</span>
+                            <span ng-if="!sale.isCashPayment">С карта</span>
+                        </td>
+                        <td  ng-if="isAdmin()">{{getSaleTimestamp(sale.saleTimestamp)}}</td>
+                        <td  ng-if="isAdmin()">{{sale.amount}}лв</td>
+                    </tr>
+                    <tr dir-paginate-end ng-show="sale.expanded" class="sale-details" pagination-id="sale">
+                        <td colspan="6">
+                            <table class="table table-hover table-condensed borderless">
+                                <tbody>
+                                    <tr ng-repeat="saleItem in sale.saleItems">
+                                        <td style="width:2%;">{{$index + 1}}</td>
+                                        <td style="width:15%;">{{saleItem.deviceBrandName}} {{saleItem.deviceModelName}}</td>
+                                        <td style="width:20%;">{{saleItem.productCode}} {{saleItem.productName}}</td>
+                                        <td style="width:8%;"  ng-if="isAdmin()">{{saleItem.salePrice}}лв</td>
+                                        <td style="width:8%;">
+                                            <a href="" ng-if="!saleItem.isRefunded" ng-click="openRefundModal(saleItem)">
+                                                <md-icon class="primary-icon" md-svg-src="images/icons/arrow_back.svg"></md-icon>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls  pagination-id="sale" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div> -->
+    </md-content>
+</div>

@@ -5,7 +5,8 @@ angular.module('kalafcheFrontendApp')
 		angular.extend(this, {
 			submitExpense: submitExpense,
 			searchExpenses: searchExpenses,
-            getExpenseTypes: getExpenseTypes
+            getExpenseTypes: getExpenseTypes,
+            submitExpenseType: submitExpenseType
 		});
 
         function submitExpense(expense, file) {
@@ -49,6 +50,24 @@ angular.module('kalafcheFrontendApp')
                         return response.data
                     }
                 );
+        }
+
+        function submitExpenseType(expenseType) {
+            if (expenseType.id) {
+                return $http.post(Environment.apiEndpoint + '/KalafcheBackend/expense/type', expenseType)
+                    .then(
+                        function(response) {
+                            return response.data;
+                        }
+                    )
+            } else {
+                return $http.put(Environment.apiEndpoint + '/KalafcheBackend/expense/type', expenseType)
+                    .then(
+                        function(response) {
+                            return response.data;
+                        }
+                    )
+            }
         }
 
 	});

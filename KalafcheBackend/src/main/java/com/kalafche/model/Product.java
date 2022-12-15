@@ -15,6 +15,8 @@ public class Product extends BaseModel {
 	private String fabric;
 	private Integer typeId;
 	private String typeName;
+	private Integer masterTypeId;
+	private String masterTypeName;
 	private float price;
 	private float purchasePrice;
 	private List<ProductSpecificPrice> specificPrices;
@@ -120,5 +122,21 @@ public class Product extends BaseModel {
 
 	public void setSpecificPrices(List<ProductSpecificPrice> specificPrices) {
 		this.specificPrices = specificPrices;
+	}
+
+	public Integer getMasterTypeId() {
+		return masterTypeId;
+	}
+
+	public void setMasterTypeId(Integer masterTypeId) {
+		this.masterTypeId = masterTypeId;
+	}
+
+	public String getMasterTypeName() {
+		return masterTypeName;
+	}
+
+	public void setMasterTypeName(String masterTypeName) {
+		this.masterTypeName = masterTypeName;
 	}
 }

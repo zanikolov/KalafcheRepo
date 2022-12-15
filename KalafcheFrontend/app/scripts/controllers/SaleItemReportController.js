@@ -25,6 +25,7 @@ angular.module('kalafcheFrontendApp')
             $scope.selectedModel = {};
             $scope.selectedStore = {};
             $scope.selectedProductType = {};
+            $scope.selectedMasterProductType = {};
             $scope.productCode = "";
             
             $scope.dateFormat = 'dd-MMMM-yyyy';
@@ -59,6 +60,7 @@ angular.module('kalafcheFrontendApp')
             getAllBrands();
             getAllDeviceModels();
             getAllProductTypes()
+            getAllMasterProductTypes();
         }
 
         function getCurrentDate() {
@@ -89,6 +91,12 @@ angular.module('kalafcheFrontendApp')
             ProductService.getAllTypes().then(function(response) {
                 $scope.productTypes = response;
             });
+        };        
+
+        function getAllMasterProductTypes() {
+            ProductService.getAllProductMasterTypes().then(function(response) {
+                $scope.masterProductTypes = response;
+            });
         };
 
         $scope.searchSaleItems = function() {
@@ -97,7 +105,8 @@ angular.module('kalafcheFrontendApp')
 
         function getSaleItems() {
             SaleService.searchSaleItems($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id,
-                $scope.selectedBrand.id, $scope.selectedModel.id, $scope.productCode, $scope.selectedProductType.id).then(function(response) {
+                $scope.selectedBrand.id, $scope.selectedModel.id, $scope.productCode, $scope.selectedProductType.id, $scope.selectedMasterProductType.id,
+                $scope.priceFrom, $scope.priceTo, $scope.discountCampaignCode).then(function(response) {
                 $scope.report = response;
 
                 if ($scope.selectedModel.id && $scope.productCode) {

@@ -8,6 +8,7 @@ angular.module('kalafcheFrontendApp')
             getProductByCode: getProductByCode,
             getProductSpecificPrice: getProductSpecificPrice,
             getAllTypes: getAllTypes,
+            getAllProductMasterTypes: getAllProductMasterTypes,
             submitProductType: submitProductType
 		});
 
@@ -76,6 +77,15 @@ angular.module('kalafcheFrontendApp')
 
         function getAllTypes() {
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/product/type')
+                .then(
+                    function(response) {
+                        return response.data;
+                    }
+                ) ;
+        }
+
+        function getAllProductMasterTypes() {
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/product/masterType')
                 .then(
                     function(response) {
                         return response.data;

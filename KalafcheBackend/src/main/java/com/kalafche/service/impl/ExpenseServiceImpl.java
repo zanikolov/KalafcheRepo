@@ -1,15 +1,20 @@
 package com.kalafche.service.impl;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kalafche.dao.ExpenseDao;
 import com.kalafche.dao.StoreDao;
+import com.kalafche.exceptions.DuplicationException;
+import com.kalafche.model.DiscountCampaign;
+import com.kalafche.model.DiscountCode;
 import com.kalafche.model.Employee;
 import com.kalafche.model.Expense;
 import com.kalafche.model.ExpenseReport;
@@ -88,6 +93,26 @@ public class ExpenseServiceImpl implements ExpenseService {
 		
 		expenseReport.setCount(expenses.size());
 		expenseReport.setTotalAmount(totalAmount);
+	}
+
+	@Override
+	public ExpenseType createExpenseType(ExpenseType expenseType) throws SQLException {
+		validateExpenseType(expenseType);
+		Integer expenseTypeId = expenseDao.insertExpenseType(expenseType);
+		expenseType.setId(expenseTypeId);
+		
+		return expenseType;
+	}
+
+	@Override
+	public void updateExpenseType(ExpenseType expenseType) {
+		expenseDao.updateExpenseType(expenseType);	
+	}
+	
+	private void validateExpenseType(ExpenseType expenseType) {
+		if (expenseDao.checkIfExpenseTypeExists(expenseType)) {
+			throw new DuplicationException("code", "Съществуващ код.");
+		}
 	}
 	
 }

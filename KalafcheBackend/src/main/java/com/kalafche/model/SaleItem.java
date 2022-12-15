@@ -22,6 +22,7 @@ public class SaleItem {
 	private Integer employeeId;
 	private String employeeName;
 	private Boolean isRefunded;
+	private String discountCampaignCode;
 
 	public Integer getId() {
 		return id;
@@ -165,6 +166,14 @@ public class SaleItem {
 
 	public void setIsRefunded(Boolean isRefunded) {
 		this.isRefunded = isRefunded;
+	}
+
+	public String getDiscountCampaignCode() {
+		return discountCampaignCode;
+	}
+
+	public void setDiscountCampaignCode(String discountCampaignCode) {
+		this.discountCampaignCode = discountCampaignCode;
 	}
 
 }

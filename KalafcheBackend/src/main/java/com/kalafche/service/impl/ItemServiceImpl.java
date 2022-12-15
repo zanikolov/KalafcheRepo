@@ -4,12 +4,12 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.kalafche.dao.ItemDao;
 import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.model.Item;
 import com.kalafche.service.ItemService;
-import com.mysql.cj.core.util.StringUtils;
 
 @Service
 public class ItemServiceImpl implements ItemService {
@@ -64,7 +64,7 @@ public class ItemServiceImpl implements ItemService {
 	public void insertItemOrUpdateBarcode(Item item) {
 		Item existingItem = getItemByProductIdAndDeviceModelId(item.getProductId(), item.getDeviceModelId());
 		if (existingItem != null) {
-			if (StringUtils.isNullOrEmpty(existingItem.getBarcode())) {
+			if (StringUtils.isEmpty(existingItem.getBarcode())) {
 				updateItem(item);
 				return;
 			} else {

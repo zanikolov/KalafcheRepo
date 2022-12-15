@@ -1,5 +1,6 @@
 package com.kalafche.service.impl;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
@@ -8,9 +9,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -31,7 +35,9 @@ import com.kalafche.model.PastPeriodTurnover;
 import com.kalafche.model.Sale;
 import com.kalafche.model.SaleItem;
 import com.kalafche.model.SaleReport;
+import com.kalafche.model.SaleSplitReportRequest;
 import com.kalafche.model.SalesByStore;
+import com.kalafche.model.SalesByStoreByDayByProductType;
 import com.kalafche.model.StoreDto;
 import com.kalafche.model.TotalSumReport;
 import com.kalafche.model.TotalSumRequest;
@@ -41,6 +47,7 @@ import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.SaleService;
 import com.kalafche.service.StockService;
+import com.kalafche.service.fileutil.SplitReportExcelWriterService;
 
 @Service
 public class SaleServiceImpl implements SaleService {
@@ -53,6 +60,9 @@ public class SaleServiceImpl implements SaleService {
 	
 	@Autowired
 	DateService dateService;
+	
+	@Autowired
+	SplitReportExcelWriterService splitReportExcelWriterService;
 	
 	@Autowired
 	SaleDao saleDao;
@@ -259,23 +269,26 @@ public class SaleServiceImpl implements SaleService {
 
 	@Override
 	public SaleReport searchSaleItems(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
-			String productCode, Integer deviceBrandId, Integer deviceModelId, Integer productTypeId) {
-		SaleReport saleReport = generateReport(storeIds, startDateMilliseconds, endDateMilliseconds, productCode, deviceBrandId, deviceModelId);
-		
+			String productCode, Integer deviceBrandId, Integer deviceModelId, Integer masterProductTypeId,
+			Integer productTypeId, Float priceFrom, Float priceTo, String discountCampaignCode) {
+		SaleReport saleReport = generateReport(storeIds, startDateMilliseconds, endDateMilliseconds, productCode,
+				deviceBrandId, deviceModelId);
+
 		if (storeIds.equals("0") || storeIds.equals("ANIKO") || storeIds.equals("AZARD")) {
 			storeIds = storeDao.selectStoreIdsByOwner(storeIds);
 		}
-		
-		List<SaleItem> saleItems = saleDao.searchSaleItems(startDateMilliseconds, endDateMilliseconds, storeIds, productCode, deviceBrandId, deviceModelId, productTypeId);
-		
+
+		List<SaleItem> saleItems = saleDao.searchSaleItems(startDateMilliseconds, endDateMilliseconds, storeIds,
+				productCode, deviceBrandId, deviceModelId, masterProductTypeId, productTypeId, priceFrom, priceTo, discountCampaignCode);
+
 		if (deviceModelId != null && productCode != null && productCode != "") {
 			saleReport.setWarehouseQuantity(stockService.getQuantitiyOfStockInWH(productCode, deviceModelId));
 			saleReport.setCompanyQuantity(stockService.getCompanyQuantityOfStock(productCode, deviceModelId));
-		}		
+		}
 
 		calculateTotalAmountAndCountSaleItems(saleItems, saleReport);
 		saleReport.setSaleItems(saleItems);
-		
+
 		return saleReport;
 	}
 
@@ -560,6 +573,25 @@ public class SaleServiceImpl implements SaleService {
 			return saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds);
 		}
 
+	}
+
+	@Override
+	public byte[] getSplitReport(SaleSplitReportRequest saleSplitReportRequest) {
+
+		List<SalesByStoreByDayByProductType> report = saleDao.generateSplitReport(saleSplitReportRequest.getStartDate(),
+				saleSplitReportRequest.getEndDate(), saleSplitReportRequest.getStoreId() != null ? saleSplitReportRequest.getStoreId().toString() : null);
+
+		Map<String, LinkedHashMap<String, List<SalesByStoreByDayByProductType>>> groupedReport = report.stream()
+				.collect(Collectors.groupingBy(SalesByStoreByDayByProductType::getStoreName,
+						Collectors.groupingBy(SalesByStoreByDayByProductType::getDay, LinkedHashMap::new, Collectors.toList())));
+		
+		try {
+			return splitReportExcelWriterService.createSplitReportExcel(groupedReport);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 }

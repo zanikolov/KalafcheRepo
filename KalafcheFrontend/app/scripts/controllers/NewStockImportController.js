@@ -10,7 +10,7 @@ angular.module('kalafcheFrontendApp')
         }
     });
 
-    function NewStockImportController($http, $scope, AuthService, SessionService, ModelService, BrandService, ProductService, NewStockService, StoreService, ServerValidationService) {
+    function NewStockImportController($http, $scope, $element, AuthService, SessionService, ModelService, BrandService, ProductService, NewStockService, StoreService, ServerValidationService) {
 
         init();
 
@@ -73,6 +73,7 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.approveNewStock = function(newStock, index) {
+            newStock.isApproved = true;
             NewStockService.approveNewStock(newStock).then(
                     function(response) {
                         $scope.newStocks.splice(index, 1);
@@ -181,4 +182,12 @@ angular.module('kalafcheFrontendApp')
                 });
             }
         };
+
+        $scope.clearModelSearchTerm= function() {
+            $scope.modelSearchTerm = "";
+        }
+
+        $element.find('#modelSearchTerm').on('keydown', function(ev) {
+            ev.stopPropagation();
+        });
   };

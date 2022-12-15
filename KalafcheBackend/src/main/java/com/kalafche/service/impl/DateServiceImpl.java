@@ -19,14 +19,14 @@ public class DateServiceImpl implements DateService {
 	}
 
 	@Override
-	public String convertMillisToDateTimeString(Long millis, Boolean withTime) {
+	public String convertMillisToDateTimeString(Long millis, String dateFormat, Boolean withTime) {
 		Date date = new java.util.Date(millis);
 		
 		SimpleDateFormat sdf = null;
 		if (withTime) {
-			sdf = new java.text.SimpleDateFormat("dd-MM-yyyy HH:mm");
+			sdf = new java.text.SimpleDateFormat(dateFormat + " HH:mm");
 		} else {
-			sdf = new java.text.SimpleDateFormat("dd-MM-yyyy");
+			sdf = new java.text.SimpleDateFormat(dateFormat);
 		}
 		
 		sdf.setTimeZone(TimeZone.getTimeZone("Europe/Sofia"));

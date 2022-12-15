@@ -2,7 +2,7 @@
      <md-content layout-padding layout="row" layout-xs="column">
         <div flex-xs="100" flex="50">
             <form name="productForm" server-validation novalidate>                
-                <md-input-container class="md-block" flex="15">
+                 <md-input-container class="md-block" flex="15">
                     <label>Код</label>
                     <input ng-model="product.code" name="code" ng-disabled="product.id" required>
                     <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>  
@@ -21,7 +21,7 @@
                         </md-option>
                     </md-select>
                 </md-input-container>
-                <md-input-container class="md-block">
+                 <md-input-container class="md-block">
                     <label>Описание</label>
                     <input ng-model="product.description" name="description">
                 </md-input-container>
@@ -37,21 +37,20 @@
                 </md-input-container>
             </form>
         </div>
-        <div layout="column" flex-offset="5" flex="45" style="margin-top:5px">
+<!--         <div layout="column" flex-offset="5" flex="45" style="margin-top:5px">
             <div layout="row" ng-repeat="specificPrice in product.specificPrices">
-                <!-- <span></span> -->
                 <md-input-container class="md-block" style="margin:0">
                     <label>{{specificPrice.storeName}}</label>
                     <input type="number" min="0" step="0.01" ng-model="specificPrice.price">
                 </md-input-container>
             </div>
-        </div>
+        </div> -->
     </md-content>
     <md-content layout-padding layout="row">
         <md-button ng-disabled="productForm.$invalid" ng-click="submitProduct()" class="md-raised md-primary">Запази</md-button>
         <md-button ng-if="product.id" class="md-raised md-primary" ng-click="resetProductForm()">Отмени</md-button>
     </md-content>
-    <md-content layout-padding layout="row">
+     <md-content layout-padding layout="row">
         <div layout-xs="row" flex="100" flex-xs="100">
             <md-input-container style="width:100px">
                 <label>Код</label>

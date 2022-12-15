@@ -5,7 +5,7 @@ public class ExpenseType {
 	private Integer id;
 	private String code;
 	private String name;
-	private Boolean isAdmin;
+	private boolean isAdmin;
 
 	public Integer getId() {
 		return id;
@@ -31,11 +31,11 @@ public class ExpenseType {
 		this.name = name;
 	}
 
-	public Boolean getIsAdmin() {
+	public boolean getIsAdmin() {
 		return isAdmin;
 	}
 
-	public void setIsAdmin(Boolean isAdmin) {
+	public void setIsAdmin(boolean isAdmin) {
 		this.isAdmin = isAdmin;
 	}
 

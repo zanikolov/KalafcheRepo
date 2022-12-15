@@ -4,5 +4,5 @@ public interface DateService {
 
 	public long getCurrentMillisBGTimezone();
 
-	public String convertMillisToDateTimeString(Long millis, Boolean withTime);
+	public String convertMillisToDateTimeString(Long millis, String dateFormat, Boolean withTime);
 }

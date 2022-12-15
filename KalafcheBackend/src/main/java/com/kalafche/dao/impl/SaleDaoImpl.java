@@ -7,7 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -16,10 +18,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import com.kalafche.dao.SaleDao;
 import com.kalafche.model.Sale;
 import com.kalafche.model.SalesByStore;
+import com.kalafche.model.SalesByStoreByDayByProductType;
+import com.kalafche.service.DateService;
 import com.kalafche.model.SaleItem;
 
 @Service
@@ -59,10 +64,12 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"e.name as employee_name, " +
 			"ks.id as store_id, " +
 			"CONCAT(ks.city, \", \", ks.name) as store_name, " +
+			"dca.code as discountCampaignCode, " +
 			"dc.code as discountCodeCode " +
 			"from sale_item si " +
 			"join sale s on si.sale_id = s.id " +
 			"left join discount_code dc on s.discount_code_id = dc.id " +
+			"left join discount_campaign dca on dc.discount_campaign_id = dca.id " +
 			"join item_vw iv on iv.id = si.item_id " +
 			"join store ks on ks.id = s.store_id " +
 			"join employee e on e.id = s.employee_id ";
@@ -82,10 +89,13 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	private static final String PERIOD_CRITERIA_QUERY = " where sale_timestamp between ? and ?";
 	private static final String STORE_CRITERIA_QUERY = " and ks.id in (%s)";
 	private static final String REFUND_QUERY = " and si.is_refunded <> true";
-	private static final String PRODUCT_CODE_QUERY = " and iv.product_code in (?)";
+	private static final String PRODUCT_CODE_QUERY = " and iv.product_code in (%s)";
 	private static final String DEVICE_BRAND_QUERY = " and iv.device_brand_id = ?";
 	private static final String DEVICE_MODEL_QUERY = " and iv.device_model_id = ?";
+	private static final String DISCOUNT_CAMPAIGN_QUERY = " and dca.code = ?";
+	private static final String MASTER_PRODUCT_TYPE_QUERY = " and iv.product_master_type_id = ?";
 	private static final String PRODUCT_TYPE_QUERY = " and iv.product_type_id = ?";
+	private static final String PRICE_QUERY = " and si.sale_price between ? and ?";
 	private static final String INSERT_SALE = "insert into sale (employee_id, store_id, sale_timestamp, is_cash_payment, discount_code_id)"
 			+ " values (?, ?, ?, ?, ?)";
 	private static final String ORDER_BY_SALE = " order by s.sale_timestamp";
@@ -118,9 +128,74 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 
 	private static final String GET_SALE_ITEM_PRICE = "select sale_price from sale_item where id = ?";
 	
+	private static final String GET_SPLIT_REPORT = "select " +
+		"t1.store_id, " +
+		"t1.store_name, " +
+		"t1.day as day, " +
+		"t1.product_type_id, " +
+		"t1.product_type_name, " +
+		"t1.master_type_id, " +
+		"t2.sold_items as sold_items_count " +
+		"from " +
+		"( " +
+		"   select " +
+		"   st.id as store_id, " +
+		"   CONCAT(st.city,', ',st.name) as store_name, " +
+		"   dateGen.day as day, " +
+		"   pt.id as product_type_id, " +
+		"   pt.name as product_type_name, " +
+		"   pt.master_type_id " +
+		"   from " +
+		"   ( " +
+		"	    select dg.d as day from ( " +
+		"		    select curdate() - INTERVAL (a.a + (10 * b.a) + (100 * c.a) + (1000 * d.a) ) DAY as d " +
+		"		    from (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as a " +
+		"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as b " +
+		"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as c " +
+		"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as d) dg " +
+		"	    where dg.d between ? and ? " +
+		"   ) " +
+		"   dateGen " +
+		"   cross join product_type pt " +
+		"   cross join store st " +
+		"   where st.IS_STORE is true " +
+		") " +
+		"t1 " +
+		"left join " +
+		"( " +
+		"   select " +
+		"   s.store_id as store_id, " +
+		"   CONCAT(st.city,', ',st.name) as store_name, " +
+		"   DATE_FORMAT(from_unixtime(floor(s.SALE_TIMESTAMP/1000)),'%Y-%m-%d') as day, " +
+		"   pt.id as product_type_id, " +
+		"   pt.name as product_type_name, " +
+		"   pt.master_type_id, " +
+		"   count(si.id) as sold_items " +
+		"   from product_type pt " +
+		"   join product p on pt.id = p.type_id " +
+		"   join item i on i.product_id = p.id " +
+		"   join sale_item si on si.item_id = i.id " +
+		"   join sale s on s.id = si.sale_id " +
+		"   join store st on s.store_id = st.id " +
+		"   where si.is_refunded is false " +
+		"   and s.SALE_TIMESTAMP between ? and ? " +
+		"   group by day, product_type_id, store_id " +
+		") " +
+		"t2 on t1.store_id = t2.store_id " +
+		"and t1.store_name = t2.store_name " +
+		"and t1.day = t2.day " +
+		"and t1.product_type_id = t2.product_type_id " +
+		"and t1.product_type_name = t2.product_type_name ";
+	private static final String FILTER_SPLIT_REPORT_BY_STORE = "where t1.store_id = %s "; 
+	private static final String ORDER_SPLIT_REPORT = "order by store_id, day, master_type_id, product_type_id; ";
+	
+	@Autowired
+	private DateService dateService;
+	
 	private BeanPropertyRowMapper<Sale> saleRowMapper;
 	private BeanPropertyRowMapper<SaleItem> saleItemRowMapper;
 	private BeanPropertyRowMapper<SalesByStore> saleByStoreRowMapper;
+	private BeanPropertyRowMapper<SalesByStoreByDayByProductType> saleByStoreByDayByProductTypeRowMapper;
 
 	@Autowired
 	public SaleDaoImpl(DataSource dataSource) {
@@ -144,6 +219,15 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		}
 		
 		return saleItemRowMapper;
+	}
+	
+	private BeanPropertyRowMapper<SalesByStoreByDayByProductType> getSalesByStoreByDayByProductTypeRowMapper() {
+		if (saleByStoreByDayByProductTypeRowMapper == null) {
+			saleByStoreByDayByProductTypeRowMapper = new BeanPropertyRowMapper<SalesByStoreByDayByProductType>(SalesByStoreByDayByProductType.class);
+			saleByStoreByDayByProductTypeRowMapper.setPrimitivesDefaultedForNullValue(true);
+		}
+		
+		return saleByStoreByDayByProductTypeRowMapper;
 	}
 	
 	private BeanPropertyRowMapper<SalesByStore> getSaleByStoreRowMapper() {
@@ -205,14 +289,15 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	}
 	
 	@Override
-	public List<SaleItem> searchSaleItems(Long startDateMilliseconds,
-			Long endDateMilliseconds, String storeIds, String productCode, Integer deviceBrandId, Integer deviceModelId, Integer productTypeId) {
+	public List<SaleItem> searchSaleItems(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
+			String productCode, Integer deviceBrandId, Integer deviceModelId, Integer masterProductTypeId, Integer productTypeId, Float priceFrom,
+			Float priceTo, String discountCampaignCode) {
 		String searchQuery = GET_ALL_SALE_ITEMS_QUERY + PERIOD_CRITERIA_QUERY + String.format(STORE_CRITERIA_QUERY, storeIds) + REFUND_QUERY;
 		List<Object> argsList = new ArrayList<Object>();
 		argsList.add(startDateMilliseconds);
 		argsList.add(endDateMilliseconds);
 		
-		searchQuery += addDetailedSearch(productCode, deviceBrandId, deviceModelId, productTypeId, argsList);
+		searchQuery += addDetailedSearch(productCode, deviceBrandId, deviceModelId, masterProductTypeId, productTypeId, priceFrom, priceTo, discountCampaignCode, argsList);
 		
 		searchQuery += ORDER_BY_SALE;
 		
@@ -223,28 +308,50 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 				searchQuery, argsArr, getSaleItemRowMapper());
 	}
 
-	private String addDetailedSearch(String productCode, Integer deviceBrandId, Integer deviceModelId, Integer productTypeId, List<Object> args) {
+	private String addDetailedSearch(String productCode, Integer deviceBrandId, Integer deviceModelId,
+			Integer productTypeId, Integer masterProductTypeId, Float priceFrom, Float priceTo,
+			String discountCampaignCode, List<Object> args) {
 		String detailedQuery = "";
-		if (productCode != null && productCode != "") {
-			detailedQuery += PRODUCT_CODE_QUERY;
-			args.add(productCode);
+
+		detailedQuery += PRICE_QUERY;
+		if (priceFrom == null) {
+			priceFrom = 0F;
 		}
-		
+		if (priceTo == null) {
+			priceTo = 5000f;
+		}
+		args.add(priceFrom);
+		args.add(priceTo);
+
+		if (productCode != null && productCode != "") {
+			detailedQuery += String.format(PRODUCT_CODE_QUERY, productCode);
+		}
+
+		if (discountCampaignCode != null && discountCampaignCode != "") {
+			detailedQuery += DISCOUNT_CAMPAIGN_QUERY;
+			args.add(discountCampaignCode);
+		}
+
 		if (deviceBrandId != null) {
 			detailedQuery += DEVICE_BRAND_QUERY;
 			args.add(deviceBrandId);
 		}
-		
+
 		if (deviceModelId != null) {
 			detailedQuery += DEVICE_MODEL_QUERY;
 			args.add(deviceModelId);
 		}
-		
-		if (productTypeId != null) {
+
+		if (masterProductTypeId != null) {
 			detailedQuery += PRODUCT_TYPE_QUERY;
-			args.add(productTypeId);
+			args.add(masterProductTypeId);
 		}
 		
+		if (productTypeId != null) {
+			detailedQuery += MASTER_PRODUCT_TYPE_QUERY;
+			args.add(productTypeId);
+		}
+
 		return detailedQuery;
 	}
 
@@ -286,6 +393,29 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 
 		return getJdbcTemplate().query(
 				searchQuery, argsArr, getSaleByStoreRowMapper());
+	}
+
+	@Override
+	public List<SalesByStoreByDayByProductType> generateSplitReport(Long startDateMilliseconds, Long endDateMilliseconds, String storeId) {
+		String searchQuery = GET_SPLIT_REPORT;
+		if (!StringUtils.isEmpty(storeId)) {
+			searchQuery += String.format(FILTER_SPLIT_REPORT_BY_STORE, storeId);
+		}
+		searchQuery += ORDER_SPLIT_REPORT;
+		
+		System.out.println(dateService.convertMillisToDateTimeString(startDateMilliseconds, "yyyy-MM-dd", false));
+		System.out.println(dateService.convertMillisToDateTimeString(endDateMilliseconds, "yyyy-MM-dd", false));
+		List<Object> argsList = new ArrayList<Object>();
+		argsList.add(dateService.convertMillisToDateTimeString(startDateMilliseconds, "yyyy-MM-dd", false));
+		argsList.add(dateService.convertMillisToDateTimeString(endDateMilliseconds, "yyyy-MM-dd", false));
+		argsList.add(startDateMilliseconds);
+		argsList.add(endDateMilliseconds);
+		
+		Object[] argsArr = new Object[argsList.size()];
+		argsArr = argsList.toArray(argsArr);
+				
+		return getJdbcTemplate().query(
+				searchQuery, argsArr, getSalesByStoreByDayByProductTypeRowMapper());
 	}
 	
 }

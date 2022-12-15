@@ -40,6 +40,9 @@
                         <label>Магазин</label>
                     </th>
                     <th>
+                        <label>Тип</label>
+                    </th>                    
+                    <th>
                         <label>Служител</label>
                     </th>
                     <th>
@@ -54,6 +57,7 @@
                 <tr ng-click="expand(expense)" expand dir-paginate-start="expense in expenses | itemsPerPage:expensesPerPage" current-page="currentPage">
                     <td>{{(currentPage - 1) * expensesPerPage + $index + 1}}</td>
                     <td>{{expense.storeName}}</td>
+                    <td>{{expense.typeName}}</td>
                     <td>{{expense.employeeName}}</td>
                     <td>{{getTimestamp(expense.timestamp)}}</td>
                     <td>{{expense.price}}лв</td>

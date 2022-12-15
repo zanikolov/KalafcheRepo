@@ -24,8 +24,8 @@ public class SaleItemExcelReportServiceImpl implements SaleItemExcelReportServic
 	public byte[] generateExcel(SaleItemExcelReportRequest saleItemExcelReportRequest) {
 		XSSFWorkbook workbook = new XSSFWorkbook();
 		XSSFSheet sheet = workbook.createSheet(String.format("Продажби",
-				dateService.convertMillisToDateTimeString(saleItemExcelReportRequest.getStartDate(), false),
-				dateService.convertMillisToDateTimeString(saleItemExcelReportRequest.getEndDate(), false)));
+				dateService.convertMillisToDateTimeString(saleItemExcelReportRequest.getStartDate(), "dd-MM-yyyy", false),
+				dateService.convertMillisToDateTimeString(saleItemExcelReportRequest.getEndDate(), "dd-MM-yyyy", false)));
 
 		int rowNum = 0;		
 		for (SaleItem saleItem : saleItemExcelReportRequest.getSaleItems()) {
@@ -49,7 +49,7 @@ public class SaleItemExcelReportServiceImpl implements SaleItemExcelReportServic
 
 			Cell saleTimestampCell = row.createCell(colNum++);
 			saleTimestampCell
-					.setCellValue((String) dateService.convertMillisToDateTimeString(saleItem.getSaleTimestamp(), true));
+					.setCellValue((String) dateService.convertMillisToDateTimeString(saleItem.getSaleTimestamp(), "dd-MM-yyyy", true));
 
 			Cell salePriceCell = row.createCell(colNum++);
 			salePriceCell.setCellValue((String) saleItem.getSalePrice().toPlainString());

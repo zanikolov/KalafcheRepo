@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.BaseController;
 import com.kalafche.model.Product;
+import com.kalafche.model.ProductMasterType;
 import com.kalafche.model.ProductSpecificPrice;
 import com.kalafche.model.ProductType;
 import com.kalafche.service.ProductService;
@@ -54,7 +55,7 @@ public class ProductController extends BaseController {
 	}
 
 	@GetMapping("/type")
-	public List<ProductType> getProductTypes(@PathVariable(value = "productId", required = false) Integer productId) {
+	public List<ProductType> getProductTypes() {
 		return productService.getProductTypes();
 	}
 	
@@ -68,4 +69,9 @@ public class ProductController extends BaseController {
 		this.productService.updateProductType(productType);
 	}
 	
+	@GetMapping("/masterType")
+	public List<ProductMasterType> getProductMasterTypes() {
+		return productService.getProductMasterTypes();
+	}
+
 }

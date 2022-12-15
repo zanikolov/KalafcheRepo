@@ -1,12 +1,15 @@
 package com.kalafche.controller;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -41,6 +44,16 @@ public class ExpenseController {
 	@GetMapping("/type")
 	public List<ExpenseType> getExpenseTypes() {
 		return expenseService.getExpenseTypes();
+	}
+	
+	@PutMapping("/type")
+	public ExpenseType createExpenseType(@RequestBody ExpenseType expenseType) throws SQLException {
+		return expenseService.createExpenseType(expenseType);
+	}
+	
+	@PostMapping("/type")
+	public void updateExpenseType(@RequestBody ExpenseType expenseType) throws SQLException {
+		expenseService.updateExpenseType(expenseType);
 	}
 
 }

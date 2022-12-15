@@ -4,12 +4,22 @@ angular.module('kalafcheFrontendApp')
 	.service('StoreService', function($http, Environment, SessionService) {
 		angular.extend(this, {
             getAllStores: getAllStores,
+            getAllEntities: getAllEntities,
             getSelectedStore: getSelectedStore,
             submitStore: submitStore,
             getRealSelectedStore: getRealSelectedStore
 		});
 
         function getAllStores() {   
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/store')
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                ) ;
+        };
+
+        function getAllEntities() {   
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/store/entities')
                 .then(
                     function(response) {

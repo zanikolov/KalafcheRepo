@@ -26,57 +26,71 @@
                     </div>
                 </div>
 
-                <div layout="row" layout-xs="column" class="md-inline-form">
-                    <div layout-xs="row" flex="50" flex-xs="100">
+                <!-- <div layout="row" layout-xs="column" class="md-inline-form"> -->
+                <div layout="row" layout-xs="row" flex="50" flex-xs="100">
+                    <md-input-container style="width:48%">
+                        <label>Марка</label>
+                        <md-select ng-model="selectedBrand.id" ng-change="resetCurrentPage()">
+                            <md-option value="" selected>Всички</md-option>
+                            <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                                {{brand.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container style="width:48%">
+                        <label>Модел</label>
+                        <md-select ng-model="selectedModel.id" ng-disabled="!selectedBrand.id" ng-change="resetCurrentPage()">
+                            <md-option value="" selected>Всички</md-option>
+                            <md-option ng-repeat="model in models | filter: {deviceBrandId : selectedBrand.id} : true" ng-value="model.id">
+                                {{model.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <!-- </div> -->
+                <div layout="row" flex="50" layout-xs="row" flex-xs="100">
+                    <div flex="70" layout-xs="row" flex-xs="100">
                         <md-input-container style="width:48%">
-                            <label>Марка</label>
-                            <md-select ng-model="selectedBrand.id" ng-change="resetCurrentPage()">
+                            <label>Master тип</label>
+                            <md-select name="typeId" ng-model="selectedMasterProductType.id">
                                 <md-option value="" selected>Всички</md-option>
-                                <md-option ng-repeat="brand in brands" ng-value="brand.id">
-                                    {{brand.name}}
+                                <md-option ng-repeat="masterProductType in masterProductTypes" ng-value="masterProductType.id">
+                                    {{masterProductType.name}}
                                 </md-option>
                             </md-select>
                         </md-input-container>
                         <md-input-container style="width:48%">
-                            <label>Модел</label>
-                            <md-select ng-model="selectedModel.id" ng-disabled="!selectedBrand.id" ng-change="resetCurrentPage()">
-                                <md-option value="" selected>Всички</md-option>
-                                <md-option ng-repeat="model in models | filter: {deviceBrandId : selectedBrand.id} : true" ng-value="model.id">
-                                    {{model.name}}
-                                </md-option>
-                            </md-select>
-                        </md-input-container>
-                    </div>
-<!--                     <div layout-xs="row" flex-offset="5" flex="50" flex-xs="100">
-                        <md-input-container style="width:48%">
-                            <label>Тип</label>
-                            <md-select name="typeId" ng-model="productTypeId" required>
-                                <md-option value="" selected></md-option>
-                                <md-option ng-repeat="productType in productTypes" ng-value="productType.id">
-                                    {{productType.name}}
-                                </md-option>
-                            </md-select>
-                        </md-input-container>
-                        <md-input-container style="width:48%">
-                            <label>Код</label>
-                            <input ng-model="productCode" name="productCode">
-                        </md-input-container> 
-                    </div> -->
-                    <div layout-xs="row" flex-offset="5" flex="25" flex-xs="100">
-                        <md-input-container style="width:100%">
                             <label>Тип</label>
                             <md-select name="typeId" ng-model="selectedProductType.id">
                                 <md-option value="" selected>Всички</md-option>
-                                <md-option ng-repeat="productType in productTypes" ng-value="productType.id">
+                                <md-option ng-repeat="productType in productTypes | filter: {masterTypeId : selectedMasterProductType.id} : false" ng-value="productType.id">
                                     {{productType.name}}
                                 </md-option>
                             </md-select>
                         </md-input-container>
                     </div>
-                    <div layout-xs="row" flex-offset="5" flex="15" flex-xs="50">
+                    <div flex="20" flex-offset="5" layout-xs="row" flex-offset-xs="0" flex-xs="100">
                         <md-input-container>
                             <label>Код</label>
                             <input ng-model="productCode" name="productCode">
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout-xs="row" flex="50" flex-xs="100">
+                    <md-input-container style="width:48%">
+                        <label>Цена от</label>
+                        <input type="number" min="0" step="0.01" ng-model="priceFrom" name="priceFrom">
+                    </md-input-container>
+                    <md-input-container style="width:48%">
+                        <label>Цена до</label>
+                        <input type="number" min="0" step="0.01" ng-model="priceTo" name="priceTo">
+                    </md-input-container>
+                </div>
+                <div layout="row" layout-xs="column" class="md-inline-form">
+                     <div layout-xs="row" flex="50" flex-xs="100">
+                        <md-input-container>
+                            <label>Кампания код</label>
+                            <input ng-model="discountCampaignCode" name="discountCampaignCode">
                         </md-input-container>
                     </div>
                 </div>

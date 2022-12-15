@@ -1,9 +1,9 @@
 package com.kalafche.service;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import com.kalafche.model.Product;
+import com.kalafche.model.ProductMasterType;
 import com.kalafche.model.ProductSpecificPrice;
 import com.kalafche.model.ProductType;
 
@@ -26,5 +26,7 @@ public interface ProductService {
 	void updateProductType(ProductType productType);
 
 	ProductSpecificPrice getProductSpecificPrice(Integer productId, Integer storeId);
+
+	List<ProductMasterType> getProductMasterTypes();
 
 }

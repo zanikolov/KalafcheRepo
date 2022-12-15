@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kalafche.dao.ProductDao;
 import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.model.Product;
+import com.kalafche.model.ProductMasterType;
 import com.kalafche.model.ProductSpecificPrice;
 import com.kalafche.model.ProductType;
 import com.kalafche.service.ProductService;
@@ -71,6 +72,11 @@ public class ProductServiceImpl implements ProductService {
 	@Override
 	public List<ProductType> getProductTypes() {
 		return productDao.getAllProductTypes();
+	}
+	
+	@Override
+	public List<ProductMasterType> getProductMasterTypes() {
+		return productDao.getAllProductMasterTypes();
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.kalafche.service;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -16,5 +17,9 @@ public interface ExpenseService {
 	public List<ExpenseType> getExpenseTypes();
 
 	public ExpenseReport searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds);
+
+	public ExpenseType createExpenseType(ExpenseType expenseType) throws SQLException;
+	
+	public void updateExpenseType(ExpenseType expenseType);
 
 }

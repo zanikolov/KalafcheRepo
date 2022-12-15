@@ -18,11 +18,13 @@ angular.module('kalafcheFrontendApp')
         function init() {
             $scope.productType = {}; 
             $scope.productTypes = [];
+            $scope.productMasterTypes = [];
             $scope.currentPage = 1; 
             $scope.productTypesPerPage = 20;
             $scope.serverErrorMessages = {};
 
             getAllProductTypes();
+            getAllProductMasterTypes();
         }
 
         $scope.resetProductType = function () {
@@ -32,6 +34,12 @@ angular.module('kalafcheFrontendApp')
         function getAllProductTypes() {
             ProductService.getAllTypes().then(function(response) {
                 $scope.productTypes = response;
+            });
+        };
+
+        function getAllProductMasterTypes() {
+            ProductService.getAllProductMasterTypes().then(function(response) {
+                $scope.productMasterTypes = response;
             });
         };
 
@@ -51,6 +59,7 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.submitProductType = function() {
+            console.log($scope.productType);
             ProductService.submitProductType($scope.productType).then(function(response) {
                 $scope.resetProductTypeForm();
                 getAllProductTypes();

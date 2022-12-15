@@ -1,7 +1,9 @@
 package com.kalafche.controller;
 
 import java.sql.SQLException;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,10 @@ import com.kalafche.model.Sale;
 import com.kalafche.model.SaleItem;
 import com.kalafche.model.SaleItemExcelReportRequest;
 import com.kalafche.model.SaleReport;
+import com.kalafche.model.SaleSplitReportRequest;
+import com.kalafche.model.SalesByStoreByDayByProductType;
+import com.kalafche.model.SplitReport;
+import com.kalafche.model.StoreDto;
 import com.kalafche.model.TotalSumReport;
 import com.kalafche.model.TotalSumRequest;
 import com.kalafche.service.SaleService;
@@ -47,11 +53,19 @@ public class SaleController {
 	}
 	
 	@GetMapping("/saleItem")
-	public SaleReport searchSaleItems(@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds, 
-			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds, @RequestParam(value = "storeIds") String storeIds,
-			@RequestParam(value = "productCode", required = false) String productCode, @RequestParam(value = "deviceBrandId", required = false) Integer deviceBrandId,
-			@RequestParam(value = "deviceModelId", required = false) Integer deviceModelId, @RequestParam(value = "productTypeId", required = false) Integer productTypeId) {
-		return saleService.searchSaleItems(startDateMilliseconds, endDateMilliseconds, storeIds, productCode, deviceBrandId, deviceModelId, productTypeId);
+	public SaleReport searchSaleItems(@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds,
+			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds,
+			@RequestParam(value = "storeIds") String storeIds,
+			@RequestParam(value = "productCode", required = false) String productCode,
+			@RequestParam(value = "deviceBrandId", required = false) Integer deviceBrandId,
+			@RequestParam(value = "deviceModelId", required = false) Integer deviceModelId,
+			@RequestParam(value = "masterProductTypeId", required = false) Integer masterProductTypeId,
+			@RequestParam(value = "productTypeId", required = false) Integer productTypeId,
+			@RequestParam(value = "priceFrom", required = false) Float priceFrom,	
+			@RequestParam(value = "priceTo", required = false) Float priceTo,	
+			@RequestParam(value = "discountCampaignCode", required = false) String discountCampaignCode) {
+		return saleService.searchSaleItems(startDateMilliseconds, endDateMilliseconds, storeIds, productCode,
+				deviceBrandId, deviceModelId, masterProductTypeId, productTypeId, priceFrom, priceTo, discountCampaignCode);
 	}
 	
 	@GetMapping("/store")
@@ -81,6 +95,23 @@ public class SaleController {
 	@PostMapping("/totalSum")
 	public TotalSumReport getTotalSum(@RequestBody TotalSumRequest totalSumRequest) {
 		return saleService.calculateTotalSum(totalSumRequest);
+	}
+	
+	@PostMapping("/split")
+	public ResponseEntity<byte[]> printSplitReport(@RequestBody SaleSplitReportRequest saleSplitReportRequest) {
+	
+		byte[] excelBytes = saleService.getSplitReport(saleSplitReportRequest);
+	
+		HttpHeaders headers = new HttpHeaders();
+	    headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
+	    String filename = "split-report.xlsx";
+	    headers.setContentDispositionFormData(filename, filename);
+	    headers.set("Content-Transfer-Encoding", "binary");
+	    headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+	    
+	    ResponseEntity<byte[]> response = new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);	    
+	    
+	    return response;
 	}
 	
 	@PostMapping("/excel")

@@ -11,13 +11,14 @@ import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.ProductDao;
 import com.kalafche.model.Product;
+import com.kalafche.model.ProductMasterType;
 import com.kalafche.model.ProductSpecificPrice;
 import com.kalafche.model.ProductType;
 
 @Service
 public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 	
-	private static final String GET_ALL_PRODUCTS_QUERY = "select p.id, p.name, p.code, p.price, p.fabric, p.type_id, pt.name as type_name from product p left join product_type pt on p.type_id = pt.id order by code desc";
+	private static final String GET_ALL_PRODUCTS_QUERY = "select p.id, p.name, p.code, p.price, p.fabric, p.type_id, pt.name as type_name, pmt.id as master_type_id, pmt.name as master_type_name from product p left join product_type pt on p.type_id = pt.id left join product_master_type pmt on pmt.id = pt.master_type_id order by code desc";
 	private static final String INSERT_PRODUCT = "insert into product(name, code, description, price, fabric, type_id) values (?, ?, ?, ?, ?, ?)";
 	private static final String UPDATE_PRODUCT = "update product set name = ?, description = ?, fabric = ?, price = ?, type_id = ? where id = ?";
 	private static final String GET_PRODUCT_BY_CODE_QUERY = "select * from product where code = ?";
@@ -42,14 +43,16 @@ public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 	private static final String DELETE_PRODUCT_SPECIFIC_PRICE = "delete from product_specific_price "
 			+ " where product_id = ? ";
 	
-	private static final String GET_ALL_PRODUCT_TYPES = "select * from product_type order by id asc";
+	private static final String GET_ALL_PRODUCT_TYPES = "select pt.id as id, pt.name as name, pmt.id as master_type_id, pmt.name as master_type_name from product_type pt left join product_master_type pmt on pt.master_type_id = pmt.id order by pt.id asc";
+	private static final String GET_ALL_PRODUCT_MASTER_TYPES = "select * from product_master_type order by id asc";
 	private static final String CHECK_IF_PRODUCT_TYPE_NAME_EXISTS = "select count(*) from product_type where name = ?";
-	private static final String INSERT_PRODUCT_TYPE = "insert into product_type(name) values (?)";
-	private static final String UPDATE_PRODUCT_TYPE = "update product_type set name = ? where id = ?";
+	private static final String INSERT_PRODUCT_TYPE = "insert into product_type(name, master_type_id) values (?, ?)";
+	private static final String UPDATE_PRODUCT_TYPE = "update product_type set name = ?, master_type_id = ? where id = ?";
 	
 	private BeanPropertyRowMapper<Product> productRowMapper;
 	private BeanPropertyRowMapper<ProductSpecificPrice> specificPriceRowMapper;
 	private BeanPropertyRowMapper<ProductType> productTypeRowMapper;
+	private BeanPropertyRowMapper<ProductMasterType> productMasterTypeRowMapper;
 	
 	@Autowired
 	public ProductDaoImpl(DataSource dataSource) {
@@ -82,6 +85,15 @@ public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 		}
 
 		return productTypeRowMapper;
+	}
+	
+	private BeanPropertyRowMapper<ProductMasterType> getProductMasterTypeRowMapper() {
+		if (productMasterTypeRowMapper == null) {
+			productMasterTypeRowMapper = new BeanPropertyRowMapper<ProductMasterType>(ProductMasterType.class);
+			productMasterTypeRowMapper.setPrimitivesDefaultedForNullValue(true);
+		}
+		
+		return productMasterTypeRowMapper;
 	}
 	
 	@Override
@@ -149,6 +161,11 @@ public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 	public List<ProductType> getAllProductTypes() {
 		return getJdbcTemplate().query(GET_ALL_PRODUCT_TYPES, getProductTypeRowMapper());
 	}
+	
+	@Override
+	public List<ProductMasterType> getAllProductMasterTypes() {
+		return getJdbcTemplate().query(GET_ALL_PRODUCT_MASTER_TYPES, getProductMasterTypeRowMapper());
+	}
 
 	@Override
 	public boolean checkIfProductTypeNameExists(ProductType productType) {
@@ -164,12 +181,12 @@ public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 
 	@Override
 	public void insertProductType(ProductType productType) {
-		getJdbcTemplate().update(INSERT_PRODUCT_TYPE, productType.getName());	
+		getJdbcTemplate().update(INSERT_PRODUCT_TYPE, productType.getName(), productType.getMasterTypeId());	
 	}
 
 	@Override
 	public void updateProductType(ProductType productType) {
-		getJdbcTemplate().update(UPDATE_PRODUCT_TYPE, productType.getName(), productType.getId());
+		getJdbcTemplate().update(UPDATE_PRODUCT_TYPE, productType.getName(), productType.getMasterTypeId(), productType.getId());
 	}
 
 	@Override

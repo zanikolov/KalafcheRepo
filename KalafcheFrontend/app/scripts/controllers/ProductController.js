@@ -19,7 +19,7 @@ angular.module('kalafcheFrontendApp')
             $scope.product = {}; 
             $scope.products = [];
             $scope.currentPage = 1; 
-            $scope.productsPerPage = 20;
+            $scope.productsPerPage = 50;
             $scope.serverErrorMessages = {};
 
             getAllTypes();

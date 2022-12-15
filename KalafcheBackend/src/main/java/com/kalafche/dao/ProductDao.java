@@ -3,6 +3,7 @@ package com.kalafche.dao;
 import java.util.List;
 
 import com.kalafche.model.Product;
+import com.kalafche.model.ProductMasterType;
 import com.kalafche.model.ProductSpecificPrice;
 import com.kalafche.model.ProductType;
 
@@ -35,5 +36,7 @@ public abstract interface ProductDao {
 	public abstract void updateProductType(ProductType productType);
 
 	public abstract ProductSpecificPrice getProductSpecificPrice(Integer productId, Integer storeId);
+
+	public abstract List<ProductMasterType> getAllProductMasterTypes();
 	
 }

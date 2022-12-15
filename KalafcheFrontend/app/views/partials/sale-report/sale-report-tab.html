@@ -9,8 +9,11 @@
   		<md-tab label="Транзакции">
   			<sale-report-by-transaction></sale-report-by-transaction>
   		</md-tab>
-  		<md-tab ng-if="isAdmin()" label="Месечни">
-  			<sale-report-by-month></sale-report-by-month>
-  		</md-tab>
+      <md-tab ng-if="isAdmin()" label="Месечни">
+        <sale-report-by-month></sale-report-by-month>
+      </md-tab>     
+      <md-tab ng-if="isAdmin()" label="Split">
+        <sale-split-report></sale-split-report>
+      </md-tab>
   	</md-tabs>
 </md-content>
