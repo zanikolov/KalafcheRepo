@@ -68,5 +68,13 @@ angular.module('kalafcheFrontendApp')
         $scope.isAdmin = function() {
             return AuthService.isAdmin();
         }
+        
+        $scope.isManager = function() {
+            return AuthService.isManager();
+        }
+
+        $scope.isUser = function() {
+            return AuthService.isUser();
+        }
 
 	};

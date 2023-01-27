@@ -8,10 +8,12 @@ public interface EntityService {
 
 	List<StoreDto> getStores();
 
-	String getStoreIdsByOwner(String owner);
+	String getConcatenatedStoreIdsForFiltering(String storeId);
 
 	void createEntity(StoreDto store);
 
 	void updateEntity(StoreDto store);
+
+	List<StoreDto> getManagedStoresByEmployee();
 
 }

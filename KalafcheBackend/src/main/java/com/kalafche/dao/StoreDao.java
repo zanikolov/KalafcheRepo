@@ -12,7 +12,7 @@ public interface StoreDao {
 
 	public abstract List<StoreDto> selectStores();
 
-	public abstract String selectStoreIdsByOwner(String owner);
+	public abstract String selectStoreIdsByManager(String userName);
 
 	public abstract StoreDto selectStore(String storeId);
 
@@ -21,5 +21,7 @@ public interface StoreDao {
 	public abstract Boolean checkIfStoreCodeExists(StoreDto store);
 
 	public abstract void updateStore(StoreDto store);
+
+	public abstract List<StoreDto> selectManagedStoresByEmployee(String loggedInEmployeeUsername);
 
 }

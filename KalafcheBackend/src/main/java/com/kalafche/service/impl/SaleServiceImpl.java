@@ -41,10 +41,12 @@ import com.kalafche.model.SalesByStoreByDayByProductType;
 import com.kalafche.model.StoreDto;
 import com.kalafche.model.TotalSumReport;
 import com.kalafche.model.TotalSumRequest;
+import com.kalafche.model.TransactionsByStoreByDay;
 import com.kalafche.model.comparator.SaleItemByItemPriceComparator;
 import com.kalafche.model.comparator.SalesByStoreByStoreIdComparator;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
+import com.kalafche.service.EntityService;
 import com.kalafche.service.SaleService;
 import com.kalafche.service.StockService;
 import com.kalafche.service.fileutil.SplitReportExcelWriterService;
@@ -54,6 +56,9 @@ public class SaleServiceImpl implements SaleService {
 
 	@Autowired
 	EmployeeService employeeService;
+	
+	@Autowired
+	EntityService entityService;
 	
 	@Autowired
 	StockService stockService;
@@ -203,17 +208,13 @@ public class SaleServiceImpl implements SaleService {
 	public SaleReport searchSales(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds) {
 
 		SaleReport saleReport = generateReport(storeIds, startDateMilliseconds, endDateMilliseconds, null, null, null);
-		
-		if (storeIds.equals("0") || storeIds.equals("ANIKO") || storeIds.equals("AZARD")) {
-			storeIds = storeDao.selectStoreIdsByOwner(storeIds);
-		}
-		
-		List<Sale> sales = saleDao.searchSales(startDateMilliseconds, endDateMilliseconds, storeIds);
-		
-		
+
+		List<Sale> sales = saleDao.searchSales(startDateMilliseconds, endDateMilliseconds,
+				entityService.getConcatenatedStoreIdsForFiltering(storeIds));
+
 		calculateTotalAmountAndCountForSales(sales, saleReport);
 		saleReport.setSales(sales);
-		
+
 		return saleReport;
 	}
 
@@ -245,22 +246,14 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	private void setSaleReportStoreName(String storeId, SaleReport report) {
-		switch (storeId) {
-			case "0": 
-				report.setStoreName("Всички магазини");
-				break;
-			case "ANIKO":
-				report.setStoreName("Анико ЕООД");
-				break;
-			case "AZARD":
-				report.setStoreName("Азард ЕООД");
-				break;
-			default: {
-				StoreDto store = storeDao.selectStore(storeId);
-				report.setStoreName(store.getCity() + ", " + store.getName());
-			}
+		if ("0".equals(storeId)) {
+			report.setStoreName("Всички магазини");
+		} else {
+			StoreDto store = storeDao.selectStore(storeId);
+			report.setStoreName(store.getCity() + ", " + store.getName());
 		}
 	}
+	
 
 	@Override
 	public List<SaleItem> getSaleItems(Integer saleId) {
@@ -274,12 +267,9 @@ public class SaleServiceImpl implements SaleService {
 		SaleReport saleReport = generateReport(storeIds, startDateMilliseconds, endDateMilliseconds, productCode,
 				deviceBrandId, deviceModelId);
 
-		if (storeIds.equals("0") || storeIds.equals("ANIKO") || storeIds.equals("AZARD")) {
-			storeIds = storeDao.selectStoreIdsByOwner(storeIds);
-		}
-
-		List<SaleItem> saleItems = saleDao.searchSaleItems(startDateMilliseconds, endDateMilliseconds, storeIds,
-				productCode, deviceBrandId, deviceModelId, masterProductTypeId, productTypeId, priceFrom, priceTo, discountCampaignCode);
+		List<SaleItem> saleItems = saleDao.searchSaleItems(startDateMilliseconds, endDateMilliseconds,
+				entityService.getConcatenatedStoreIdsForFiltering(storeIds), productCode, deviceBrandId, deviceModelId,
+				masterProductTypeId, productTypeId, priceFrom, priceTo, discountCampaignCode);
 
 		if (deviceModelId != null && productCode != null && productCode != "") {
 			saleReport.setWarehouseQuantity(stockService.getQuantitiyOfStockInWH(productCode, deviceModelId));
@@ -576,9 +566,8 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	@Override
-	public byte[] getSplitReport(SaleSplitReportRequest saleSplitReportRequest) {
-
-		List<SalesByStoreByDayByProductType> report = saleDao.generateSplitReport(saleSplitReportRequest.getStartDate(),
+	public byte[] getProductTypeSplitReport(SaleSplitReportRequest saleSplitReportRequest) {
+		List<SalesByStoreByDayByProductType> report = saleDao.generateProductTypeSplitReport(saleSplitReportRequest.getStartDate(),
 				saleSplitReportRequest.getEndDate(), saleSplitReportRequest.getStoreId() != null ? saleSplitReportRequest.getStoreId().toString() : null);
 
 		Map<String, LinkedHashMap<String, List<SalesByStoreByDayByProductType>>> groupedReport = report.stream()
@@ -586,7 +575,25 @@ public class SaleServiceImpl implements SaleService {
 						Collectors.groupingBy(SalesByStoreByDayByProductType::getDay, LinkedHashMap::new, Collectors.toList())));
 		
 		try {
-			return splitReportExcelWriterService.createSplitReportExcel(groupedReport);
+			return splitReportExcelWriterService.createProductTypeSplitReportExcel(groupedReport);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	@Override
+	public byte[] getTransactionSplitReport(SaleSplitReportRequest saleSplitReportRequest) {
+		List<TransactionsByStoreByDay> report = saleDao.generateTransactionSplitReport(saleSplitReportRequest.getStartDate(),
+				saleSplitReportRequest.getEndDate(), saleSplitReportRequest.getStoreId() != null ? saleSplitReportRequest.getStoreId().toString() : null);
+
+		Map<String, LinkedHashMap<String, List<TransactionsByStoreByDay>>> groupedReport = report.stream()
+				.collect(Collectors.groupingBy(TransactionsByStoreByDay::getStoreName,
+						Collectors.groupingBy(TransactionsByStoreByDay::getDay, LinkedHashMap::new, Collectors.toList())));
+		
+		try {
+			return splitReportExcelWriterService.createTransactionSplitReportExcel(groupedReport);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

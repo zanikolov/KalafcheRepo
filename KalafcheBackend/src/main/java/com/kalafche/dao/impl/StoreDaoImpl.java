@@ -10,7 +10,6 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.StoreDao;
-import com.kalafche.model.Product;
 import com.kalafche.model.StoreDto;
 
 @Service
@@ -19,7 +18,14 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 	private static final String SELECT_STORE_BY_ID = "select * from store where id = ?";
 	private static final String GET_ALL_ENTITES = "select * from store";
 	private static final String SELECT_STORES = "select * from store where is_store is true";
-	private static final String SELECT_STORE_IDS_BY_OWNER = "select GROUP_CONCAT(id) from store where own = ?";
+	private static final String SELECT_STORE_IDS_BY_MANAGER = "select GROUP_CONCAT(st.id) from store st " +
+			"join store_manager sm on st.id = sm.store_id " +
+			"join employee e on e.id = sm.employee_id " +
+			"where e.username = ? ";
+	private static final String SELECT_STORES_BY_MANAGER = "select st.* from store st " +
+			"join store_manager sm on st.id = sm.store_id " +
+			"join employee e on e.id = sm.employee_id " +
+			"where e.username = ? ";
 	private static final String SELECT_ALL_STORE_IDS = "select GROUP_CONCAT(id) from store";
 	private static final String INSERT_STORE = "insert into store (name, city, code, is_store) values (?, ?, ?, true)";
 	private static final String UPDATE_STORE = "update store set name = ?, city = ? where id = ?";
@@ -60,11 +66,11 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 	}
 
 	@Override
-	public String selectStoreIdsByOwner(String owner) {
-		if (owner.equals("0")) {
+	public String selectStoreIdsByManager(String username) {
+		if (username == null) {
 			return getJdbcTemplate().queryForObject(SELECT_ALL_STORE_IDS, String.class);
 		} else {
-			return getJdbcTemplate().queryForObject(SELECT_STORE_IDS_BY_OWNER, String.class ,owner);
+			return getJdbcTemplate().queryForObject(SELECT_STORE_IDS_BY_MANAGER, String.class, username);
 		}
 	}
 
@@ -102,6 +108,11 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 	@Override
 	public void updateStore(StoreDto store) {
 		getJdbcTemplate().update(UPDATE_STORE, store.getName(), store.getCity(), store.getId());		
+	}
+
+	@Override
+	public List<StoreDto> selectManagedStoresByEmployee(String loggedInEmployeeUsername) {
+		return getJdbcTemplate().query(SELECT_STORES_BY_MANAGER, getRowMapper(), loggedInEmployeeUsername);
 	}
 
 }

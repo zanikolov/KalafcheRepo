@@ -44,8 +44,6 @@ angular.module('kalafcheFrontendApp')
                 startingDay: 1,
                 showWeeks: false
             };
-
-            getAllStores(); 
         }
 
         function getCurrentDate() {
@@ -60,13 +58,14 @@ angular.module('kalafcheFrontendApp')
 
         };
 
-        $scope.searchSplit = function() {
-            generateSplitInExcel();         
+        $scope.generateProductTypeSplitInExcel = function() {
+            SaleService.getProductTypeSplitReport($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id).then(
+                function(response) {
+            });           
         }
 
-        $scope.generateSplitInExcel = function() {
-            console.log("<><><>");
-            SaleService.getSplitReport($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id).then(
+        $scope.generateTransactionSplitInExcel = function() {
+            SaleService.getTransactionSplitReport($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id).then(
                 function(response) {
             });           
         }
@@ -88,24 +87,16 @@ angular.module('kalafcheFrontendApp')
             $scope.endDateMilliseconds = $scope.endDate.getTime();
         };
 
-        $scope.changeStore = function() {
-            getSplitReport();
-        };
-
-        function getAllStores() {
-            StoreService.getAllStores().then(function(response) {
-                $scope.stores = response;
-                $scope.selectedStore =  {"id": SessionService.currentUser.employeeStoreId};
-            });
-
-        };
-
-        $scope.resetCurrentPage = function() {
-            $scope.currentPage = 1;
-        };
-
         $scope.isAdmin = function() {
             return AuthService.isAdmin();
+        }
+        
+        $scope.isManager = function() {
+            return AuthService.isManager();
+        }
+
+        $scope.isUser = function() {
+            return AuthService.isUser();
         }
 
     };

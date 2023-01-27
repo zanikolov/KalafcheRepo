@@ -8,7 +8,9 @@ angular.module('kalafcheFrontendApp')
             isAuthorized: isAuthorized,
             isAuthenticated: isAuthenticated,
             isAdmin: isAdmin,
-            isSuperAdmin: isSuperAdmin
+            isSuperAdmin: isSuperAdmin,
+            isUser: isUser,
+            isManager: isManager
         });
 
 
@@ -58,7 +60,7 @@ angular.module('kalafcheFrontendApp')
             for (var i = 0; i < roles.length; i++) {
                 var role = roles[i];
 
-                if (authorizedRoles.indexOf(role.name) !== -1) {
+                if (authorizedRoles.indexOf(role) !== -1) {
                     return true;
                 }
             };
@@ -73,7 +75,7 @@ angular.module('kalafcheFrontendApp')
                 for (var i = 0; i < roles.length; i++) {
                     var role = roles[i];
 
-                    if (role.name === "ROLE_ADMIN" || role.name === "ROLE_SUPERADMIN") {
+                    if (role === "ROLE_ADMIN" || role === "ROLE_SUPERADMIN") {
                         return true;
                     }
                 }
@@ -87,7 +89,7 @@ angular.module('kalafcheFrontendApp')
             if (roles) {
                 for (var i = 0; i < roles.length; i++) {
                     var role = roles[i];
-                    if (role.name === "ROLE_SUPERADMIN") {
+                    if (role === "ROLE_SUPERADMIN") {
                         return true;
                     }
                 }
@@ -95,7 +97,36 @@ angular.module('kalafcheFrontendApp')
 
               return false;
         } 
+
+
+        function isManager() {
+          var roles = SessionService.currentUser.userRoles;
+          if (roles) {
+            for (var i = 0; i < roles.length; i++) {
+                    var role = roles[i];
+                    if (role === "ROLE_MANAGER") {
+                        return true;
+                    }
+                }
+          }
+
+          return false;
+        }
+
+        function isUser() {
+          var roles = SessionService.currentUser.userRoles;
+          if (roles) {
+            for (var i = 0; i < roles.length; i++) {
+                    var role = roles[i];
+                    if (role === "ROLE_USER") {
+                        return true;
+                    }
+                }
+          }
+
+          return false;
+        }
  
-  
+
     });
   

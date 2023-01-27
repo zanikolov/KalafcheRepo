@@ -29,7 +29,9 @@ public interface SaleService {
 
 	public PastPeriodSaleReport searchSalesForPastPeriodsByStores(String month);
 
-	public byte[] getSplitReport(SaleSplitReportRequest saleSplitReportRequest);
+	public byte[] getProductTypeSplitReport(SaleSplitReportRequest saleSplitReportRequest);
+
+	public byte[] getTransactionSplitReport(SaleSplitReportRequest saleSplitReportRequest);
 	
 	
 

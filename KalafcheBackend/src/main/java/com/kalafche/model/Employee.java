@@ -12,7 +12,8 @@ public class Employee {
 	private String jobResponsibilityName;
 	private String username;
 	private String password;
-	private List<AuthRole> roles;
+	private List<String> roles;
+	private List<StoreDto> managedStores;
 	private boolean enabled;
 
 	public Integer getId() {
@@ -55,11 +56,11 @@ public class Employee {
 		this.username = username;
 	}
 
-	public List<AuthRole> getRoles() {
+	public List<String> getRoles() {
 		return roles;
 	}
 
-	public void setRoles(List<AuthRole> roles) {
+	public void setRoles(List<String> roles) {
 		this.roles = roles;
 	}
 
@@ -85,6 +86,14 @@ public class Employee {
 
 	public void setStoreName(String storeName) {
 		this.storeName = storeName;
+	}
+
+	public List<StoreDto> getManagedStores() {
+		return managedStores;
+	}
+
+	public void setManagedStores(List<StoreDto> managedStores) {
+		this.managedStores = managedStores;
 	}
 
 	public boolean isEnabled() {

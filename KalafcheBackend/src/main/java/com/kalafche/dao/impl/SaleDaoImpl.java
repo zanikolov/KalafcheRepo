@@ -7,9 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import javax.sql.DataSource;
@@ -24,6 +22,7 @@ import com.kalafche.dao.SaleDao;
 import com.kalafche.model.Sale;
 import com.kalafche.model.SalesByStore;
 import com.kalafche.model.SalesByStoreByDayByProductType;
+import com.kalafche.model.TransactionsByStoreByDay;
 import com.kalafche.service.DateService;
 import com.kalafche.model.SaleItem;
 
@@ -128,66 +127,175 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 
 	private static final String GET_SALE_ITEM_PRICE = "select sale_price from sale_item where id = ?";
 	
-	private static final String GET_SPLIT_REPORT = "select " +
-		"t1.store_id, " +
-		"t1.store_name, " +
-		"t1.day as day, " +
-		"t1.product_type_id, " +
-		"t1.product_type_name, " +
-		"t1.master_type_id, " +
-		"t2.sold_items as sold_items_count " +
-		"from " +
-		"( " +
-		"   select " +
-		"   st.id as store_id, " +
-		"   CONCAT(st.city,', ',st.name) as store_name, " +
-		"   dateGen.day as day, " +
-		"   pt.id as product_type_id, " +
-		"   pt.name as product_type_name, " +
-		"   pt.master_type_id " +
-		"   from " +
-		"   ( " +
-		"	    select dg.d as day from ( " +
-		"		    select curdate() - INTERVAL (a.a + (10 * b.a) + (100 * c.a) + (1000 * d.a) ) DAY as d " +
-		"		    from (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as a " +
-		"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as b " +
-		"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as c " +
-		"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as d) dg " +
-		"	    where dg.d between ? and ? " +
-		"   ) " +
-		"   dateGen " +
-		"   cross join product_type pt " +
-		"   cross join store st " +
-		"   where st.IS_STORE is true " +
-		") " +
-		"t1 " +
-		"left join " +
-		"( " +
-		"   select " +
-		"   s.store_id as store_id, " +
-		"   CONCAT(st.city,', ',st.name) as store_name, " +
-		"   DATE_FORMAT(from_unixtime(floor(s.SALE_TIMESTAMP/1000)),'%Y-%m-%d') as day, " +
-		"   pt.id as product_type_id, " +
-		"   pt.name as product_type_name, " +
-		"   pt.master_type_id, " +
-		"   count(si.id) as sold_items " +
-		"   from product_type pt " +
-		"   join product p on pt.id = p.type_id " +
-		"   join item i on i.product_id = p.id " +
-		"   join sale_item si on si.item_id = i.id " +
-		"   join sale s on s.id = si.sale_id " +
-		"   join store st on s.store_id = st.id " +
-		"   where si.is_refunded is false " +
-		"   and s.SALE_TIMESTAMP between ? and ? " +
-		"   group by day, product_type_id, store_id " +
-		") " +
-		"t2 on t1.store_id = t2.store_id " +
-		"and t1.store_name = t2.store_name " +
-		"and t1.day = t2.day " +
-		"and t1.product_type_id = t2.product_type_id " +
-		"and t1.product_type_name = t2.product_type_name ";
+	private static final String GET_PRODUCT_TYPE_SPLIT_REPORT = "select " +
+			"t1.store_id, " +
+			"t1.store_name, " +
+			"t1.day as day, " +
+			"t1.product_type_id, " +
+			"t1.product_type_name, " +
+			"t1.master_type_id, " +
+			"t2.sold_items as sold_items_count " +
+			"from " +
+			"( " +
+			"   select " +
+			"   st.id as store_id, " +
+			"   CONCAT(st.city,', ',st.name) as store_name, " +
+			"   dateGen.day as day, " +
+			"   pt.id as product_type_id, " +
+			"   pt.name as product_type_name, " +
+			"   pt.master_type_id " +
+			"   from " +
+			"   ( " +
+			"	    select dg.d as day from ( " +
+			"		    select curdate() - INTERVAL (a.a + (10 * b.a) + (100 * c.a) + (1000 * d.a) ) DAY as d " +
+			"		    from (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as a " +
+			"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as b " +
+			"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as c " +
+			"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as d) dg " +
+			"	    where dg.d between ? and ? " +
+			"   ) " +
+			"   dateGen " +
+			"   cross join product_type pt " +
+			"   cross join store st " +
+			"   where st.IS_STORE is true " +
+			") " +
+			"t1 " +
+			"left join " +
+			"( " +
+			"   select " +
+			"   s.store_id as store_id, " +
+			"   CONCAT(st.city,', ',st.name) as store_name, " +
+			"   DATE_FORMAT(from_unixtime(floor(s.SALE_TIMESTAMP/1000)),'%Y-%m-%d') as day, " +
+			"   pt.id as product_type_id, " +
+			"   pt.name as product_type_name, " +
+			"   pt.master_type_id, " +
+			"   count(si.id) as sold_items " +
+			"   from product_type pt " +
+			"   join product p on pt.id = p.type_id " +
+			"   join item i on i.product_id = p.id " +
+			"   join sale_item si on si.item_id = i.id " +
+			"   join sale s on s.id = si.sale_id " +
+			"   join store st on s.store_id = st.id " +
+			"   where si.is_refunded is false " +
+			"   and s.SALE_TIMESTAMP between ? and ? " +
+			"   group by day, product_type_id, store_id " +
+			") " +
+			"t2 on t1.store_id = t2.store_id " +
+			"and t1.store_name = t2.store_name " +
+			"and t1.day = t2.day " +
+			"and t1.product_type_id = t2.product_type_id " +
+			"and t1.product_type_name = t2.product_type_name ";
+	private static final String GET_TRANSACTIONS_SPLIT_REPORT = "select " +
+			"curr.store_id, " +
+			"curr.store_name, " +
+			"curr.day, " +
+			"curr.sold_items_count, " +
+			"curr.transactions_count, " +
+			"curr.turnover, " +
+			"prev.sold_items_count as sold_items_count_prev_year, " +
+			"prev.transactions_count as transactions_count_prev_year, " +
+			"prev.turnover as turnover_prev_year " +
+			"from " +
+			"(select " +
+			"t1.store_id, " +
+			"t1.store_name, " +
+			"t1.day as day, " +
+			"t2.sold_items as sold_items_count, " +
+			"t2.transactions as transactions_count, " +
+			"t2.turnover " +
+			"from " +
+			"( " +
+			"   select " +
+			"   st.id as store_id, " +
+			"   CONCAT(st.city,', ',st.name) as store_name, " +
+			"   dateGen.day as day " +
+			"   from " +
+			"   ( " +
+			"	    select dg.d as day from ( " +
+			"		    select curdate() - INTERVAL (a.a + (10 * b.a) + (100 * c.a) + (1000 * d.a) ) DAY as d " +
+			"		    from (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as a " +
+			"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as b " +
+			"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as c " +
+			"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as d) dg " +
+			"	    where dg.d between ? and ? " +
+			"   ) " +
+			"   dateGen " +
+			"   cross join store st " +
+			"   where st.IS_STORE is true " +
+			") " +
+			"t1 " +
+			"left join " +
+			"( " +
+			"   select " +
+			"   s.store_id as store_id, " +
+			"   CONCAT(st.city,', ',st.name) as store_name, " +
+			"   DATE_FORMAT(from_unixtime(floor(s.SALE_TIMESTAMP/1000)),'%Y-%m-%d') as day, " +
+			"   count(si.id) as sold_items, " +
+			"   sum(si.sale_price) as turnover, " +
+			"   count(distinct(s.id)) as transactions " +
+			"   from sale_item si " +
+			"   join sale s on s.id = si.sale_id " +
+			"   join store st on s.store_id = st.id " +
+			"   where si.is_refunded is false and si.sale_price > 0.5 " +
+			"   and s.SALE_TIMESTAMP between ? and ? " +
+			"   group by day, store_id " +
+			") " +
+			"t2 on t1.store_id = t2.store_id " +
+			"and t1.store_name = t2.store_name " +
+			"and t1.day = t2.day) curr " +
+			"left join " +
+			"(select " +
+			"t1.store_id, " +
+			"t1.store_name, " +
+			"t1.day as day, " +
+			"t2.sold_items as sold_items_count, " +
+			"t2.transactions as transactions_count, " +
+			"t2.turnover " +
+			"from " +
+			"( " +
+			"   select " +
+			"   st.id as store_id, " +
+			"   CONCAT(st.city,', ',st.name) as store_name, " +
+			"   dateGen.day as day " +
+			"   from " +
+			"   ( " +
+			"	    select dg.d as day from ( " +
+			"		    select curdate() - INTERVAL (a.a + (10 * b.a) + (100 * c.a) + (1000 * d.a) ) DAY as d " +
+			"		    from (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as a " +
+			"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as b " +
+			"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as c " +
+			"		    cross join (select 0 as a union all select 1 union all select 2 union all select 3 union all select 4 union all select 5 union all select 6 union all select 7 union all select 8 union all select 9) as d) dg " +
+			"	    where dg.d between ? and ? " +
+			"   ) " +
+			"   dateGen " +
+			"   cross join store st " +
+			"   where st.IS_STORE is true " +
+			") " +
+			"t1 " +
+			"left join " +
+			"( " +
+			"   select " +
+			"   s.store_id as store_id, " +
+			"   CONCAT(st.city,', ',st.name) as store_name, " +
+			"   DATE_FORMAT(from_unixtime(floor(s.SALE_TIMESTAMP/1000)),'%Y-%m-%d') as day, " +
+			"   count(si.id) as sold_items, " +
+			"   sum(si.sale_price) as turnover, " +
+			"   count(distinct(s.id)) as transactions " +
+			"   from sale_item si " +
+			"   join sale s on s.id = si.sale_id " +
+			"   join store st on s.store_id = st.id " +
+			"   where si.is_refunded is false and si.sale_price > 0.5 " +
+			"   and s.SALE_TIMESTAMP between ? and ? " +
+			"   group by day, store_id " +
+			") " +
+			"t2 on t1.store_id = t2.store_id " +
+			"and t1.store_name = t2.store_name " +
+			"and t1.day = t2.day) prev " +
+			"on curr.store_id = prev.store_id " +
+			"and SUBSTRING(curr.day, 6, 5) =  SUBSTRING(prev.day, 6, 5) ";
 	private static final String FILTER_SPLIT_REPORT_BY_STORE = "where t1.store_id = %s "; 
-	private static final String ORDER_SPLIT_REPORT = "order by store_id, day, master_type_id, product_type_id; ";
+	private static final String ORDER_PRODUCT_TYPE_SPLIT_REPORT = "order by store_id, day, master_type_id, product_type_id; ";
+	private static final String ORDER_TRANSACTION_SPLIT_REPORT = "order by store_id, day; ";
 	
 	@Autowired
 	private DateService dateService;
@@ -196,6 +304,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	private BeanPropertyRowMapper<SaleItem> saleItemRowMapper;
 	private BeanPropertyRowMapper<SalesByStore> saleByStoreRowMapper;
 	private BeanPropertyRowMapper<SalesByStoreByDayByProductType> saleByStoreByDayByProductTypeRowMapper;
+	private BeanPropertyRowMapper<TransactionsByStoreByDay> transactionsByStoreByDayRowMapper;
 
 	@Autowired
 	public SaleDaoImpl(DataSource dataSource) {
@@ -221,6 +330,15 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		return saleItemRowMapper;
 	}
 	
+	private BeanPropertyRowMapper<SalesByStore> getSaleByStoreRowMapper() {
+		if (saleByStoreRowMapper == null) {
+			saleByStoreRowMapper = new BeanPropertyRowMapper<SalesByStore>(SalesByStore.class);
+			saleByStoreRowMapper.setPrimitivesDefaultedForNullValue(true);
+		}
+		
+		return saleByStoreRowMapper;
+	}
+	
 	private BeanPropertyRowMapper<SalesByStoreByDayByProductType> getSalesByStoreByDayByProductTypeRowMapper() {
 		if (saleByStoreByDayByProductTypeRowMapper == null) {
 			saleByStoreByDayByProductTypeRowMapper = new BeanPropertyRowMapper<SalesByStoreByDayByProductType>(SalesByStoreByDayByProductType.class);
@@ -230,13 +348,13 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		return saleByStoreByDayByProductTypeRowMapper;
 	}
 	
-	private BeanPropertyRowMapper<SalesByStore> getSaleByStoreRowMapper() {
-		if (saleByStoreRowMapper == null) {
-			saleByStoreRowMapper = new BeanPropertyRowMapper<SalesByStore>(SalesByStore.class);
-			saleByStoreRowMapper.setPrimitivesDefaultedForNullValue(true);
+	private BeanPropertyRowMapper<TransactionsByStoreByDay> getTransactionsByStoreByDayRowMapper() {
+		if (transactionsByStoreByDayRowMapper == null) {
+			transactionsByStoreByDayRowMapper = new BeanPropertyRowMapper<TransactionsByStoreByDay>(TransactionsByStoreByDay.class);
+			transactionsByStoreByDayRowMapper.setPrimitivesDefaultedForNullValue(true);
 		}
 		
-		return saleByStoreRowMapper;
+		return transactionsByStoreByDayRowMapper;
 	}
 
 	@Override
@@ -396,12 +514,12 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	}
 
 	@Override
-	public List<SalesByStoreByDayByProductType> generateSplitReport(Long startDateMilliseconds, Long endDateMilliseconds, String storeId) {
-		String searchQuery = GET_SPLIT_REPORT;
+	public List<SalesByStoreByDayByProductType> generateProductTypeSplitReport(Long startDateMilliseconds, Long endDateMilliseconds, String storeId) {
+		String searchQuery = GET_PRODUCT_TYPE_SPLIT_REPORT;
 		if (!StringUtils.isEmpty(storeId)) {
 			searchQuery += String.format(FILTER_SPLIT_REPORT_BY_STORE, storeId);
 		}
-		searchQuery += ORDER_SPLIT_REPORT;
+		searchQuery += ORDER_PRODUCT_TYPE_SPLIT_REPORT;
 		
 		System.out.println(dateService.convertMillisToDateTimeString(startDateMilliseconds, "yyyy-MM-dd", false));
 		System.out.println(dateService.convertMillisToDateTimeString(endDateMilliseconds, "yyyy-MM-dd", false));
@@ -416,6 +534,43 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 				
 		return getJdbcTemplate().query(
 				searchQuery, argsArr, getSalesByStoreByDayByProductTypeRowMapper());
+	}
+
+	@Override
+	public List<TransactionsByStoreByDay> generateTransactionSplitReport(Long startDateMilliseconds, Long endDateMilliseconds, String storeId) {
+		String searchQuery = GET_TRANSACTIONS_SPLIT_REPORT;
+		if (!StringUtils.isEmpty(storeId)) {
+			searchQuery += String.format(FILTER_SPLIT_REPORT_BY_STORE, storeId);
+		}
+		searchQuery += ORDER_TRANSACTION_SPLIT_REPORT;
+		
+		Long yearInMillis = 31536000000L;
+		Long startDateMillisecondsPrevYear = startDateMilliseconds - yearInMillis;
+		Long endDateMillisecondsPrevYear = endDateMilliseconds - yearInMillis;
+		
+		System.out.println(dateService.convertMillisToDateTimeString(startDateMilliseconds, "yyyy-MM-dd", false));
+		System.out.println(dateService.convertMillisToDateTimeString(endDateMilliseconds, "yyyy-MM-dd", false));
+		System.out.println(startDateMilliseconds);
+		System.out.println(endDateMilliseconds);
+		System.out.println(dateService.convertMillisToDateTimeString(startDateMillisecondsPrevYear, "yyyy-MM-dd", false));
+		System.out.println(dateService.convertMillisToDateTimeString(endDateMillisecondsPrevYear, "yyyy-MM-dd", false));
+		System.out.println(startDateMillisecondsPrevYear);
+		System.out.println(endDateMillisecondsPrevYear);
+		List<Object> argsList = new ArrayList<Object>();
+		argsList.add(dateService.convertMillisToDateTimeString(startDateMilliseconds, "yyyy-MM-dd", false));
+		argsList.add(dateService.convertMillisToDateTimeString(endDateMilliseconds, "yyyy-MM-dd", false));
+		argsList.add(startDateMilliseconds);
+		argsList.add(endDateMilliseconds);
+		argsList.add(dateService.convertMillisToDateTimeString(startDateMillisecondsPrevYear, "yyyy-MM-dd", false));
+		argsList.add(dateService.convertMillisToDateTimeString(endDateMillisecondsPrevYear, "yyyy-MM-dd", false));
+		argsList.add(startDateMillisecondsPrevYear);
+		argsList.add(endDateMillisecondsPrevYear);
+		
+		Object[] argsArr = new Object[argsList.size()];
+		argsArr = argsList.toArray(argsArr);
+		
+		return getJdbcTemplate().query(
+				searchQuery, argsArr, getTransactionsByStoreByDayRowMapper());
 	}
 	
 }

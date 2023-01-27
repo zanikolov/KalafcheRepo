@@ -39,6 +39,14 @@ angular.module('kalafcheFrontendApp')
             return AuthService.isAdmin();
         };
 
+        $scope.isManager = function() {
+            return AuthService.isManager();
+        }
+
+        $scope.isUser = function() {
+            return AuthService.isUser();
+        }
+        
         $scope.addNewStock = function() {
             $scope.newStockFormVisible = true;
             $scope.addNewStockButtonVisible = false;

@@ -1,10 +1,7 @@
 package com.kalafche.controller;
 
 import java.sql.SQLException;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -27,9 +24,6 @@ import com.kalafche.model.SaleItem;
 import com.kalafche.model.SaleItemExcelReportRequest;
 import com.kalafche.model.SaleReport;
 import com.kalafche.model.SaleSplitReportRequest;
-import com.kalafche.model.SalesByStoreByDayByProductType;
-import com.kalafche.model.SplitReport;
-import com.kalafche.model.StoreDto;
 import com.kalafche.model.TotalSumReport;
 import com.kalafche.model.TotalSumRequest;
 import com.kalafche.service.SaleService;
@@ -97,10 +91,10 @@ public class SaleController {
 		return saleService.calculateTotalSum(totalSumRequest);
 	}
 	
-	@PostMapping("/split")
-	public ResponseEntity<byte[]> printSplitReport(@RequestBody SaleSplitReportRequest saleSplitReportRequest) {
+	@PostMapping("/productTypeSplit")
+	public ResponseEntity<byte[]> printProductTypeSplitReport(@RequestBody SaleSplitReportRequest saleSplitReportRequest) {
 	
-		byte[] excelBytes = saleService.getSplitReport(saleSplitReportRequest);
+		byte[] excelBytes = saleService.getProductTypeSplitReport(saleSplitReportRequest);
 	
 		HttpHeaders headers = new HttpHeaders();
 	    headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
@@ -112,6 +106,23 @@ public class SaleController {
 	    ResponseEntity<byte[]> response = new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);	    
 	    
 	    return response;
+	}
+	
+	@PostMapping("/transactionSplit")
+	public ResponseEntity<byte[]> printTransactionSplitReport(@RequestBody SaleSplitReportRequest saleSplitReportRequest) {
+		
+		byte[] excelBytes = saleService.getTransactionSplitReport(saleSplitReportRequest);
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
+		String filename = "split-report.xlsx";
+		headers.setContentDispositionFormData(filename, filename);
+		headers.set("Content-Transfer-Encoding", "binary");
+		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+		
+		ResponseEntity<byte[]> response = new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);	    
+		
+		return response;
 	}
 	
 	@PostMapping("/excel")

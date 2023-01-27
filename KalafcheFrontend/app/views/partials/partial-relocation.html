@@ -93,7 +93,7 @@
                                     Откажи
                                 </a>
                             </div>
-                            <div ng-if="!isAdmin() && relocation.status == 'INITIATED'">
+                            <div ng-if="isUser() && relocation.status == 'INITIATED'">
                                 <label>Нова</label>
                             </div>
                             <div ng-if="relocation.status == 'REJECTED'">

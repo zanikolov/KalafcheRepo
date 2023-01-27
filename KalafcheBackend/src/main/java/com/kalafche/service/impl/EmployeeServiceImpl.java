@@ -8,9 +8,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.kalafche.dao.AuthRoleDao;
 import com.kalafche.dao.EmployeeDao;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.AuthRole;
 import com.kalafche.model.Employee;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.LoginHistoryService;
@@ -21,6 +21,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 	@Autowired
 	EmployeeDao employeeDao;
+	
+	@Autowired
+	AuthRoleDao authRoleDao;
 	
 	@Autowired
 	LoginHistoryService loginHistoryService;
@@ -38,8 +41,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 		}
 		loginHistoryService.trackLoginHistory(employee.getId());
 		
-		List<AuthRole> roles = employeeDao.getAllRolesForEmployee(employee.getId());
-		employee.setRoles(roles);
+		employee.setRoles(authRoleDao.getAllRolesByEmployee(employee.getId()));
 		
 		return employee;
 	}
@@ -68,15 +70,29 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 	
 	@Override
+	public String getLoggedInEmployeeUsername() {
+		return SecurityContextHolder.getContext().getAuthentication().getName();		
+	}
+	
+	@Override
 	public Employee getLoggedInEmployee() {
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();		
-		return employeeDao.getEmployee(username);
+		Employee employee = employeeDao.getEmployee(username);
+		employee.setRoles(authRoleDao.getAllRolesByEmployee(employee.getId()));
+		
+		return employee;
 	}
 	
 	@Override
 	public Boolean isLoggedInEmployeeAdmin() {
 		String username = SecurityContextHolder.getContext().getAuthentication().getName();	
 		return employeeDao.getIsEmployeeAdmin(username);
+	}
+	
+	@Override
+	public Boolean isLoggedInEmployeeManager() {
+		String username = SecurityContextHolder.getContext().getAuthentication().getName();	
+		return employeeDao.getIsEmployeeManager(username);
 	}
 	
 	@Override

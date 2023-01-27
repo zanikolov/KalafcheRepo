@@ -44,9 +44,6 @@ angular.module('kalafcheFrontendApp')
             }
 
             $scope.selectedMonth = $scope.months[0];
-            getMonthlyTurnover();
-            
-            console.log($scope.months)
         }
 
         $scope.searchMonthlyTurnover = function(selectedMonth) {
@@ -76,6 +73,14 @@ angular.module('kalafcheFrontendApp')
         
         $scope.isAdmin = function() {
             return AuthService.isAdmin();
+        }
+        
+        $scope.isManager = function() {
+            return AuthService.isManager();
+        }
+
+        $scope.isUser = function() {
+            return AuthService.isUser();
         }
 
     };

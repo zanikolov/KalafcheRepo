@@ -103,13 +103,13 @@
                         <td>{{inStock.quantity}} <span ng-if="selectedStore.id!=4 && inStock.orderedQuantity && inStock.orderedQuantity > 0" class="ordered-stock-quantity"> + {{inStock.orderedQuantity}}</span></td>
                         <td  ng-show="!(selectedStore.id==4 && isAdmin())">{{inStock.extraQuantity}}<span ng-if="selectedStore.id==4 && inStock.orderedQuantity && inStock.orderedQuantity > 0" class="ordered-stock-quantity"> + {{inStock.orderedQuantity}}</span></td>
                         <td>
-                            <a ng-if="inStock.quantity > 0 && !isAdmin() && isEmployeeStoreSelected(inStock)" href="" ng-click="openSaleModal(inStock)">
+                            <a ng-if="inStock.quantity > 0 && isUser() && isEmployeeStoreSelected(inStock)" href="" ng-click="openSaleModal(inStock)">
                                 <md-icon class="primary-icon" md-svg-src="images/icons/add_shopping_cart.svg"></md-icon>
                             </a>
-                            <a ng-if="inStock.quantity > 0 && !isAdmin() && isEmployeeStoreSelected(inStock)" href="" ng-click="openWasteModal(inStock)">
+                            <a ng-if="inStock.quantity > 0 && isUser() && isEmployeeStoreSelected(inStock)" href="" ng-click="openWasteModal(inStock)">
                                 <md-icon class="primary-icon" md-svg-src="images/icons/delete.svg"></md-icon>
                             </a>
-                            <a ng-if="inStock.quantity > 0 && !isAdmin() && !isEmployeeStoreSelected(inStock)" href="" ng-click="openRelocationModal(inStock)">
+                            <a ng-if="inStock.quantity > 0 && isUser() && !isEmployeeStoreSelected(inStock)" href="" ng-click="openRelocationModal(inStock)">
                                 <md-icon class="primary-icon" md-svg-src="images/icons/compare_arrows.svg"></md-icon>
                             </a>
                         </td>

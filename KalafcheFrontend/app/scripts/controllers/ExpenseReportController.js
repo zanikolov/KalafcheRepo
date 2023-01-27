@@ -89,7 +89,7 @@ angular.module('kalafcheFrontendApp')
         };
 
         function getAllStores() {
-            StoreService.getAllStores().then(function(response) {
+            StoreService.getAllStoresForSaleReport().then(function(response) {
                 $scope.stores = response;
                 $scope.selectedStore =  {"id": SessionService.currentUser.employeeStoreId};
                 $scope.searchExpenses();
@@ -112,6 +112,14 @@ angular.module('kalafcheFrontendApp')
         $scope.isAdmin = function() {
             return AuthService.isAdmin();
         };
+        
+        $scope.isManager = function() {
+            return AuthService.isManager();
+        }
+
+        $scope.isUser = function() {
+            return AuthService.isUser();
+        }
 
         $scope.showImage = function(expense){
             $mdDialog.show({

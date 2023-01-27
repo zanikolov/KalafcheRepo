@@ -153,6 +153,14 @@ angular.module('kalafcheFrontendApp')
         $scope.isAdmin = function() {
             return AuthService.isAdmin();
         }
+        
+        $scope.isManager = function() {
+            return AuthService.isManager();
+        }
+
+        $scope.isUser = function() {
+            return AuthService.isUser();
+        }
 
         // $scope.generateExcel = function() {
         //     SaleService.generateExcel($scope.report.saleItems, $scope.startDateMilliseconds, $scope.endDateMilliseconds).then(function(response) {

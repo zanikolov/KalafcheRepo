@@ -1,5 +1,6 @@
 package com.kalafche.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,23 +9,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kalafche.dao.StoreDao;
 import com.kalafche.exceptions.DuplicationException;
+import com.kalafche.model.Employee;
 import com.kalafche.model.StoreDto;
+import com.kalafche.service.EmployeeService;
 import com.kalafche.service.EntityService;
 
 @Service
 public class EntityServiceImpl implements EntityService {
 
 	@Autowired
-	StoreDao storeDao;
+	StoreDao storeDao;	
+	
+	@Autowired
+	EmployeeService employeeService;
 	
 	@Override
 	public List<StoreDto> getStores() {
 		return storeDao.selectStores();
-	}
-	
-	@Override
-	public String getStoreIdsByOwner(String owner) {
-		return storeDao.selectStoreIdsByOwner(owner);
 	}
 
 	@Override
@@ -53,6 +54,36 @@ public class EntityServiceImpl implements EntityService {
 		if (storeDao.checkIfStoreCodeExists(store)) {
 			throw new DuplicationException("code", "Code duplication.");
 		}
+	}
+
+	@Override
+	public String getConcatenatedStoreIdsForFiltering(String storeId) {
+		if (storeId.equals("0")) {
+			if (employeeService.isLoggedInEmployeeAdmin()) {
+				return storeDao.selectStoreIdsByManager(null);
+			} else if (employeeService.isLoggedInEmployeeManager()) {
+				return storeDao.selectStoreIdsByManager(employeeService.getLoggedInEmployeeUsername());
+			}
+		}
+		
+		return storeId;
+	}
+
+	@Override
+	public List<StoreDto> getManagedStoresByEmployee() {
+		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
+		List<StoreDto> stores = new ArrayList<>();
+		if (loggedInEmployee.getRoles().contains("ROLE_ADMIN")) {
+			stores = storeDao.selectStores();
+		}
+		if (loggedInEmployee.getRoles().contains("ROLE_MANAGER")) {
+			stores = storeDao.selectManagedStoresByEmployee(loggedInEmployee.getUsername()); 
+		}
+		if (loggedInEmployee.getRoles().contains("ROLE_USER")) {
+			stores.add(storeDao.selectStore(loggedInEmployee.getStoreId().toString()));
+		}
+		
+		return stores;
 	}
 
 }

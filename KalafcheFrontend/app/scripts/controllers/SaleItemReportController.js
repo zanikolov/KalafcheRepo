@@ -15,6 +15,7 @@ angular.module('kalafcheFrontendApp')
         init();
 
         function init() {
+
             $scope.currentPage = 1;  
             $scope.saleItemsPerPage = 15;
             $scope.saleItems = []; 
@@ -41,6 +42,11 @@ angular.module('kalafcheFrontendApp')
             $scope.isQuantitiesVisible = false;
 
             getCurrentDate();
+            var yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            var today = new Date();
+            $scope.startMinDate = AuthService.isAdmin() ? new Date(2015, 5, 22) : yesterday;
+            $scope.startMaxDate = today;
             $scope.startDateOptions = {
                 formatYear: 'yy',
                 maxDate: new Date(),
@@ -150,7 +156,7 @@ angular.module('kalafcheFrontendApp')
         };
 
         function getAllStores() {
-            StoreService.getAllStores().then(function(response) {
+            StoreService.getAllStoresForSaleReport().then(function(response) {
                 $scope.stores = response;
                 $scope.selectedStore =  {"id": SessionService.currentUser.employeeStoreId};
                 getSaleItems();
@@ -188,10 +194,17 @@ angular.module('kalafcheFrontendApp')
             getSaleItems(sale);
             sale.expanded = !sale.expanded;
         };
-
         
         $scope.isAdmin = function() {
             return AuthService.isAdmin();
+        }
+
+        $scope.isManager = function() {
+            return AuthService.isManager();
+        }
+
+        $scope.isUser = function() {
+            return AuthService.isUser();
         }
 
         $scope.generateExcel = function() {

@@ -43,7 +43,7 @@
             </md-toolbar>
             <md-list>
                 <md-item ng-repeat="item in menu">
-                    <a ui-sref="{{item.link}}" ng-if="(isAdmin() && item.onlyAdmin) || !item.onlyAdmin">
+                    <a ui-sref="{{item.link}}" ng-if="(isAdmin() && item.admin) || (isManager() && item.manager) || (isUser() && item.user)">
                         <md-item-content ng-click="toggleSidenav('left')" md-ink-ripple layout="row" layout-align="start center">
                             <div class="inset">{{item.title}}</div>
                         </md-item-content>

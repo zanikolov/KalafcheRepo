@@ -106,7 +106,7 @@ angular.module('kalafcheFrontendApp')
         };
 
         function getAllStores() {
-            StoreService.getAllStores().then(function(response) {
+            StoreService.getAllStoresForSaleReport().then(function(response) {
                 $scope.stores = response;
                 $scope.selectedStore =  {"id": SessionService.currentUser.employeeStoreId};
                 getRevisions();
@@ -130,6 +130,14 @@ angular.module('kalafcheFrontendApp')
         $scope.isAdmin = function() {
             return AuthService.isAdmin();
         };
+        
+        $scope.isManager = function() {
+            return AuthService.isManager();
+        }
+
+        $scope.isUser = function() {
+            return AuthService.isUser();
+        }
 
         // $scope.syncRevisionItem = function(revisionItem) {
         //      RevisionService.syncRevisionItem(revisionItem).then(function(response) {

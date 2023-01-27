@@ -7,11 +7,21 @@ angular.module('kalafcheFrontendApp')
             getAllEntities: getAllEntities,
             getSelectedStore: getSelectedStore,
             submitStore: submitStore,
-            getRealSelectedStore: getRealSelectedStore
+            getRealSelectedStore: getRealSelectedStore,
+            getAllStoresForSaleReport: getAllStoresForSaleReport
 		});
 
         function getAllStores() {   
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/store')
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                ) ;
+        };
+
+        function getAllStoresForSaleReport() {   
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/store/report')
                 .then(
                     function(response) {
                         return response.data

@@ -3,12 +3,10 @@
         <form>    
             <div layout="row" layout-xs="column" class="md-inline-form">
                 <div layout-xs="row" flex="20" flex-xs="100">
-                    <md-input-container style="width:95%" ng-if="isAdmin()">
+                    <md-input-container style="width:95%" ng-if="isAdmin() || isManager()">
                         <label>Магазин</label>
                         <md-select name="selectStore" ng-model="selectedStore.id" ng-change="searchExpenses()">
                             <md-option value="0">Всички магазини</md-option>
-                            <md-option value="ANIKO">Анико ЕООД</md-option>
-                            <md-option value="AZARD">Азард ЕООД</md-option>
                             <md-option ng-repeat="store in stores" ng-value="store.id">
                                 {{store.city}}, {{store.name}}
                             </md-option>

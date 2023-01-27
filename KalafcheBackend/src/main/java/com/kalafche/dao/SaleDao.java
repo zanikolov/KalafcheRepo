@@ -5,10 +5,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.kalafche.model.Sale;
+import com.kalafche.model.SaleItem;
 import com.kalafche.model.SalesByStore;
 import com.kalafche.model.SalesByStoreByDayByProductType;
-import com.kalafche.model.SplitReport;
-import com.kalafche.model.SaleItem;
+import com.kalafche.model.TransactionsByStoreByDay;
 
 public abstract interface SaleDao {
 
@@ -31,6 +31,9 @@ public abstract interface SaleDao {
 
 	public abstract List<SalesByStore> searchSaleByStore(Long startDateMilliseconds, Long endDateMilliseconds);
 
-	public abstract List<SalesByStoreByDayByProductType> generateSplitReport(Long startDateMilliseconds, Long endDateMilliseconds,
+	public abstract List<SalesByStoreByDayByProductType> generateProductTypeSplitReport(Long startDateMilliseconds, Long endDateMilliseconds,
+			String storeId);
+
+	public abstract List<TransactionsByStoreByDay> generateTransactionSplitReport(Long startDateMilliseconds, Long endDateMilliseconds,
 			String storeId);
 }

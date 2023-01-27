@@ -7,20 +7,18 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kalafche.dao.ExpenseDao;
 import com.kalafche.dao.StoreDao;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.DiscountCampaign;
-import com.kalafche.model.DiscountCode;
 import com.kalafche.model.Employee;
 import com.kalafche.model.Expense;
 import com.kalafche.model.ExpenseReport;
 import com.kalafche.model.ExpenseType;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
+import com.kalafche.service.EntityService;
 import com.kalafche.service.ExpenseService;
 import com.kalafche.service.fileutil.ImageUploadService;
 
@@ -32,6 +30,9 @@ public class ExpenseServiceImpl implements ExpenseService {
 
 	@Autowired
 	EmployeeService employeeService;
+	
+	@Autowired
+	EntityService entityService;
 
 	@Autowired
 	DateService dateService;
@@ -75,11 +76,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 	public ExpenseReport searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds) {
 		ExpenseReport report = new ExpenseReport();
 		
-		if (storeIds.equals("0") || storeIds.equals("ANIKO") || storeIds.equals("AZARD")) {
-			storeIds = storeDao.selectStoreIdsByOwner(storeIds);
-		}
-		
-		List<Expense> expenses = expenseDao.searchExpenses(startDateMilliseconds, endDateMilliseconds, storeIds);
+		List<Expense> expenses = expenseDao.searchExpenses(startDateMilliseconds, endDateMilliseconds, entityService.getConcatenatedStoreIdsForFiltering(storeIds));
 		calculateTotalAmountAndCount(expenses, report);
 		report.setExpenses(expenses);
 		
@@ -111,7 +108,7 @@ public class ExpenseServiceImpl implements ExpenseService {
 	
 	private void validateExpenseType(ExpenseType expenseType) {
 		if (expenseDao.checkIfExpenseTypeExists(expenseType)) {
-			throw new DuplicationException("code", "Съществуващ код.");
+			throw new DuplicationException("code", "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ.");
 		}
 	}
 	

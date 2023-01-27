@@ -81,21 +81,21 @@ angular
                 url: '/new-stock',
                 templateUrl: 'views/partials/new-stock/new-stock-tab.html',
                 data: {
-                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user],
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
                     title: "Нова стока"
                 }      
             }).state('inStock', {
                 url: '/in-stock',
                 templateUrl: 'views/partials/partial-in-stock.html',
                 data: {
-                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user],
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
                     title: "Наличности"
                 }      
             }).state('saleReport', {
                 url: '/sale-report',
                 templateUrl: 'views/partials/sale-report/sale-report-tab.html',
                 data: {
-                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user],
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
                     title: "Справки"
                 }      
             }).state('stockReport', {
@@ -109,21 +109,21 @@ angular
                 url: '/waste-report',
                 templateUrl: 'views/partials/waste-report.html',
                 data: {
-                    authorizedRoles: [ UserRoles.admin, UserRoles.superAdmin, UserRoles.user],
+                    authorizedRoles: [ UserRoles.admin, UserRoles.superAdmin, UserRoles.user, UserRoles.manager],
                     title: "Бракувана стока"
                 }      
             }).state('refundReport', {
                 url: '/refund-report',
                 templateUrl: 'views/partials/refund-report.html',
                 data: {
-                    authorizedRoles: [ UserRoles.admin, UserRoles.superAdmin, UserRoles.user],
+                    authorizedRoles: [ UserRoles.admin, UserRoles.superAdmin, UserRoles.user, UserRoles.manager],
                     title: "Върната стока"
                 }      
             }).state('relocation', {
                 url: '/rrelocation',
                 templateUrl: 'views/partials/partial-relocation.html',
                 data: {
-                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user],
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
                     title: "Релокации"
                 }      
             }).state('stockOrder', {
@@ -144,14 +144,14 @@ angular
                 url: '/expense',
                 templateUrl: 'views/partials/expense/expense.html',
                 data: {
-                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user],
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
                     title: "Разходи"
                 }      
             }).state('revision', {
                 url: '/revision',
                 templateUrl: 'views/partials/revision/revision-tab.html',
                 data: {
-                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user],
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
                     title: "Ревизии"
                 }      
             }).state('discount', {
@@ -233,7 +233,7 @@ angular
         });
         $rootScope.$on(AuthEvents.loginSuccess, function () {
             $rootScope.sideNavVisible = true;
-            if (AuthService.isAdmin()) {
+            if (AuthService.isAdmin() || AuthService.isManager()) {
                 $state.go('saleReport'); 
             } else {
                 $state.go('inStock');    

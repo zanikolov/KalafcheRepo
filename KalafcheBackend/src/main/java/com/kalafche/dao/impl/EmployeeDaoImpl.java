@@ -59,6 +59,17 @@ public class EmployeeDaoImpl extends JdbcDaoSupport implements EmployeeDao {
 	private static final String GET_ALL_ROLES_FOR_EMPLOYEE = "select * from auth_role r join employee_role er on r.id = er.auth_role_id where er.employee_id = ?";
 	private static final String CHECK_IF_EMPLOYEE_USERNAME_EXISTS = "select count(*) from employee where username = ? ";
 	private static final String ID_NOT_CLAUSE = " and id <> ?";
+	private static final String IS_EMPLOYEE_MANAGER = "select " +
+			"count(*) " +
+			"from employee_role " +
+			"where auth_role_id in " +
+			"( " +
+			"   select " +
+			"   id " +
+			"   from auth_role " +
+			"   where name in ('ROLE_MANAGER') " +
+			") " +
+			"and employee_id=(select id from employee where username=?) ";
 	
 	private BeanPropertyRowMapper<Employee> employeeRowMapper;
 	
@@ -181,6 +192,13 @@ public class EmployeeDaoImpl extends JdbcDaoSupport implements EmployeeDao {
 		}
 			
 		return exists != null && exists > 0 ;
+	}
+
+	@Override
+	public Boolean getIsEmployeeManager(String username) {
+	    Integer result = getJdbcTemplate().queryForObject(IS_EMPLOYEE_MANAGER, Integer.class, username);
+
+	    return result != null && result > 0;
 	}
 
 }

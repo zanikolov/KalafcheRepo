@@ -14,6 +14,7 @@ import com.kalafche.model.Employee;
 import com.kalafche.model.Refund;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
+import com.kalafche.service.EntityService;
 import com.kalafche.service.ExpenseService;
 import com.kalafche.service.RefundService;
 import com.kalafche.service.StockService;
@@ -23,6 +24,9 @@ public class RefundServiceImpl implements RefundService {
 
 	@Autowired
 	private RefundDao refundDao;
+	
+	@Autowired
+	EntityService entityService;
 	
 	@Autowired
 	EmployeeService employeeService;
@@ -46,12 +50,8 @@ public class RefundServiceImpl implements RefundService {
 	public List<Refund> searchRefunds(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
 			String productCode, Integer deviceBrandId, Integer deviceModelId) {
 		
-		if (storeIds.equals("0") || storeIds.equals("ANIKO") || storeIds.equals("AZARD")) {
-			storeIds = storeDao.selectStoreIdsByOwner(storeIds);
-		}
-		
 		List<Refund> refunds = refundDao.searchRefunds(startDateMilliseconds,
-				endDateMilliseconds, storeIds, productCode, deviceBrandId, deviceModelId);
+				endDateMilliseconds, entityService.getConcatenatedStoreIdsForFiltering(storeIds), productCode, deviceBrandId, deviceModelId);
 		
 		return refunds;
 	}

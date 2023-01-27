@@ -6,7 +6,7 @@
   		<md-tab ng-if="isAdmin()" label="Валидиране на файл">
   			<new-stock-validation></new-stock-validation>
   		</md-tab>
-  		<md-tab ng-if="!isAdmin()" label="Приемане на стока">
+  		<md-tab ng-if="isUser()" label="Приемане на стока">
   			<new-stock-import></new-stock-import>
   		</md-tab>
   	</md-tabs>

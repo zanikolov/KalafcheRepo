@@ -4,7 +4,7 @@
             <form name="expenseForm" server-validation novalidate>
                 <div layout="row">
                     <md-input-container flex="50" flex-xs="100">
-                        <md-select ng-model="expense.storeId" ng-disabled="!isAdmin()" required>
+                        <md-select ng-model="expense.storeId" ng-disabled="isUser()" required>
                             <md-option ng-repeat="store in stores" ng-value="store.id">
                                 {{store.city}}, {{store.name}}
                             </md-option>

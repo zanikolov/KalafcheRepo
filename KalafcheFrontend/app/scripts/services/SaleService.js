@@ -11,7 +11,8 @@ angular.module('kalafcheFrontendApp')
             getTotalSum: getTotalSum,
             generateExcel: generateExcel,
             getMonthlyTurnover: getMonthlyTurnover,
-            getSplitReport: getSplitReport
+            getProductTypeSplitReport: getProductTypeSplitReport,
+            getTransactionSplitReport: getTransactionSplitReport
 		});
 
         function getTotalSum(items, code) {
@@ -101,12 +102,26 @@ angular.module('kalafcheFrontendApp')
                 );
         }
 
-        function getSplitReport(startDateMilliseconds, endDateMilliseconds, storeId) { 
+        function getProductTypeSplitReport(startDateMilliseconds, endDateMilliseconds, storeId) { 
             var request = {};
             request.startDate = startDateMilliseconds;
             request.endDate = endDateMilliseconds;
 
-            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/split', request, {responseType: "arraybuffer"})
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/productTypeSplit', request, {responseType: "arraybuffer"})
+                .then(
+                    function(response) {
+                        var blob = new Blob([response.data], {type: "application/vnd.openxmlformat-officedocument.spreadsheetml.sheet;"});
+                        FileSaver.saveAs(blob, 'split-report.xlsx')
+                    }
+                );
+        }
+
+        function getTransactionSplitReport(startDateMilliseconds, endDateMilliseconds, storeId) { 
+            var request = {};
+            request.startDate = startDateMilliseconds;
+            request.endDate = endDateMilliseconds;
+
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/transactionSplit', request, {responseType: "arraybuffer"})
                 .then(
                     function(response) {
                         var blob = new Blob([response.data], {type: "application/vnd.openxmlformat-officedocument.spreadsheetml.sheet;"});

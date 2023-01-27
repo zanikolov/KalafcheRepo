@@ -35,13 +35,13 @@ angular.module('kalafcheFrontendApp')
 	  		for (var i = 0; i < roles.length; i++) {
                 var role = roles[i];
 
-                if (role.name === "ROLE_ADMIN" || role.name === "ROLE_SUPERADMIN") {
+                if (role === "ROLE_ADMIN" || role === "ROLE_SUPERADMIN") {
                     return true;
                 }
             }
-		}
+		  }
 
-          return false;
+      return false;
   	}	
 
   	$scope.isSuperAdmin = function() {
@@ -49,14 +49,42 @@ angular.module('kalafcheFrontendApp')
   		if (roles) {
 	  		for (var i = 0; i < roles.length; i++) {
                 var role = roles[i];
-                if (role.name === "ROLE_SUPERADMIN") {
+                if (role === "ROLE_SUPERADMIN") {
                     return true;
                 }
             }
-		}
+		  }
 
-          return false;
+      return false;
   	}
+
+    $scope.isManager = function() {
+      var roles = SessionService.currentUser.userRoles;
+      if (roles) {
+        for (var i = 0; i < roles.length; i++) {
+                var role = roles[i];
+                if (role === "ROLE_MANAGER") {
+                    return true;
+                }
+            }
+      }
+
+      return false;
+    }
+
+    $scope.isUser = function() {
+      var roles = SessionService.currentUser.userRoles;
+      if (roles) {
+        for (var i = 0; i < roles.length; i++) {
+                var role = roles[i];
+                if (role === "ROLE_USER") {
+                    return true;
+                }
+            }
+      }
+
+      return false;
+    }
 
   	$scope.convertEpochToDate = function(epochTime) {
 
@@ -99,100 +127,145 @@ angular.module('kalafcheFrontendApp')
           link : 'assortment',
           title: 'Асортимент',
           icon: 'dashboard',
-          onlyAdmin: true
+          admin: true,
+          manager: false,
+          user: false
         }
         ,{
           link : 'inStock',
           title: 'Търсене',
-          icon: 'dashboard'
+          icon: 'dashboard',
+          admin: true,
+          manager: true,
+          user: true
         },    
         {
           link : 'new-stock',
           title: 'Нова стока',
-          icon: 'dashboard'
+          icon: 'dashboard',
+          admin: true,
+          manager: false,
+          user: true
         },  
         {
           link : 'device',
           title: 'Устройства',
           icon: 'dashboard',
-          onlyAdmin: true
+          admin: true,
+          manager: false,
+          user: false
         },    
         {
           link : 'employee',
           title: 'Служители',
           icon: 'dashboard',
-          onlyAdmin: true
+          admin: true,
+          manager: false,
+          user: false
         },
         {
           link : 'store',
           title: 'Обекти',
           icon: 'dashboard',
-          onlyAdmin: true
+          admin: true,
+          manager: false,
+          user: false
         },
         {
           link : 'loyalCustomer',
           title: 'Лоялни клиенти',
           icon: 'dashboard',
-          onlyAdmin: true
-        },        {
+          admin: true,
+          manager: false,
+          user: false
+        },        
+        {
           link : 'partner',
           title: 'Партньори',
           icon: 'dashboard',
-          onlyAdmin: true
+          admin: true,
+          manager: false,
+          user: false
         },
         {
           link : 'partnerStore',
           title: 'Обекти партньори',
           icon: 'dashboard',
-          onlyAdmin: true
+          admin: true,
+          manager: false,
+          user: false
         },
         {
           link : 'saleReport',
           title: 'Справки',
-          icon: 'dashboard'
+          icon: 'dashboard',
+          admin: true,
+          manager: true,
+          user: true
         },        
         {
           link : 'wasteReport',
           title: 'Брак',
-          icon: 'dashboard'
+          icon: 'dashboard',
+          admin: true,
+          manager: true,
+          user: true
         },        
         {
           link : 'refundReport',
           title: 'Рекламации',
-          icon: 'dashboard'
+          icon: 'dashboard',
+          admin: true,
+          manager: true,
+          user: true
         },
         {
           link : 'relocation',
           title: 'Релокации',
-          icon: 'dashboard'
+          icon: 'dashboard',
+          admin: true,
+          manager: true,
+          user: true
         },
         {
           link : 'activityReport',
           title: 'Активности',
           icon: 'dashboard',
-          onlyAdmin: true
+          admin: true,
+          manager: false,
+          user: false
         },
         {
           link : 'expense',
           title: 'Разходи',
-          icon: 'dashboard'
+          icon: 'dashboard',
+          admin: true,
+          manager: true,
+          user: true
         },
         {
           link : 'revision',
           title: 'Ревизии',
-          icon: 'dashboard'
+          icon: 'dashboard',
+          admin: true,
+          manager: false,
+          user: true
         },
         {
           link : 'discount',
           title: 'Промоции',
           icon: 'dashboard',
-          onlyAdmin: true
+          admin: true,
+          manager: false,
+          user: false
         },
         {
           link : 'rawItem',
           title: 'Баркодове',
           icon: 'dashboard',
-          onlyAdmin: true
+          admin: true,
+          manager: false,
+          user: false
         }
       ];
 	});

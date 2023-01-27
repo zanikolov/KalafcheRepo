@@ -22,10 +22,12 @@ public interface EmployeeDao {
 
 	public abstract List<Employee> getEmployeesByIds(List<Integer> employeeIds);
 
-	public void insertEmployeeRole(Integer employeeId, String authRoleName);
+	public abstract void insertEmployeeRole(Integer employeeId, String authRoleName);
 
-	public List<AuthRole> getAllRolesForEmployee(Integer employeeId);
+	public abstract List<AuthRole> getAllRolesForEmployee(Integer employeeId);
 
-	public boolean checkIfEmployeeUsernameExists(Employee employee);
+	public abstract boolean checkIfEmployeeUsernameExists(Employee employee);
+
+	public abstract Boolean getIsEmployeeManager(String username);
 
 }

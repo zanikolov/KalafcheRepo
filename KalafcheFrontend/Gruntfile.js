@@ -88,7 +88,7 @@ module.exports = function (grunt) {
         constants: {
           Environment: {
             name: 'production',
-            apiEndpoint: 'http://18.194.127.24:8080'
+            apiEndpoint: 'http://3.76.142.154:8080'
           }
         }
       }

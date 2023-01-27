@@ -2,7 +2,7 @@
     <md-content layout-padding layout="row">
         <div div flex-xs="100" flex="50">
             <form name="revisionForm">    
-                <md-input-container class="md-block" ng-if="isAdmin()">
+                <md-input-container class="md-block" ng-if="isAdmin() || isManager()">
                     <label>Магазин</label>
                     <md-select ng-model="formData.storeId" ng-selected="false" ng-change="getCurrentRevision()">
                         <md-option ng-repeat="store in stores" ng-value="store.id">

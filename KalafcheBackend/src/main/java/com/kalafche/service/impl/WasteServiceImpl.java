@@ -17,6 +17,7 @@ import com.kalafche.model.Waste;
 import com.kalafche.model.WasteReport;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
+import com.kalafche.service.EntityService;
 import com.kalafche.service.StockService;
 import com.kalafche.service.WasteService;
 import com.kalafche.service.fileutil.ImageUploadService;
@@ -29,6 +30,9 @@ public class WasteServiceImpl implements WasteService {
 	
 	@Autowired
 	ItemDao itemDao;
+	
+	@Autowired
+	EntityService entityService;
 	
 	@Autowired
 	EmployeeService employeeService;
@@ -50,12 +54,8 @@ public class WasteServiceImpl implements WasteService {
 			String productCode, Integer deviceBrandId, Integer deviceModelId) {
 		WasteReport wasteReport = new WasteReport();
 		
-		if (storeIds.equals("0") || storeIds.equals("ANIKO") || storeIds.equals("AZARD")) {
-			storeIds = storeDao.selectStoreIdsByOwner(storeIds);
-		}
-		
-		List<Waste> wastes = wasteDao.searchWastes(startDateMilliseconds,
-				endDateMilliseconds, storeIds, productCode, deviceBrandId, deviceModelId);
+		List<Waste> wastes = wasteDao.searchWastes(startDateMilliseconds, endDateMilliseconds,
+				entityService.getConcatenatedStoreIdsForFiltering(storeIds), productCode, deviceBrandId, deviceModelId);
 		
 		if (wastes != null && !wastes.isEmpty()) {
 			calculateTotalAmountAndCount(wastes, wasteReport);

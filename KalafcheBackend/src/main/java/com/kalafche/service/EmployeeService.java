@@ -25,4 +25,8 @@ public interface EmployeeService {
 
 	Employee getEmployeeByUsername(String username);
 
+	Boolean isLoggedInEmployeeManager();
+
+	String getLoggedInEmployeeUsername();
+
 }

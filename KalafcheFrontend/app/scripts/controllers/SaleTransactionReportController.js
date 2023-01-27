@@ -30,6 +30,11 @@ angular.module('kalafcheFrontendApp')
             $scope.endDatePopup = {opened: false};
 
             getCurrentDate();
+            var yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            var today = new Date();
+            $scope.startMinDate = AuthService.isAdmin() ? new Date(2015, 5, 22) : yesterday;
+            $scope.startMaxDate = today;
             $scope.startDateOptions = {
                 formatYear: 'yy',
                 maxDate: new Date(),
@@ -98,7 +103,7 @@ angular.module('kalafcheFrontendApp')
         };
 
         function getAllStores() {
-            StoreService.getAllStores().then(function(response) {
+            StoreService.getAllStoresForSaleReport().then(function(response) {
                 $scope.stores = response;
                 $scope.selectedStore =  {"id": SessionService.currentUser.employeeStoreId};
                 getSales();
@@ -125,6 +130,14 @@ angular.module('kalafcheFrontendApp')
 
         $scope.isAdmin = function() {
             return AuthService.isAdmin();
+        }
+        
+        $scope.isManager = function() {
+            return AuthService.isManager();
+        }
+
+        $scope.isUser = function() {
+            return AuthService.isUser();
         }
 
         $scope.openRefundModal = function(saleItem) {
