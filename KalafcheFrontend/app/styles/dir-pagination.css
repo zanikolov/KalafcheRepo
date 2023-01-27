@@ -36,8 +36,8 @@
 .custom-pagination > .active > span:hover,
 .custom-pagination > .active > span:focus {
   z-index: 2;
-  color: #5c531c;
-  background-color: #ffe64e;
+  color: white !important;
+  background-color: #9c27b0;
   border-style: none;
   cursor: default;
 }

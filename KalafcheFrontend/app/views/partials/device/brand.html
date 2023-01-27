@@ -1,0 +1,36 @@
+<div layout="column" ng-cloak>
+<!--       <md-content>
+    <md-tabs md-dynamic-height md-border-bottom>
+      <md-tab label="one"> -->
+    <md-content layout-padding layout="row" layout-xs="column">
+        <div flex>
+            <form name="deviceBrandForm" server-validation novalidate>
+                <md-input-container class="md-block">
+                    <label>Име на марка</label>
+                    <input ng-model="deviceBrand.name" name="name" ng-change="resetServerErrorMessages()" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container>
+            </form>
+            <md-button ng-disabled="deviceBrandForm.$invalid" ng-click="submitBrand()" class="md-raised md-primary">Запази</md-button>
+        </div>
+        <div flex>
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Марка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr dir-paginate="brand in brands | itemsPerPage: brandsPerPage track by $index" pagination-id="brand" current-page="currentPage" class="item-row">
+                        <td>{{(currentPage - 1) * brandsPerPage + $index + 1}}</td>
+                        <td>{{brand.name}}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="centered-pagination">
+                <dir-pagination-controls pagination-id="brand" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            <div>
+        </div>
+    </md-content>
+</div>

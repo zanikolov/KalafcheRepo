@@ -1,0 +1,63 @@
+<md-dialog flex="60">
+  <form name="relocationForm" server-validation novalidate ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Релокация</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="closeModal()">
+          <md-icon md-svg-src="images/icons/close.svg" aria-label="Затвори"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+        <md-content layout-padding layout="column">
+            <div flex>           
+                <div layout="row">
+                    <md-input-container>
+                        <label>Брой</label>
+                        <input type="number" min="1" max="{{selectedStock.quantity}}" name="inputQuantity" ng-model="quantityForRelocation" required="">
+                    </md-input-container>
+                    <md-input-container>
+                        <span>{{selectedStock.productName}} за {{selectedStock.deviceBrandName}} {{selectedStock.deviceModelName}}, цена {{selectedStock.productPrice}}лв <b>от магазин {{selectedStock.storeName}}</b></span>
+                    </md-input-container>
+                </div>   
+            </div>
+        </md-content>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="closeModal()" class="md-raised md-primary">Отмени</md-button>
+      <span flex></span>
+      <md-button ng-disabled="relocationForm.$invalid" class="md-raised md-primary" ng-click="submitRelocation()">Потвърди</md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>
+
+
+
+<!-- <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button> 
+    <label><h4 class="modal-title">Заявка за релокация</h4></label><br/>
+    <label>на {{selectedStock.productName}} за {{selectedStock.deviceBrandName}} {{selectedStock.deviceModelName}}, цена {{selectedStock.productPrice}}лв <b>от магазин {{selectedStock.storeName}}</b></label>
+</div>
+<div class="modal-body">                
+    <form name="relocationForm" class="form-horizontal">
+        <div class="form-group">
+            <div class="col-xs-3"></div>
+            <div style="text-align: right;">
+                <label for="inputId" class="col-xs-3">Брой:</label>
+            </div>
+            <div class="col-xs-2">
+                <input class="form-control" type="number" min="1" max="{{selectedStock.quantity}}" name="inputQuantity" ng-class="{'error-form-control': relocationForm.inputQuantity.$error.number || relocationForm.inputQuantity.$error.max || saleForm.inputQuantity.$error.min}" ng-model="quantityForRelocation">
+            </div>
+            <div class="col-xs-4">
+                <span class="error-message" ng-if="relocationForm.inputQuantity.$error.number || relocationForm.inputQuantity.$error.max || saleForm.inputQuantity.$error.min">Невалидно количество!</span>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button class="btn" type="button" ng-click="closeModal()">Отмени</button>
+    <button class="btn" type="button" ng-click="submitRelocation()">Потвърди</button>
+</div> -->

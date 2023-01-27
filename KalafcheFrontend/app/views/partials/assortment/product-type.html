@@ -1,0 +1,53 @@
+<div layout="column" ng-cloak>
+     <md-content layout-padding layout="row" layout-xs="column">
+        <div flex>
+            <form name="productTypeForm" server-validation novalidate>                
+                <md-input-container class="md-block">
+                    <label>Име</label>
+                    <input ng-model="productType.name" name="name" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Master тип</label>
+                    <md-select name="masterTypeId" ng-model="productType.masterTypeId" required>
+                        <md-option value="" selected></md-option>
+                        <md-option ng-repeat="productMasterType in productMasterTypes" ng-value="productMasterType.id">
+                            {{productMasterType.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+            </form>
+            <md-content layout="row">
+                <md-button ng-if="productType.id" class="md-raised md-primary" ng-click="resetProductTypeForm()">Отмени</md-button>
+                <md-button ng-disabled="productTypeForm.$invalid" ng-click="submitProductType()" class="md-raised md-primary">Запази</md-button>
+            </md-content>
+        </div>
+        <div flex ng-if="productTypes.length > 0">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th><label>#</label></th>
+                        <th><label>Име</label></th>
+                        <th><label>Master</label></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="productType in productTypes track by $index" current-page="currentPage" class="item-row">
+                        <td>{{$index + 1}}</td>
+                        <td>{{productType.name}}</td>
+                        <td>{{productType.masterTypeName}}</td>
+                        <td>
+                            <a href="" ng-click="editProductType(productType)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+<!--             <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls pagination-id="productType" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div> -->
+        </div>
+    </md-content>
+</div>

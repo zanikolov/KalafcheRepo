@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-	.controller('StockReportController', function ($scope, $uibModal, ModelService, BrandService, ItemService, ColorService, InStockService, SessionService, KalafcheStoreService, SaleService, PartnerService, ApplicationService, StockOrderService, OrderedStockService) {
+	.controller('StockReportController', function ($scope, $uibModal, ModelService, BrandService, ProductService, ColorService, InStockService, SessionService, StoreService, SaleService, PartnerService, ApplicationService, StockOrderService, OrderedStockService) {
 
 		init();
 
@@ -12,7 +12,7 @@ angular.module('kalafcheFrontendApp')
             $scope.orderedStockPerPage = 10;
 			$scope.inStockList = [];
             $scope.brands = [];
-            $scope.items = [];
+            $scope.products = [];
             $scope.models = [];
             $scope.productCode = "";
             $scope.lessThan;
@@ -25,7 +25,7 @@ angular.module('kalafcheFrontendApp')
             $scope.orderedStockList = [];
 
             getAllBrands();
-            getAllItems();
+            getAllProducts();
             getAllDeviceModels();        
 			getAllInStock();
             getStockOrder();
@@ -39,9 +39,9 @@ angular.module('kalafcheFrontendApp')
             });
         };
 
-        function getAllItems() {
-            ItemService.getAllItems().then(function(response) {
-                $scope.items = response;
+        function getAllProducts() {
+            ProductService.getAllProducts().then(function(response) {
+                $scope.products = response;
             });
 
         };
@@ -62,7 +62,7 @@ angular.module('kalafcheFrontendApp')
             var productCodesString = $scope.productCode;
             var productCodes = productCodesString.split(" ");
             return function predicateFunc(inStock) {
-                return productCodes.indexOf(inStock.itemProductCode) !== -1 ;
+                return productCodes.indexOf(inStock.productCode) !== -1 ;
             };
         };
 
@@ -89,7 +89,6 @@ angular.module('kalafcheFrontendApp')
 
         //Stock order
         $scope.createNewStockOrder = function() {
-            console.log(">> test");
         };
 
         function getStockOrder() {

@@ -1,0 +1,65 @@
+<div layout="column" ng-cloak>
+     <md-content layout-padding layout="row" layout-xs="column">
+        <div flex-xs="100" flex="50">
+            <form name="expenseTypeForm" server-validation novalidate>                
+                <md-input-container class="md-block" flex="50">
+                    <label>Име</label>
+                    <input ng-model="expenseType.name" name="code" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>  
+                </md-input-container>
+                <md-input-container class="md-block" flex="50">
+                    <label>Код</label>
+                    <input ng-model="expenseType.code" name="code" ng-disabled="expenseType.id" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>  
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <md-checkbox ng-model="expenseType.isAdmin" class="md-primary">
+                        Администраторски
+                    </md-checkbox>
+                </md-input-container>
+            </form>
+        </div>
+    </md-content>
+    <md-content layout="row">
+        <md-button ng-disabled="expenseTypeForm.$invalid" ng-click="submitExpenseType()" class="md-raised md-primary">Запази</md-button>
+        <md-button ng-if="expenseType.id" class="md-raised md-primary" ng-click="resetExpenseTypeForm()">Отмени</md-button>
+    </md-content>
+    <md-content layout-padding layout="row" layout-xs="column">
+        <div flex="100">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th><label>Име</label></th>
+                        <th><label>Код</label></th>
+                        <th><label>Админ</label></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr dir-paginate="expenseType in expenseTypes | itemsPerPage: expenseTypesPerPage track by $index" current-page="currentPage" pagination-id="type" class="item-row">
+                        <td>{{(currentPage - 1) * expenseTypesPerPage + $index + 1}}</td>
+                        <td>{{expenseType.name}}</td>
+                        <td>{{expenseType.code}}</td>
+                        <td>
+     <!--                        <div ng-if="!expenseType.isAdmin">
+                                <md-icon md-svg-src="images/icons/close.svg"></md-icon>
+                            </div> -->
+                            <div >
+                                <md-icon ng-if="expenseType.isAdmin" md-svg-src="images/icons/check.svg"></md-icon>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="" ng-click="editExpenseType(expenseType)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls pagination-id="type" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+    </md-content>
+</div>

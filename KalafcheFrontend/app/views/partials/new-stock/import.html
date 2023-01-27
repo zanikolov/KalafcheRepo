@@ -1,0 +1,138 @@
+<div layout="column" ng-cloak>
+
+    <md-content layout-padding layout="column">
+        <div flex ng-if="isAdmin()">
+            <form name="fileForm" server-validation novalidate>
+                <div layout="row">
+                     <md-input-container flex>
+                        <md-select ng-model="selectedStore.id" ng-change="getNewStocks()">
+                            <md-option ng-repeat="store in stores" ng-value="store.id">
+                                {{store.city}}, {{store.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container flex>
+                        <input type="file" file-model="file" ng-model="file" name="file" id="file">
+                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.file}}</span>
+                    </md-input-container> 
+                    <md-input-container flex>
+                        <md-button ng-click="importFile(file)" ng-disabled="!(selectedStore && selectedStore.id != 0 && file)" class="md-raised md-primary">Импорт</md-button>
+                    </md-input-container>
+                </div>
+            </form>
+        </div>
+
+        <div flex>
+            <form name="newStockForm" novalidate>
+                <table class="table table-hover table-condensed">
+                    <thead>
+                        <tr>
+                            <th>            
+                                <a href="" ng-if="addNewStockButtonVisible" ng-click="addNewStock()" style="text-decoration:none;">
+                                    <md-icon class="primary-icon" md-svg-src="images/icons/add.svg"></md-icon>
+                                </a>
+                            </th>
+                            <th>
+                                <label>Продукт</label>
+                            </th>
+                            <th>
+                                <label>Код</label>
+                            </th>
+                            <th>
+                                <label>Марка</label>
+                            </th>
+                            <th>
+                                <label>Модел</label>
+                            </th>
+                            <th>
+                                <label>Импорт</label>
+                            </th>
+                            <th>
+                                <label>Брой</label>
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-show="newStockFormVisible" ng-form name="newStockFormRow">
+                            <td>0</td>
+                            <td>{{newNewStock.productName}}</td>
+                            <td>
+                                <input name="newStockProductCode" ng-model="newNewStock.productCode" ng-blur="getProductProperties(newNewStock)" ng-focus="resetProductProperties(newNewStock)" ng-maxlength="6" required>
+                            </td>
+                            <td>
+                                <md-select name="selectBrand" ng-model="newNewStock.deviceBrandId" ng-change="resetCurrentPage()" style="margin:0" required>
+                                    <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                                        {{brand.name}}
+                                    </md-option>
+                                </md-select>
+                            </td>
+                            <td>
+                                <md-select ng-model="newNewStock.deviceModelId"
+                                           md-on-close="clearModelSearchTerm()"
+                                           data-md-container-class="selectSearchTermHeader"
+                                           ng-disabled="!newNewStock.deviceBrandId" style="margin:0" required>
+                                  <md-select-header class="select-header">
+                                    <input id="modelSearchTerm" ng-model="modelSearchTerm"
+                                           type="search"
+                                           placeholder="Търси модел.."
+                                           class="header-searchbox md-text">
+                                  </md-select-header>
+                                    <md-option ng-repeat="model in models | filter: {deviceBrandId : newNewStock.deviceBrandId} : true |
+                                      filter:modelSearchTerm" ng-value="model.id">
+                                        {{model.name}}
+                                    </md-option>
+                                </md-select>
+                            </td>
+                            <td></td>
+                            <td>
+                                <input type="number" min="1" name="newNewStockQuantity" ng-model="newNewStock.quantity" required>
+                            </td>
+                            <td>
+                                <a href="" ng-click="cancelAdditionOfNewStock()" style="text-decoration:none;">
+                                    <md-icon class="primary-icon" md-svg-src="images/icons/close.svg"></md-icon>
+                                </a>
+                                <a href="" ng-show="newStockForm.$valid && selectedStore" ng-click="submitNewAddedStock()" style="text-decoration:none;">
+                                    <md-icon class="primary-icon" md-svg-src="images/icons/save.svg"></md-icon>
+                                </a>
+                            </td>
+                        </tr>
+                        <tr dir-paginate="newStock in newStocks | itemsPerPage: newStocksPerPage track by $index" current-page="currentPage" class="item-row" class="item-row">
+                            <td>{{(currentPage - 1) * newStocksPerPage + $index + 1}}</td>
+                            <td>{{newStock.productName}}</td>
+                            <td>{{newStock.productCode}}</td>
+                            <td>{{newStock.deviceBrandName}}</td>
+                            <td>{{newStock.deviceModelName}}</td>
+                            <td>{{newStock.importFileName}}</td>
+                            <td>{{newStock.quantity}}</td>
+                            <td>
+                                <a href="" ng-click="approveNewStock(newStock, $index)" ng-if="isUser() && !newStock.isApproved">
+                                    <md-icon class="primary-icon" md-svg-src="images/icons/check.svg"></md-icon>
+                                </a>
+                                <a href="" ng-click="deleteNewStock(newStock.id, $index)" ng-if="isAdmin()">
+                                    <md-icon class="primary-icon" md-svg-src="images/icons/delete.svg"></md-icon>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div layout="row" layout-align="center center">
+                    <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+                </div>
+            </form>
+        </div>
+
+        <div flex ng-if="isAdmin()">
+            <!-- <md-button type="submit" class="md-raised md-primary" ng-click="approveAllNewStocks()">Одобри всички</md-button> -->
+            <md-button type="submit" class="md-raised md-primary" ng-click="printStickersForNewStocks()">Принтирай</md-button>
+        </div>
+    </md-content>
+</div>
+
+<!-- <form>
+                <div class="form-group">
+                    <label for="myFileField">Select a file: </label>
+                    <input type="file" demo-file-model="myFile"  class="form-control" id ="myFileField"/>
+                </div>
+                <button ng-click="uploadFile()" class = "btn btn-primary">Upload File</button>
+            </form>  -->

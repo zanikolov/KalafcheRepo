@@ -58,7 +58,7 @@ module.exports = function (grunt) {
         files: [
           '<%= yeoman.app %>/{,*/}*.html',
           '.tmp/styles/{,*/}*.css',
-          '<%= yeoman.app %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}'
+          '<%= yeoman.app %>/images/**/*.{png,jpg,jpeg,gif,webp,svg}'
         ]
       }
     },
@@ -88,7 +88,7 @@ module.exports = function (grunt) {
         constants: {
           Environment: {
             name: 'production',
-            apiEndpoint: 'http://52.28.152.198:8080'
+            apiEndpoint: 'http://3.76.142.154:8080'
           }
         }
       }
@@ -334,7 +334,7 @@ module.exports = function (grunt) {
         files: [{
           expand: true,
           cwd: '<%= yeoman.dist %>',
-          src: ['*.html', 'views/{,*/}*.html'],
+          src: ['*.html', 'views/**/*.html'],
           dest: '<%= yeoman.dist %>'
         }]
       }
@@ -372,8 +372,8 @@ module.exports = function (grunt) {
             '*.{ico,png,txt}',
             '.htaccess',
             '*.html',
-            'views/{,*/}*.html',
-            'images/{,*/}*.{webp}',
+            'views/**/*.html',
+            'images/**/*.{webp}',
             'styles/fonts/{,*/}*.*'
           ]
         }, {

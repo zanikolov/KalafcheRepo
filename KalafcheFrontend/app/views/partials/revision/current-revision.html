@@ -1,0 +1,175 @@
+<div layout="column" ng-cloak>
+    <md-content layout-padding layout="row">
+        <div div flex-xs="100" flex="50">
+            <form name="revisionForm">    
+                <md-input-container class="md-block" ng-if="isAdmin() || isManager()">
+                    <label>Магазин</label>
+                    <md-select ng-model="formData.storeId" ng-selected="false" ng-change="getCurrentRevision()">
+                        <md-option ng-repeat="store in stores" ng-value="store.id">
+                            {{store.city}}, {{store.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>            
+                <md-input-container class="md-block" ng-if="!revision.id">
+                    <label>Тип</label>
+                    <md-select ng-model="revision.typeId" ng-selected="false" required>
+                        <md-option ng-repeat="type in types" ng-value="type.id">
+                            {{type.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+              	<md-input-container class="md-block" ng-if="!revision.id">
+	        		<label>Ревизори</label>
+	        		<md-select ng-model="revision.revisers" multiple required>
+	            		<md-option ng-repeat="employee in employees" ng-value="employee">
+	            			{{employee.name}}
+	            		</md-option>
+	        		</md-select>
+	      		</md-input-container>
+            </form>
+            <md-content layout="row"  ng-if="!revision.id">
+                <md-button ng-disabled="revisionForm.$invalid" ng-click="initiateRevision()" class="md-raised md-primary">Създай</md-button>
+            </md-content>
+        </div>
+    </md-content>
+    <md-content layout-padding layout="row" ng-if="revision.id" flex>
+		<md-content layout="column" flex="100">
+			<md-content layout="row">
+		        <div flex="80">
+		            <table class="table table-hover table-condensed">
+		                <thead>
+		                    <tr>
+		                        <th>Устройства</th>
+		                    </tr>
+		                </thead>
+		                <tbody>               
+		                    <tr ng-if="revision.typeCode == 'DAILY'" class="item-row" ng-repeat="deviceModel in revision.deviceModels">
+		                        <td>{{deviceModel.name}}</td>
+		                    </tr>
+		                    <tr ng-if="revision.typeCode == 'FULL'" class="item-row">
+		                        <td>Всички устройства</td>
+		                    </tr>
+		                </tbody>
+		            </table>
+		        </div>
+		    </md-content>
+		</md-content>
+    	<md-content layout="column"  flex="100">
+		    <md-content layout="row">
+		        <div flex>
+		            <table class="table table-hover table-condensed">
+		                <thead>
+		                    <tr>
+		                        <th>Започната на</th>
+		                    </tr>
+		                </thead>
+		                <tbody>               
+		                    <tr class="item-row">
+		                        <td>{{getRevisionTimestamp(revision.createTimestamp)}}</td>
+		                    </tr>
+		                </tbody>
+		            </table>
+		        </div>
+		    </md-content>
+		    <md-content layout="row">
+		        <div flex>
+		            <table class="table table-hover table-condensed">
+		                <thead>
+		                    <tr>
+		                        <th>Ревизори</th>
+		                    </tr>
+		                </thead>
+		                <tbody>               
+		                    <tr class="item-row" ng-repeat="reviser in revision.revisers">
+		                        <td>{{reviser.name}}</td>
+		                    </tr>
+		                </tbody>
+		            </table>
+		        </div>
+		    </md-content>
+            <md-content layout="row" layout-align="end end" ng-if="!revision.submitTimestamp">
+                <md-button ng-click="submitRevision()" class="md-raised md-primary">Приключи</md-button>
+            </md-content>
+		</md-content>
+	</md-content>
+	<md-content layout="row" layout-padding ng-if="revision.id">
+		<md-content layout="column">
+				<div>
+					<div data-barcode-scanner="barcodeScanned"></div>
+		            <form name="barcodeForm" server-validation novalidate>
+		                <md-input-container class="md-block" style="width:150px">
+		                    <label>Баркод</label>
+		                    <input ng-model="formData.barcode" name="barcode" ng-change="onChangeBarcode()" maxlength="13">
+		                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.barcode}}</span>
+		                </md-input-container>
+		                <md-input-container class="md-block">
+			          		<md-checkbox ng-model="formData.showOnlyMismatches" class="md-primary">
+			            		Показвай само разминаванията
+			          		</md-checkbox>
+		                </md-input-container>
+		            </form>
+		        </div>
+		</md-content>
+		<md-content layout="column" ng-if="selectedRevisionItem">
+			    <div flex>
+			        <table class="table table-hover table-condensed">
+			            <thead>
+			                <tr>
+			                    <th>Устройство</th>
+			                    <th>Продукт</th>
+			                    <th>Система</th>
+			                    <th>Налични</th>
+			                    <th></th>
+			                </tr>
+			            </thead>
+			            <tbody>               
+			                <tr class="item-row">
+			                    <td>{{selectedRevisionItem.deviceModelName}}</td>
+			                    <td>{{selectedRevisionItem.productCode}} {{selectedRevisionItem.productName}}</td>
+			                    <td>{{selectedRevisionItem.expected}}</td>
+			                    <td>{{selectedRevisionItem.actual}}</td>
+			                    <td>
+	                                <a href="" ng-click="findRevisionItem(selectedRevisionItem)" ng-if="selectedRevisionItem.partOfTheCurrentRevision">
+	                                    <md-icon class="primary-icon" md-svg-src="images/icons/check.svg"></md-icon>
+	                                </a>
+			                    </td>
+			                </tr>
+			            </tbody>
+			        </table>
+			    </div>
+		</md-content>
+	</md-content>
+	<md-content layout="row" layout-padding ng-if="revision.id">
+	    <div flex>
+	        <table class="table table-hover table-condensed">
+	            <thead>
+	                <tr>
+	                	<th></th>
+	                    <th>Устройство</th>
+	                    <th>Продукт</th>
+	                    <th>Система</th>
+	                    <th>Налични</th>
+	                    <th></th>
+	                </tr>
+	            </thead>
+	            <tbody>               
+	                <tr class="item-row" dir-paginate="revisionItem in revision.revisionItems | filter: filterExpectedEqualsToActual() | itemsPerPage:revisionItemsPerPage" current-page="currentPage" pagination-id="current">
+	                	<td>{{(currentPage - 1) * revisionItemsPerPage + $index + 1}}</td>
+	                    <td>{{revisionItem.deviceModelName}}</td>
+	                    <td>{{revisionItem.productCode}} {{revisionItem.productName}}</td>
+	                    <td>{{revisionItem.expected}}</td>
+	                    <td>{{revisionItem.actual}}</td>
+	                    <td>
+                            <a href="" ng-click="findRevisionItem(revisionItem)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/check.svg"></md-icon>
+                            </a>
+	                    </td>
+	                </tr>
+	            </tbody>
+	        </table>
+            <div layout="row" layout-align="center center">
+                <dir-pagination-controls pagination-id="current" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+	    </div>
+	</md-content>
+</div>

@@ -40,7 +40,7 @@
                             <label>Модел</label>
                         </th>
                         <th>
-                            <label>Артикул</label>
+                            <label>Продукт</label>
                         </th>
                         <th>
                             <label>Kод</label>
@@ -55,8 +55,8 @@
                         <td>{{(orderedStockCurrentPage - 1) * orderedStockPerPage + $index + 1}}</td>
                         <td>{{orderedStock.deviceBrandName}}</td>
                         <td>{{orderedStock.deviceModelName}}</td>
-                        <td>{{orderedStock.itemName}}</td>
-                        <td>{{orderedStock.itemProductCode}}</td>
+                        <td>{{orderedStock.productName}}</td>
+                        <td>{{orderedStock.productCode}}</td>
                         <td>{{orderedStock.quantity}}</td>
                     </tr>
                 </tbody>
@@ -71,7 +71,7 @@
         <div class="modal-header">
             <!-- <button type="button" class="close" data-dismiss="stockOrderModal" aria-hidden="true">&times;</button> -->
             <label><h4 class="modal-title">Поръчка</h4></label><br/>
-            <label>на {{orderedStock.itemName}} за {{orderedStock.deviceBrandName}} {{orderedStock.deviceModelName}}</label>
+            <label>на {{orderedStock.productName}} за {{orderedStock.deviceBrandName}} {{orderedStock.deviceModelName}}</label>
         </div>
         <div class="modal-body">                
             <form name="orderForm" class="form-horizontal">

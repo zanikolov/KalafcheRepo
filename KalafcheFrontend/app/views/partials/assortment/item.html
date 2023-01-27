@@ -1,0 +1,87 @@
+<div layout="column" ng-cloak>
+     <md-content layout-padding>
+        <div flex="50" flex-xs="100">
+            <item-form item="selectedItem"></item-form>
+        </div>
+        <hr/>
+        <div flex>
+            <form>
+                <div layout="row" layout-xs="column">
+                    <div layout-xs="row" flex="33" flex-xs="100">
+                        <md-input-container flex="70">
+                            <label>Баркод</label>
+                            <input ng-model="barcode">
+                        </md-input-container> 
+                        <md-input-container flex-offset="5" flex="30">
+                            <label>Код</label>
+                            <input ng-model="productCode">
+                        </md-input-container>  
+                    </div>  
+                    <div layout-xs="row" flex="50" flex-xs="100">
+                        <md-input-container flex style="width:48%">
+                            <label>Марка</label>
+                            <md-select ng-model="selectedBrand.id" ng-change="resetCurrentPage()">
+                                <md-option value="" selected></md-option>
+                                <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                                    {{brand.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <md-input-container flex style="width:48%">
+                            <label>Модел</label>
+                            <md-select ng-model="selectedModel.id"
+                                       md-on-close="clearModelSearchTerm()"
+                                       data-md-container-class="selectSearchTermHeader"
+                                       ng-disabled="!selectedBrand.id" ng-change="resetCurrentPage()">
+                              <md-select-header class="select-header">
+                                <input id="modelSearchTerm" ng-model="modelSearchTerm"
+                                       type="search"
+                                       placeholder="Търси модел.."
+                                       class="header-searchbox md-text">
+                              </md-select-header>
+                              <md-option value="" selected>Всички</md-option>
+                                <md-option ng-repeat="model in models | filter: {deviceBrandId : selectedBrand.id} : true |
+                                  filter:modelSearchTerm" ng-value="model.id">
+                                    {{model.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div flex="100">
+            <div class="row item-table">
+                <div class="col-xs-12">
+                    <table class="table table-hover table-condensed">
+                        <thead>
+                            <tr>
+                            	<th><label>Баркод</label></th>
+                            	<th><label>Телефон</label></th>
+                                <th><label>Код</label></th>
+                                <th><label>Продукт</label></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <tr dir-paginate="item in items | filter:(!!selectedBrand.id || undefined) && {deviceBrandId: selectedBrand.id} : true | filter:(!!selectedModel.id || undefined) && {deviceModelId: selectedModel.id} : true | filter:(!!barcode || undefined) && {barcode: barcode} : true | filter:(!!productCode || undefined) && filterByProductCode() | itemsPerPage: itemsPerPage track by $index" current-page="currentPage" pagination-id="item" class="item-row">
+                                <td>{{item.barcode}}</td>
+                                <td>{{item.deviceModelName}}</td>
+                                <td>{{item.productCode}}</td>
+                                <td>{{item.productName}}</td>
+                                <td>
+                                    <a href="" ng-click="editItem(item)">
+                                        <md-icon  class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div layout="row" layout-align="center center" class="centered-pagination">
+                        <dir-pagination-controls pagination-id="item" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </md-content>
+</div>

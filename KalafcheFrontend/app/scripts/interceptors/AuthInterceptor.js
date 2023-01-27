@@ -4,9 +4,13 @@ angular.module('kalafcheFrontendApp')
   .factory('AuthInterceptor', function ($rootScope, $q, AuthEvents) {
   return {
     responseError: function (response) { 
+      console.log("<> <> <>");
+      console.log(response);
       $rootScope.$broadcast({
-        401: AuthEvents.notAuthenticated,
-        403: AuthEvents.notAuthorized
+        '-1': AuthEvents.notAuthenticated
+      }[response.status], response);
+      $rootScope.$broadcast({
+        '401': AuthEvents.notAuthenticated
       }[response.status], response);
       return $q.reject(response);
     }

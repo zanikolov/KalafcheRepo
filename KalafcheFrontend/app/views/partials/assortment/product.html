@@ -1,0 +1,94 @@
+<div layout="column" ng-cloak>
+     <md-content layout-padding layout="row" layout-xs="column">
+        <div flex-xs="100" flex="50">
+            <form name="productForm" server-validation novalidate>                
+                 <md-input-container class="md-block" flex="15">
+                    <label>Код</label>
+                    <input ng-model="product.code" name="code" ng-disabled="product.id" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>  
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Име</label>
+                    <input ng-model="product.name" name="name" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Тип</label>
+                    <md-select name="typeId" ng-model="product.typeId" required>
+                        <md-option value="" selected></md-option>
+                        <md-option ng-repeat="type in types" ng-value="type.id">
+                            {{type.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+                 <md-input-container class="md-block">
+                    <label>Описание</label>
+                    <input ng-model="product.description" name="description">
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Състав</label>
+                    <input ng-model="product.fabric" name="fabric" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.fabric}}</span>
+                </md-input-container>
+                <md-input-container class="md-block" flex="15">
+                    <label>Цена</label>
+                    <input type="number" min="0" step="0.01" ng-model="product.price" name="price" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.price}}</span>
+                </md-input-container>
+            </form>
+        </div>
+<!--         <div layout="column" flex-offset="5" flex="45" style="margin-top:5px">
+            <div layout="row" ng-repeat="specificPrice in product.specificPrices">
+                <md-input-container class="md-block" style="margin:0">
+                    <label>{{specificPrice.storeName}}</label>
+                    <input type="number" min="0" step="0.01" ng-model="specificPrice.price">
+                </md-input-container>
+            </div>
+        </div> -->
+    </md-content>
+    <md-content layout-padding layout="row">
+        <md-button ng-disabled="productForm.$invalid" ng-click="submitProduct()" class="md-raised md-primary">Запази</md-button>
+        <md-button ng-if="product.id" class="md-raised md-primary" ng-click="resetProductForm()">Отмени</md-button>
+    </md-content>
+     <md-content layout-padding layout="row">
+        <div layout-xs="row" flex="100" flex-xs="100">
+            <md-input-container style="width:100px">
+                <label>Код</label>
+                <input ng-model="productCode">
+            </md-input-container>  
+        </div>
+    </md-content>
+    <md-content layout-padding layout="row" layout-xs="column">
+        <div flex="100">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th><label>Код</label></th>
+                        <th><label>Име</label></th>
+                        <th><label>Тип</label></th>
+                        <th><label>Състав</label></th>
+                        <th><label>Цена</label></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr dir-paginate="product in products | filter:(!!productCode || undefined) && filterByProductCode() | itemsPerPage: productsPerPage track by $index" current-page="currentPage" pagination-id="product" class="item-row">
+                        <td>{{product.code}}</td>
+                        <td>{{product.name}}</td>
+                        <td>{{product.typeName}}</td>
+                        <td>{{product.fabric}}</td>
+                        <td>{{product.price}}</td>
+                        <td>
+                            <a href="" ng-click="editProduct(product)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls pagination-id="product" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+    </md-content>
+</div>

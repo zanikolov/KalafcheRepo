@@ -1,34 +1,54 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-    .controller('PartnerStoreController', function($scope, PartnerStoreService, ApplicationService) {
+    .controller('PartnerStoreController', function($scope, PartnerStoreService, ApplicationService, ServerValidationService) {
         
-        init();
+       init();
 
         function init() {
-            $scope.newPartnerStore = {};
+            $scope.partnerStore = {};
             $scope.partnerStores = [];
-            $scope.isErrorMessageVisible = false;  
-            $scope.errorMessage = "";  
+            $scope.currentPage = 1; 
+            $scope.partnerStoresPerPage = 10; 
+            $scope.serverErrorMessages = {};
 
             getAllPartnerStores();
         }
 
-        $scope.submitPartnerStore = function() {
-            PartnerStoreService.submitPartnerStore($scope.newPartnerStore).then(function(response) {
-                $scope.partnerStores.push($scope.newPartnerStore);
-                resetPartnerStoreState();
-                $scope.partnerStoreForm.$setPristine();
+        function getAllPartnerStores() {
+            PartnerStoreService.getAllPartnerStores().then(function(response) {
+                $scope.stores = response;
+            });
+
+        };
+
+        $scope.submitPartnerStore = function() {          
+            PartnerStoreService.submitPartnerStore($scope.partnerStore).then(function(response) {
+                $scope.resetPartnerStoreForm();
+                getAllPartnerStores();           
+            },
+            function(errorResponse) {
+                ServerValidationService.processServerErrors(errorResponse, $scope.partnerStoreForm);
+                $scope.serverErrorMessages = errorResponse.data.errors;
             });
         };
 
-        function resetPartnerStoreState() {
-            $scope.newPartnerStore = {};
-        }
+        $scope.openPartnerStoreForEdit = function(partnerStore) {
+            $scope.partnerStore = angular.copy(partnerStore);
+        };
 
-        function getAllPartnerStores() {
-            PartnerStoreService.getAllPartnerStores().then(function(response) {
-                $scope.partnerStores = response;
-            });
+        function resetPartnerStore() {
+            $scope.partnerStore = null;
+        };
+
+        $scope.resetPartnerStoreForm = function() {
+            resetPartnerStore();
+            $scope.resetServerErrorMessages();
+            $scope.partnerStoreForm.$setPristine();
+            $scope.partnerStoreForm.$setUntouched();
+        };
+
+        $scope.resetServerErrorMessages = function() {
+            $scope.serverErrorMessages = {};
         };
     });

@@ -1,0 +1,128 @@
+<div ng-controller="ImportBarcodesController" layout="column" ng-cloak>
+
+    <md-content layout-padding layout="column">
+        <div flex>
+            <form name="fileForm" server-validation novalidate>
+                <div layout="row">
+                    <md-input-container flex>
+                        <input type="file" file-model="file" ng-model="file" id="file" name="file">
+                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.file}}</span>
+                    </md-input-container> 
+                    <md-input-container flex>
+                        <md-button ng-click="importFile()" class="md-raised md-primary">Импорт</md-button>
+                    </md-input-container>
+                </div>
+            </form>
+        </div>
+
+<!--                                 <md-select ng-model="rawItem.deviceBrandId"
+                                           md-on-close="clearBrandSearchTerm()"
+                                           data-md-container-class="selectSearchTermHeader" style="margin:0">
+                                  <md-select-header class="select-header">
+                                    <input id="brandSearchTerm" ng-model="brandSearchTerm"
+                                           type="search"
+                                           placeholder="Търси марка.."
+                                           class="header-searchbox md-text">
+                                  </md-select-header>
+                                    <md-option ng-repeat="brand in brands | filter:brandSearchTerm" ng-value="brand.id">
+                                        {{brand.name}}
+                                    </md-option>
+                                </md-select> -->
+
+        <div flex>
+            <!-- <form name="rawItemForm" novalidate> -->
+                <table class="table table-hover table-condensed">
+                    <thead>
+                        <tr>
+                            <th>
+                            </th>
+                            <th>
+                                <label>Име доставчик</label>
+                            </th>
+                            <th>
+                                <label>Баркод</label>
+                            </th>
+                            <th>
+                                <label>Код</label>
+                            </th>
+                            <th>
+                                <label>Продукт</label>
+                            </th>
+                            <th>
+                                <label>Марка</label>
+                            </th>
+                            <th>
+                                <label>Модел</label>
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr dir-paginate="rawItem in rawItems | itemsPerPage: rawItemsPerPage track by $index" current-page="currentPage" class="item-row" class="item-row" >
+                            <td>{{(currentPage - 1) * rawItemsPerPage + $index + 1}}</td>
+                            <td>{{rawItem.name}}</td>
+                            <td>{{rawItem.barcode}}</td>
+                            <td>
+                                <input name="rawItemProductCode" ng-model="rawItem.productCode" ng-blur="getProductProperties(rawItem)" ng-focus="resetProductProperties(rawItem)" ng-maxlength="4" style="width:50px" required>
+                            </td>
+                            <td>
+                                <md-select name="selectProduct" aria-label="Select Product" ng-model="rawItem.productCode"
+                                           data-md-container-class="selectSearchTermHeader" md-on-close="getProductProperties(rawItem)" style="margin:0">
+                                  <md-select-header class="select-header">
+                                    <input id="productSearchTerm" ng-model="productSearchTerm"
+                                           type="search"
+                                           placeholder="Търси продукт.."
+                                           class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+                                  </md-select-header>
+                                    <md-option ng-repeat="product in products | filter:productSearchTerm" ng-value="product.code">
+                                        {{product.name}}
+                                    </md-option>
+                                </md-select>
+                            </td>
+                            <td>
+                                <md-select name="selectBrand" aria-label="Select Brand" ng-model="rawItem.deviceBrandId"
+                                           data-md-container-class="selectSearchTermHeader" style="margin:0">
+                                  <md-select-header class="select-header">
+                                    <input id="brandSearchTerm" ng-model="brandSearchTerm"
+                                           type="search"
+                                           placeholder="Търси марка.."
+                                           class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+                                  </md-select-header>
+                                    <md-option ng-repeat="brand in brands | filter:brandSearchTerm" ng-value="brand.id">
+                                        {{brand.name}}
+                                    </md-option>
+                                </md-select>
+                            </td>
+                            <td>
+                                <md-select name="selectModel" aria-label="Select Model" ng-model="rawItem.deviceModelId"
+                                           data-md-container-class="selectSearchTermHeader"
+                                           ng-disabled="!rawItem.deviceBrandId" style="margin:0">
+                                    <md-select-header class="select-header">
+                                        <input id="modelSearchTerm" ng-model="modelSearchTerm"
+                                           type="search"
+                                           placeholder="Търси модел.."
+                                           class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+                                    </md-select-header>
+                                    <md-option ng-repeat="model in models | filter: {deviceBrandId : rawItem.deviceBrandId} : true | filter:modelSearchTerm" ng-value="model.id">
+                                        {{model.name}}
+                                    </md-option>
+                                </md-select>
+                            </td>
+                            <td>
+                                <a href="" ng-click="deleteRawItem($index)" style="text-decoration:none;">
+                                    <md-icon class="primary-icon" md-svg-src="images/icons/delete.svg"></md-icon>
+                                </a>
+                                <a href="" ng-show="rawItem.productId && rawItem.deviceModelId" ng-click="saveRawItem(rawItem, $index)" style="text-decoration:none;">
+                                    <md-icon class="primary-icon" md-svg-src="images/icons/save.svg"></md-icon>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div layout="row" layout-align="center center">
+                    <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+                </div>
+            <!-- </form> -->
+        </div>
+    </md-content>
+</div>

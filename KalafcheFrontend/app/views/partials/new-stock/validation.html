@@ -1,0 +1,54 @@
+<div layout="column" ng-cloak>
+
+    <md-content layout-padding layout="column">
+        <div flex>
+            <form name="fileForm" server-validation novalidate>
+                <div layout="row">
+                    <md-input-container flex>
+                        <input type="file" file-model="file" ng-model="file" name="file" id="file">
+                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.file}}</span>
+                    </md-input-container> 
+                    <md-input-container flex>
+                        <md-button ng-click="validateFile()" class="md-raised md-primary">Валидирай</md-button>
+                    </md-input-container>
+                </div>
+            </form>
+        </div>
+
+        <div ng-if="unexistingItems.length > 0" flex>
+                <table class="table table-hover table-condensed">
+                    <thead>
+                        <tr>
+                            <th>            
+                            </th>
+                            <th>
+                                <label>Баркод</label>
+                            </th>
+                            <th>
+                                <label>Име</label>
+                            </th>
+                            <th>
+                                <label>Брой</label>
+                            </th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="item in unexistingItems track by $index" class="item-row">
+                            <td>{{$index + 1}}</td>
+                            <td>{{item.barcode}}</td>
+                            <td>{{item.name}}</td>
+                            <td>{{item.quantity}}</td>
+                            <td>
+                                <a ng-if="!item.added" href="" ng-click="openCreateItemModal(item)">
+                                    <md-icon class="primary-icon" md-svg-src="images/icons/playlist_add.svg"></md-icon>
+                                </a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </form>
+        </div>
+    </md-content>
+    
+</div>

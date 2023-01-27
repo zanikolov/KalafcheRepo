@@ -5,23 +5,29 @@ angular.module('kalafcheFrontendApp')
 		angular.extend(this, {
 			getAllEmployees: getAllEmployees,
             submitEmployee: submitEmployee,
-            deactivateAccount: deactivateAccount,
-            updateEmployee: updateEmployee,
             getAllActiveEmployees: getAllActiveEmployees
-
 		});
 
-        function submitEmployee(employee) {   
-            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/service/employee', employee)
-                .then(
-                    function(response) {
-                        console.log(response);
-                    }
-                )
+        function submitEmployee(employee) { 
+            if (employee.id) {
+                return $http.post(Environment.apiEndpoint + '/KalafcheBackend/employee', employee)
+                    .then(
+                        function(response) {
+                            return response.data;
+                        }
+                    )
+            } else {
+                return $http.put(Environment.apiEndpoint + '/KalafcheBackend/employee', employee)
+                    .then(
+                        function(response) {
+                            return response.data;
+                        }
+                    )
+            }
         }
 
         function getAllEmployees() {  
-            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/service/employee/all')
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/employee')
                 .then(
                     function(response) {
                         return response.data
@@ -30,28 +36,10 @@ angular.module('kalafcheFrontendApp')
         }
 
         function getAllActiveEmployees() {  
-            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/service/employee/enabled')
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/employee/enabled')
                 .then(
                     function(response) {
                         return response.data
-                    }
-                );
-        }
-
-        function deactivateAccount(userId) { 
-            return $http.put(Environment.apiEndpoint + '/KalafcheBackend/service/employee/disable', userId)
-                .then(
-                    function(response) {
-                        console.log(response);
-                    }
-                );
-        }
-
-        function updateEmployee(employee) { 
-            return $http.put(Environment.apiEndpoint + '/KalafcheBackend/service/employee', employee)
-                .then(
-                    function(response) {
-                        console.log(response);
                     }
                 );
         }

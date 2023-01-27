@@ -1,0 +1,30 @@
+<md-dialog flex="60" ng-cloak>
+  <form name="refundForm" server-validation novalidate>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Връщане на стока</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="closeModal()" ng-disabled="submitInProcess">
+          <md-icon md-svg-src="images/icons/close.svg" aria-label="Затвори"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+        <md-content layout-padding layout="column">          
+            <div layout="row">
+                <md-input-container flex>
+                    <label>Коментар</label>
+                    <input type="text" min="1" max="300" name="description" ng-model="refund.description" required>
+                </md-input-container>
+            </div>  
+        </md-content>
+    </md-dialog-content>
+
+    <md-dialog-actions layout="row">
+      <md-button ng-click="closeModal()" class="md-raised md-primary">Отмени</md-button>
+      <span flex></span>
+      <md-button ng-disabled="refundForm.$invalid" class="md-raised md-primary" ng-click="submitRefund()">Потвърди</md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

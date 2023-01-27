@@ -1,10 +1,56 @@
-<div ng-controller="ActivityReportController">
-    <div class="row">
-        <div class="col-xs-12">
-            <h4><label><u>Активности</u><label></h4>
+<div ng-controller="ActivityReportController" layout="column" ng-cloak>
+
+    <md-content layout-padding layout="column">
+        <div flex>
+            <form>
+                <div layout="row">     
+                    <md-input-container flex="30">
+                        <label>Служител</label>
+                        <md-select name="selectEmployee" ng-model="selectedEmployee.id">
+                            <md-option value="" selected></md-option>
+                            <md-option ng-repeat="employee in employees" ng-value="employee.id">
+                                {{employee.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container flex-offset="10" flex="40">
+                        <md-datepicker ng-model="activityDate" md-placeholder="Enter date" md-min-date="minDate" md-max-date="maxDate" ng-change="changeActivityDate()"></md-datepicker>
+                    </md-input-container>
+                </div>
+            </form>
         </div>
-    </div>
-    <form class="form-horizontal" ng-show="isAdmin()">
+        <div flex>
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>
+                            <label>Служител</label>
+                        </th>
+                        <th>
+                            <label>Магазин</label>
+                        </th>
+                        <th>
+                            <label>Дата</label>
+                        </th>
+                    </tr>
+                </thead>               
+                <tbody>
+                    <tr dir-paginate="activity in activities | filter:(!!selectedEmployee.id || undefined) && {employeeId: selectedEmployee.id} : true | itemsPerPage: activitiesPerPage track by $index" current-page="currentPage" class="item-row">
+                        <td>{{(currentPage - 1) * 15 + $index + 1}}</td>
+                        <td>{{activity.employeeName}}</td>
+                        <td>{{activity.employeeStoreName}}</td>
+                        <td>{{getActivityTimestamp(activity.loginTimestamp)}}</td>                      
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+    </md-content>
+
+<!--     <form class="form-horizontal" ng-show="isAdmin()">
         <div class="form-group">
             <label for="selectEmployee" class="col-xs-1" ng-if="isAdmin()">Служител:</label>
             <div class="col-xs-2">
@@ -15,7 +61,7 @@
 
             <div class="col-xs-1"></div>
 
-            <label for="selectKalafcheStore" class="col-xs-1">Дата:</label>
+            <label for="selectStore" class="col-xs-1">Дата:</label>
             <div class="col-xs-3">
                 <p class="input-group">
                     <input type="text" class="form-control" uib-datepicker-popup="{{dateFormat}}" ng-model="activityDate" is-open="activityDatePopup.opened" datepicker-options="activityDateOptions" ng-required="true" close-text="Close" ng-change="changeActivityDate()" show-button-bar="false" onkeydown="return false" ng-paste="$event.preventDefault()"/>
@@ -26,14 +72,10 @@
             </div>
 
             <div class="col-xs-1"></div>
+        </div>        
+    </form> -->
 
-            <!-- <button ng-if="isAdmin()" class="btn submit-new-stock-button" ng-click="searchSales()">Търси</button> -->
-        </div>
-
-            
-    </form>
-
-    <div class="row">
+<!--     <div class="row">
         <div class="col-xs-12" ng-show="activities.length > 0">
             <table class="table table-hover table-condensed">
                 <thead>
@@ -52,7 +94,6 @@
                 </thead>               
                 <tbody>
                     <tr dir-paginate="activity in activities | filter:(!!selectedEmployee.id || undefined) && {employeeId: selectedEmployee.id} : true | itemsPerPage: activitiesPerPage track by $index" current-page="currentPage" class="item-row">
-                    <!-- <tr dir-paginate="activity in activities | itemsPerPage: activitiesPerPage" current-page="currentPage" class="item-row"> -->
                         <td>{{(currentPage - 1) * 15 + $index + 1}}</td>
                         <td>{{activity.employeeName}}</td>
                         <td>{{activity.employeeStoreName}}</td>
@@ -64,8 +105,5 @@
                 <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
             <div>
         </div>
-        <div class="no-results-found col-xs-12" ng-if="activities.length == 0">
-            <label>Няма регистрирани активности за тази дата</label>
-        </div>
-    </div>
+    </div> -->
 </div>

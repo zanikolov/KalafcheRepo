@@ -1,30 +1,33 @@
-<div class="modal-backdrop"></div>
-<div class="modal-holder" autoscroll="false">
-    <div class="modal-dialog" ng-controller="LoginController">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="text-center">
-                    <img src="images/logo_small.png" />
-                </h1>
-            </div>
-            <div class="modal-body">
-                <form name="loginForm">
-                    <div class="form-group">
-                        <label for="username">Потребителско име</label>
-                        <input type="text" name="username" id="username" class="form-control" ng-class="{'error-form-control': loginForm.username.$invalid && loginForm.username.$dirty && loginForm.password.$invalid && loginForm.password.$dirty}" ng-model="credentials.username" ng-enter="login()" required />
-                        <!-- <span ng-show="loginForm.username.$dirty && loginForm.username.$error.required" class="help-block">Потребителското име е задължително</span> -->
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Парола</label>
-                        <input type="password" name="password" id="password" class="form-control" ng-class="{'error-form-control': loginForm.password.$invalid && loginForm.password.$dirty && loginForm.username.$invalid && loginForm.username.$dirty}" ng-model="credentials.password" ng-minlength="4" autocomplete="off" ng-enter="login()" required/>
-<!--                         <span ng-show="loginForm.password.$dirty && loginForm.password.$error.required" class="help-block">Паролата е задължителна</span> -->
-                    </div>
-                    <span ng-show="(loginForm.username.$invalid && loginForm.username.$dirty) && (loginForm.password.$invalid && loginForm.password.$dirty)" class="error-message">Невалидно потребителско име или парола</span>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" ng-disabled="loginForm.$invalid" class="btn btn-block sidebar-btn" ng-click="login()">Влез</button>
-            </div>
+<div layout="column" layout-align="center center" style="min-height: 600px" layout-fill="layout-fill">
+  <div layout="column" class="loginBox md-whiteframe-z1">
+    <md-toolbar>
+      <div flex></div>
+      <div class="md-toolbar-tools" layout-align="center center" flex>
+        <!-- <img style="height:65px" src="images/logo_small_transperant.png"/> -->
+        <h2>Вписване</h2>
+      </div>
+      <div flex></div>
+    </md-toolbar>
+    <form name="loginForm">
+      <md-content layout="column" class="md-padding">
+        <md-input-container class="md-input-has-placeholder">
+          <label>Username</label>
+          <input required type="text" ng-model="credentials.username" name="username"/>
+          <div ng-messages="loginForm.username.$error">
+            <div ng-message="required">Полето е задължително.</div>
+          </div>
+        </md-input-container>
+        <md-input-container class="md-input-has-placeholder">
+          <label>Password</label>
+          <input required type="password" ng-model="credentials.password" name="password"/>
+          <div ng-messages="loginForm.password.$error" role="alert">
+            <div ng-message="required">Полето е задължително.</div>
+          </div>
+        </md-input-container>
+        <div layout="row" layout-align="center center">
+          <md-button ng-click="login()" type="submit" class="md-raised md-primary">Влез</md-button>
         </div>
-    </div>
+      </md-content>
+    </form>
+  </div>
 </div>

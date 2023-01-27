@@ -18,6 +18,9 @@ angular.module('kalafcheFrontendApp')
             // $scope.endDateMilliseconds = {};
             $scope.activityDatePopup = {opened: false};
 
+            $scope.maxDate = new Date();
+            $scope.minDate = new Date(2015, 5, 22);
+
             getCurrentDate();
             $scope.activityDateOptions = {
                 formatYear: 'yy',
@@ -38,8 +41,6 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.changeActivityDate = function() {
-            console.log(">>>>><<<<<");
-            //$scope.endDateOptions.minDate = $scope.startDate;
             $scope.activityDate.setHours(0);
             $scope.activityDate.setMinutes(1);
             $scope.activityDateMilliseconds = $scope.activityDate.getTime();
@@ -75,23 +76,13 @@ angular.module('kalafcheFrontendApp')
         function getAllEmployees() {
             EmployeeService.getAllActiveEmployees().then(function(response) {
                 $scope.employees = response;
-                //$scope.selectedKalafcheStore = KalafcheStoreService.getRealSelectedStore($scope.kalafcheStores, $scope.isAdmin());
                 getActivities();
             });
 
         };
 
         $scope.getActivityTimestamp = function(activityTimestamp) {
-            var timeStamp = new Date(activityTimestamp);
-            console.log(">>>>> " + timeStamp.getTimezoneOffset());
-
-            var minutes = ApplicationService.getTwoDigitNumber(timeStamp.getMinutes());
-            var hh = ApplicationService.getTwoDigitNumber(timeStamp.getHours()) + timeStamp.getTimezoneOffset();
-            var dd = ApplicationService.getTwoDigitNumber(timeStamp.getDate());
-            var mm = ApplicationService.getTwoDigitNumber(timeStamp.getMonth() + 1); //January is 0!
-            var yyyy = timeStamp.getFullYear();
-
-            return dd + "-" + mm + "-" + yyyy + " " + hh + ":" + minutes;
+            return ApplicationService.convertEpochToTimestamp(activityTimestamp);
         };
 
         $scope.resetCurrentPage = function() {

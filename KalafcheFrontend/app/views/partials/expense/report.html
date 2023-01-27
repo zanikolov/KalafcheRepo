@@ -1,0 +1,78 @@
+<md-content layout-padding layout="column">
+    <div flex>
+        <form>    
+            <div layout="row" layout-xs="column" class="md-inline-form">
+                <div layout-xs="row" flex="20" flex-xs="100">
+                    <md-input-container style="width:95%" ng-if="isAdmin() || isManager()">
+                        <label>Магазин</label>
+                        <md-select name="selectStore" ng-model="selectedStore.id" ng-change="searchExpenses()">
+                            <md-option value="0">Всички магазини</md-option>
+                            <md-option ng-repeat="store in stores" ng-value="store.id">
+                                {{store.city}}, {{store.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div layout-xs="row" flex-offset="5" flex="50" flex-xs="100">
+                    <md-input-container>
+                        <md-datepicker style="width:100%" ng-model="startDate" md-min-date="startMinDate" md-max-date="startMaxDate" ng-change="changeStartDate()"></md-datepicker>
+                    </md-input-container>
+                    <md-input-container flex-offset="5">
+                        <md-datepicker style="width:100%" ng-model="endDate" md-min-date="endMinDate" md-max-date="startMaxDate" ng-change="changeEndDate()"></md-datepicker>
+                    </md-input-container>
+                </div>
+                <div layout-xs="row" flex-offset="5" flex="15" flex-xs="100">
+                        <md-input-container>
+                            <md-button ng-click="searchExpenses()" class="md-raised md-primary">Търси</md-button>
+                        </md-input-container>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div flex>
+        <table class="table table-hover table-condensed">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>
+                        <label>Магазин</label>
+                    </th>
+                    <th>
+                        <label>Тип</label>
+                    </th>                    
+                    <th>
+                        <label>Служител</label>
+                    </th>
+                    <th>
+                        <label>Дата</label>
+                    </th>                      
+                    <th>
+                        <label>Цена</label>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-click="expand(expense)" expand dir-paginate-start="expense in expenses | itemsPerPage:expensesPerPage" current-page="currentPage">
+                    <td>{{(currentPage - 1) * expensesPerPage + $index + 1}}</td>
+                    <td>{{expense.storeName}}</td>
+                    <td>{{expense.typeName}}</td>
+                    <td>{{expense.employeeName}}</td>
+                    <td>{{getTimestamp(expense.timestamp)}}</td>
+                    <td>{{expense.price}}лв</td>
+                </tr>
+                <tr dir-paginate-end ng-show="expense.expanded" class="sale-details">
+                    <!-- <td></td> -->
+                    <td colspan="8">
+                        <div layout-padding layout="row" layout-xs="column">
+                            <div flex="20" ng-if="expense.fileId"> <img width="150" ng-src="https://drive.google.com/uc?export=view&id={{expense.fileId}}" ng-click="showImage(expense)"/></div>
+                            <div flex="80"><span>{{expense.description}}</span></div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div layout="row" layout-align="center center" class="centered-pagination">
+            <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+        </div>
+    </div>
+</md-content>

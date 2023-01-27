@@ -1,15 +1,40 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-	.service('SaleService', function($http, Environment) {
+	.service('SaleService', function($http, Environment, FileSaver) {
 		angular.extend(this, {
 			submitSale: submitSale,
-            getAllSales: getAllSales,
-            searchSales: searchSales
+            getSaleItems: getSaleItems,
+            getSalesByStores: getSalesByStores,
+            searchSales: searchSales,
+            searchSaleItems: searchSaleItems,
+            getTotalSum: getTotalSum,
+            generateExcel: generateExcel,
+            getMonthlyTurnover: getMonthlyTurnover,
+            getProductTypeSplitReport: getProductTypeSplitReport,
+            getTransactionSplitReport: getTransactionSplitReport
 		});
 
+        function getTotalSum(items, code) {
+            var prices = [];
+            angular.forEach(items, function(item) {
+                prices.push(item.productPrice);
+            })
+
+            var request = {};
+            request.prices = prices;
+            request.discountCode = code
+
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/totalSum', request)
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                );
+        };
+
         function submitSale(sale) { 
-            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/service/sale/insertSale', sale)
+            return $http.put(Environment.apiEndpoint + '/KalafcheBackend/sale', sale)
                 .then(
                     function(response) {
                         return response.data
@@ -17,8 +42,8 @@ angular.module('kalafcheFrontendApp')
                 );
         }
 
-        function getAllSales() {  
-            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/service/sale/getAllSales')
+        function getSaleItems(saleId) {  
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/' + saleId)
                 .then(
                     function(response) {
                         return response.data
@@ -26,16 +51,12 @@ angular.module('kalafcheFrontendApp')
                 );
         }
 
-        function searchSales(startDateMilliseconds, endDateMilliseconds, kalafcheStoreIds, selectedBrandId, selectedModelId, productCode) { 
-            // if (!kalafcheStoreId) {
-            //     kalafcheStoreId = 0;
-            // }
-            console.log(">>>>> 1 " + kalafcheStoreIds);
+        function searchSales(startDateMilliseconds, endDateMilliseconds, storeIds, selectedBrandId, selectedModelId, productCode) { 
             var params = {"params" : {"startDateMilliseconds": startDateMilliseconds, "endDateMilliseconds": endDateMilliseconds, 
-                "kalafcheStoreIds": kalafcheStoreIds, "deviceBrandId": selectedBrandId, "deviceModelId": selectedModelId, "itemProductCode": productCode}};
+                "storeIds": storeIds, "deviceBrandId": selectedBrandId, "deviceModelId": selectedModelId, "productCode": productCode}};
             console.log(params);
 
-            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/service/sale/searchSales', params)
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale', params)
                 .then(
                     function(response) {
                         console.log(response.data);
@@ -43,4 +64,85 @@ angular.module('kalafcheFrontendApp')
                     }
                 );
         }
+
+        function searchSaleItems(startDateMilliseconds, endDateMilliseconds, storeIds, selectedBrandId, selectedModelId, productCode, productTypeId, masterProductTypeId, priceFrom, priceTo, discountCampaignCode) { 
+            var params = {"params" : {"startDateMilliseconds": startDateMilliseconds, "endDateMilliseconds": endDateMilliseconds, 
+                "storeIds": storeIds, "deviceBrandId": selectedBrandId, "deviceModelId": selectedModelId, "productCode": productCode, "productTypeId": productTypeId, "masterProductTypeId": masterProductTypeId,
+                "priceFrom": priceFrom, "priceTo": priceTo, "discountCampaignCode": discountCampaignCode}};
+            console.log(params);
+
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/saleItem', params)
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                );
+        }
+
+        function getSalesByStores(startDateMilliseconds, endDateMilliseconds, selectedBrandId, selectedModelId, productCode, productTypeId) { 
+            var params = {"params" : {"startDateMilliseconds": startDateMilliseconds, "endDateMilliseconds": endDateMilliseconds,
+             "deviceBrandId": selectedBrandId, "deviceModelId": selectedModelId, "productCode": productCode, "productTypeId": productTypeId}};
+
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/store', params)
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                );
+        }
+
+        function getMonthlyTurnover(month) {
+            var params = {"params" : {"month": month}};
+
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/pastPeriods', params)
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                );
+        }
+
+        function getProductTypeSplitReport(startDateMilliseconds, endDateMilliseconds, storeId) { 
+            var request = {};
+            request.startDate = startDateMilliseconds;
+            request.endDate = endDateMilliseconds;
+
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/productTypeSplit', request, {responseType: "arraybuffer"})
+                .then(
+                    function(response) {
+                        var blob = new Blob([response.data], {type: "application/vnd.openxmlformat-officedocument.spreadsheetml.sheet;"});
+                        FileSaver.saveAs(blob, 'split-report.xlsx')
+                    }
+                );
+        }
+
+        function getTransactionSplitReport(startDateMilliseconds, endDateMilliseconds, storeId) { 
+            var request = {};
+            request.startDate = startDateMilliseconds;
+            request.endDate = endDateMilliseconds;
+
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/transactionSplit', request, {responseType: "arraybuffer"})
+                .then(
+                    function(response) {
+                        var blob = new Blob([response.data], {type: "application/vnd.openxmlformat-officedocument.spreadsheetml.sheet;"});
+                        FileSaver.saveAs(blob, 'split-report.xlsx')
+                    }
+                );
+        }
+
+        function generateExcel(saleItems, startDateMilliseconds, endDateMilliseconds) { 
+            var request = {};
+            request.saleItems = saleItems;
+            request.startDate = startDateMilliseconds;
+            request.endDate = endDateMilliseconds;
+
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/excel', request, {responseType: "arraybuffer"})
+                .then(
+                    function(response) {
+                        var blob = new Blob([response.data], {type: "application/vnd.openxmlformat-officedocument.spreadsheetml.sheet;"});
+                        FileSaver.saveAs(blob, 'Справка продажби артикули.xlsx')
+                    }
+                );
+        }
+
 	});

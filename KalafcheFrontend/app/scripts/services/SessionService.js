@@ -4,7 +4,8 @@ angular.module('kalafcheFrontendApp')
     .service('SessionService', function ($cookies, $rootScope, AuthEvents, Environment) {
         angular.extend(this, {
             create: create,
-            destroy: destroy
+            destroy: destroy,
+            getCurrentUser: getCurrentUser
         });
 
         this.currentUser = {};
@@ -16,7 +17,7 @@ angular.module('kalafcheFrontendApp')
             this.currentUser.userId = employee.userId;
             this.currentUser.employeeName = employee.name;
             this.currentUser.username = employee.username;
-            this.currentUser.employeeKalafcheStoreId = employee.kalafcheStoreId;
+            this.currentUser.employeeStoreId = employee.storeId;
             this.currentUser.employeeJobResponsibilityId = employee.jobResponsibilityId;
             this.currentUser.userRoles = employee.roles;
 
@@ -29,5 +30,9 @@ angular.module('kalafcheFrontendApp')
             this.currentUser = {};
             $cookies.remove("currentUser")
         };
+
+        function getCurrentUser() {
+            return $cookies.getObject("currentUser");
+        }
     }
 );

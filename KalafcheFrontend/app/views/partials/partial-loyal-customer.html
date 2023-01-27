@@ -1,0 +1,92 @@
+<div ng-controller="LoyalCustomerController" layout="column" ng-cloak>
+     <md-content layout-padding layout="row">
+        <div flex-xs="100" flex="50">
+            <form name="loyalCustomerForm" server-validation novalidate>
+                <md-input-container class="md-block">
+                    <label>Имена</label>
+                    <input ng-model="loyalCustomer.name" name="name" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container>              
+                <md-input-container class="md-block">
+                    <label>Телефонен номер</label>
+                    <input ng-model="loyalCustomer.phoneNumber" name="phoneNumber" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.phoneNumber}}</span>  
+                </md-input-container>
+                <md-input-container class="md-block" ng-if="!employee.id">
+                    <label>Код</label>
+                    <md-select name="discountCodeId" ng-model="loyalCustomer.discountCodeId" ng-disabled="loyalCustomer.id" required>
+                        <md-option value="" selected></md-option>
+                        <md-option ng-repeat="discountCode in discountCodes" ng-value="discountCode.id">
+                            {{discountCode.code}}
+                        </md-option>
+                    </md-select>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.discountCodeId}}</span>  
+                </md-input-container>
+                <md-input-container flex style="width:48%">
+                    <label>Марка</label>
+                    <md-select ng-model="loyalCustomer.deviceBrandId">
+                        <md-option value="" selected></md-option>
+                        <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                            {{brand.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container flex style="width:48%">
+                    <label>Модел</label>
+                    <md-select ng-model="loyalCustomer.deviceModelId"
+                               md-on-close="clearModelSearchTerm()"
+                               data-md-container-class="selectSearchTermHeader"
+                               ng-disabled="!loyalCustomer.deviceBrandId">
+                      <md-select-header class="select-header">
+                        <input id="modelSearchTerm" ng-model="modelSearchTerm"
+                               type="search"
+                               placeholder="Търси модел.."
+                               class="header-searchbox md-text">
+                      </md-select-header>
+                      <md-option value="" selected>Всички</md-option>
+                        <md-option ng-repeat="model in models | filter: {deviceBrandId : loyalCustomer.deviceBrandId} : true |
+                          filter:modelSearchTerm" ng-value="model.id">
+                            {{model.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+            </form>
+            <md-content layout="row">
+                <md-button ng-disabled="loyalCustomerForm.$invalid" ng-click="submitLoyalCustomer()" class="md-raised md-primary">Запази</md-button>
+                <md-button ng-if="loyalCustomer.id" class="md-raised md-primary" ng-click="resetLoyalCustomerForm()">Отмени</md-button>
+            </md-content>
+        </div>
+    </md-content>
+    <md-content layout-padding layout="row" layout-xs="column">
+        <div flex="100">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th><label>Име</label></th>
+                        <th><label>Код</label></th>
+                        <th><label>Тел.номер</label></th>
+                        <th><label>Устройство</label></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr dir-paginate="loyalCustomer in loyalCustomers | itemsPerPage: loyalCustomersPerPage track by $index" current-page="currentPage" class="item-row">
+                        <td>{{(currentPage - 1) * loyalCustomersPerPage + $index + 1}}</td>
+                        <td>{{loyalCustomer.name}}</td>
+                        <td>{{loyalCustomer.discountCodeCode}}</td>
+                        <td>{{loyalCustomer.phoneNumber}}</td>
+                        <td>{{loyalCustomer.deviceBrandName}} {{loyalCustomer.deviceModelName}}</td>
+                        <td>
+                            <a href="" ng-click="openLoyalCustomerForEdit(loyalCustomer)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+    </md-content>

@@ -1,0 +1,56 @@
+<div ng-controller="StoreController" layout="column" ng-cloak>
+    <md-content layout-padding layout="row">
+        <div flex="40" flex-xs="100">
+            <form name="storeForm" server-validation novalidate>                
+                <md-input-container class="md-block">
+                    <label>Град</label>
+                    <input ng-model="store.city" name="city" ng-change="resetServerErrorMessages()" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.city}}</span>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Име</label>
+                    <input ng-model="store.name" name="name" ng-change="resetServerErrorMessages()" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Код</label>
+                    <input ng-model="store.code" name="code" ng-disabled="store.id" ng-change="resetServerErrorMessages()" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>
+                </md-input-container>
+            </form>
+            <md-content layout="row">
+                <md-button ng-if="store.id" class="md-raised md-primary" ng-click="resetStoreForm()">Отмени</md-button>
+                <md-button ng-disabled="storeForm.$invalid" ng-click="submitStore()" class="md-raised md-primary">Запази</md-button>
+            </md-content>
+        </div>
+    </md-content>
+    <md-content layout-padding layout="row">
+        <div flex="70" flex-xs="100">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Град</th>
+                        <th>Име</th>
+                        <th>Код</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr dir-paginate="store in stores | itemsPerPage: storesPerPage track by $index" current-page="currentPage" class="item-row">
+                        <td>{{(currentPage - 1) * storesPerPage + $index + 1}}</td>
+                        <td>{{store.city}}</td>
+                        <td>{{store.name}}</td>
+                        <td>{{store.code}}</td>
+                        <td>
+                            <a href="" ng-click="openStoreForEdit(store)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+        </div>
+    </md-content>
+</div>

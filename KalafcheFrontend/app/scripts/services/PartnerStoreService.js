@@ -7,21 +7,30 @@ angular.module('kalafcheFrontendApp')
             getAllPartnerStores: getAllPartnerStores
 		});
 
-    	function submitPartnerStore(partnerStore) {	
-			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/service/partnerStore/insertPartnerStore', partnerStore)
-            	.then(
-                	function(response) {
-                    	console.log(response);
-                	}
-            	)
-    	}
-
-        function getAllPartnerStores() {  
-            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/service/partnerStore/getAllPartnerStores')
+        function getAllPartnerStores() {   
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/partnerStore')
                 .then(
                     function(response) {
                         return response.data
                     }
-                );
-        }
+                ) ;
+        };
+
+        function submitPartnerStore(partnerStore) { 
+            if (partnerStore.id) {
+                return $http.post(Environment.apiEndpoint + '/KalafcheBackend/partnerStore', partnerStore)
+                    .then(
+                        function(response) {
+                            return response.data;
+                        }
+                    )
+            } else {
+                return $http.put(Environment.apiEndpoint + '/KalafcheBackend/partnerStore', partnerStore)
+                    .then(
+                        function(response) {
+                            return response.data;
+                        }
+                    )
+            }
+        };
 	});

@@ -11,6 +11,18 @@ function ($q, $rootScope, $log) {
  
     function updateStatus() {
         $rootScope.isLoading = isLoading();
+
+
+            // $mdDialog.show({
+            //   template: '',
+            //   parent: angular.element(document.body),
+            //   clickOutsideToClose:true
+            // })
+            // .then(function(answer) {
+            //   $scope.status = 'You said the information was "".';
+            // }, function() {
+            //   $scope.status = 'You cancelled the dialog.';
+            // });
     }
  
     return {

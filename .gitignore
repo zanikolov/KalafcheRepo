@@ -5,4 +5,7 @@ dist
 bower_components
 */target/**
 */.settings/**
-
+*/.metadata/**
+.metadata/**
+KalafcheBackend/.sts4-cache/
+KalafcheBackend/.settings/**

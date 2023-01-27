@@ -1,39 +1,48 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-	.service('InStockService', function($http, Environment) {
+	.service('InStockService', function($http, Environment, FileSaver) {
 		angular.extend(this, {
-            getAllInStock: getAllInStock,
-            getAllInStockForReport: getAllInStockForReport
+            getInStock: getInStock,
+            getAllInStockForReport: getAllInStockForReport,
+            printStickersForStocks: printStickersForStocks
 
 		});
 
-   //  	function submitNewStockForApproval(stockList) {	
-			// return $http.post('http://localhost:8080/KalafcheBackend/service/item/updateItemsForApproval', stockList)
-   //          	.then(
-   //              	function(response) {
-   //                  	console.log(response);
-   //              	}
-   //          	) 
-   //  	}
+    function getInStock(userStoreId, selectedStoreId, deviceBrandId, deviceModelId, productCode, barcode) {
+        return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock', 
+          {"params" : {
+            "userStoreId" : userStoreId, 
+            "selectedStoreId" : selectedStoreId,
+            "deviceBrandId" : deviceBrandId,
+            "deviceModelId" : deviceModelId,
+            "productCodes" : productCode,
+            "barcode" : barcode}})
+            .then(
+                function(response) {
+                    return response.data
+                }
+            );
+    }
 
-  function getAllInStock(userKalafcheStoreId, selectedKalafcheStoreId) {
-      console.log(">>>>>>> " + userKalafcheStoreId + "  " + selectedKalafcheStoreId);
-      return $http.get(Environment.apiEndpoint + '/KalafcheBackend/service/stock/getAllApprovedStocks', {"params" : {"userKalafcheStoreId" : userKalafcheStoreId, "selectedKalafcheStoreId" : selectedKalafcheStoreId}})
+    function getAllInStockForReport() { 
+        return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock/getAllStocksForReport')
+            .then(
+                function(response) {
+                    return response.data
+                }
+            );
+    }
+
+    function printStickersForStocks(storeId) {
+      return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock/printStickers/' + storeId, {responseType: "blob"})
           .then(
               function(response) {
-                  return response.data
+                console.log(response.data);
+                  var blob = new Blob([response.data], {type: "application/pdf"});
+                  FileSaver.saveAs(blob, 'Етикети за нова стока.pdf')
               }
-          );
-  }
-
-  function getAllInStockForReport() { 
-      return $http.get(Environment.apiEndpoint + '/KalafcheBackend/service/stock/getAllStocksForReport')
-          .then(
-              function(response) {
-                  return response.data
-              }
-          );
-  }
+          ); 
+    }
   
 	});

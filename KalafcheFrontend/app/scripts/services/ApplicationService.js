@@ -4,9 +4,11 @@ angular.module('kalafcheFrontendApp')
 	.service('ApplicationService', function() {
 		angular.extend(this, {
 			validateDuplication: validateDuplication,
-            validateItemCodeDuplication: validateItemCodeDuplication,
+            validateProductCodeDuplication: validateProductCodeDuplication,
             getCurrentTimestamp: getCurrentTimestamp,
-            getTwoDigitNumber: getTwoDigitNumber
+            getTwoDigitNumber: getTwoDigitNumber,
+            convertEpochToDate: convertEpochToDate,
+            convertEpochToTimestamp: convertEpochToTimestamp
 		});
 
         function validateDuplication(valueForValidation, list) {  
@@ -21,11 +23,11 @@ angular.module('kalafcheFrontendApp')
             return true;
         };
 
-        function validateItemCodeDuplication(item, items) {
-            for (var i = 0; i < items.length; i++) {
-                var current = items[i];
+        function validateProductCodeDuplication(product, products) {
+            for (var i = 0; i < products.length; i++) {
+                var current = products[i];
 
-                if (item.productCode === current.productCode) {
+                if (product.code === current.code) {
                     return false;
                 }
             }
@@ -46,4 +48,37 @@ angular.module('kalafcheFrontendApp')
 
             return number;      
         };
+
+        function convertEpochToTimestamp(epochTime) {
+
+          if(epochTime != 0) {
+              var timeStamp = new Date(epochTime);
+
+              var minutes = getTwoDigitNumber(timeStamp.getMinutes());
+              var hh = getTwoDigitNumber(timeStamp.getHours());
+              var dd = getTwoDigitNumber(timeStamp.getDate());
+              var mm = getTwoDigitNumber(timeStamp.getMonth() + 1);
+              var yyyy = timeStamp.getFullYear();
+
+              return dd + '-' + mm + '-' + yyyy + ' ' + hh + ':' + minutes;
+          } else {
+              return '';
+          }
+      };
+
+      function convertEpochToDate(epochTime) {
+
+          if(epochTime != 0) {
+              var timeStamp = new Date(epochTime);
+
+              var dd = getTwoDigitNumber(timeStamp.getDate());
+              var mm = getTwoDigitNumber(timeStamp.getMonth() + 1);
+              var yyyy = timeStamp.getFullYear();
+
+              return dd + '-' + mm + '-' + yyyy;
+          } else {
+              return '';
+          }
+      };
+
 	});

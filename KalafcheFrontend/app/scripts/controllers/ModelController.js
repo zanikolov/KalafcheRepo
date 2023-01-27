@@ -1,53 +1,52 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-    .controller('ModelController', function($scope, ModelService, BrandService, DeviceTypeService, ApplicationService) {
+    .directive('model', function() {
+        return {
+            restrict: 'E',
+            scope: {},
+            templateUrl: 'views/partials/device/model.html',
+            controller: ModelController
+        }
+    });
+  
+    function ModelController($scope, ModelService, BrandService, ServerValidationService) {
 
         init();
 
         function init() {
-            $scope.newModel = {};
+            $scope.deviceModel = {};
             $scope.brands = [];
-            $scope.deviceTypes = [];
             $scope.models = [];
-            $scope.isErrorMessageVisible = false;  
-            $scope.errorMessage = ""; 
             $scope.currentPage = 1; 
             $scope.modelsPerPage = 10; 
+            $scope.serverErrorMessages = {};
 
             getAllDeviceBrands();
-            getAllDeviceTypes();
             getAllDeviceModels();
         }
 
-        $scope.submitModel = function() {
-            if (ApplicationService.validateDuplication($scope.newModel.name, $scope.models)) {           
-                ModelService.submitModel($scope.newModel).then(function(response) {
-                    $scope.models.push($scope.newModel);
-                    resetModelState();
-                    $scope.isErrorMessageVisible = false; 
-                    $scope.deviceModelForm.$setPristine();
-                });
-            } else {
-                $scope.isErrorMessageVisible = true;
-                $scope.errorMessage = "Има въведен модел с това име";
-            }
+        $scope.submitModel = function() {         
+            ModelService.submitModel($scope.deviceModel).then(function(response) {
+                getAllDeviceModels();
+                resetDeviceModelState();
+                $scope.resetServerErrorMessages();
+                $scope.deviceModelForm.$setPristine();
+                $scope.deviceModelForm.$setUntouched();
+            },
+            function(errorResponse) {
+                ServerValidationService.processServerErrors(errorResponse, $scope.deviceModelForm);
+                $scope.serverErrorMessages = errorResponse.data.errors;
+            });
         };
 
-        $scope.resetErrorMessage = function() {
-            $scope.isErrorMessageVisible = false;
+        $scope.resetServerErrorMessages = function() {
+            $scope.serverErrorMessages = {};
         };
 
         function getAllDeviceBrands() {
             BrandService.getAllDeviceBrands().then(function(response) {
                 $scope.brands = response;
-            });
-
-        };
-
-        function getAllDeviceTypes() {
-            DeviceTypeService.getAllDeviceTypes().then(function(response) {
-                $scope.deviceTypes = response;
             });
 
         };
@@ -59,7 +58,24 @@ angular.module('kalafcheFrontendApp')
 
         };
 
-        function resetModelState() {
-            $scope.newModel = {};
+        function resetDeviceModelState() {
+            var deviceBrandId = $scope.deviceModel.deviceBrandId;
+            $scope.deviceModel = {};
+            $scope.deviceModel.deviceBrandId = deviceBrandId;
         }
-    });
+
+        $scope.resetDeviceModelName = function() {
+            $scope.deviceModel.name = '';
+        }
+
+        $scope.cancelEditDeviceModel = function() {
+            resetDeviceModelState();
+            $scope.resetServerErrorMessages();
+            $scope.deviceModelForm.name.$setPristine();
+            $scope.deviceModelForm.name.$setUntouched();
+        }
+
+        $scope.editDeviceModel = function(selectedDeviceModel) {
+            $scope.deviceModel = angular.copy(selectedDeviceModel);
+        }
+    };

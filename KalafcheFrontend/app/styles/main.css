@@ -343,3 +343,40 @@
        z-index:1001; 
        background-color: white;
     }
+
+    .nav-tabs > li > a {
+        color: purple;
+        font-weight: bold;
+    }
+
+    .nav-tabs > li.active > a {
+        text-decoration: underline;
+    }
+
+    input {
+        border:0 none !important;
+    }
+
+/*    .ng-invalid.ng-touched, .ng-submitted .ng-invalid {
+        border: 1px solid red !important;
+    }*/
+
+    .label-error {
+        color: red;
+    }
+
+    .sale-details:hover {
+        background-color: #ffffff !important;
+    }
+
+    .borderless td, .borderless th {
+        border: none !important;
+    }
+
+    .negativeDelta {
+        color: red !important;
+    }
+
+    .positiveDelta {
+        color: green !important;
+    }

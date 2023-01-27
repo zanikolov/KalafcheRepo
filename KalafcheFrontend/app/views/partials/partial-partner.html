@@ -1,63 +1,78 @@
-<div ng-controller="PartnerController">
-    <div class="row">
-        <div class="col-xs-12">
-            <h4><label><u>Въвеждане на нов партньор</u><label></h4>
+<div ng-controller="PartnerController" layout="column" ng-cloak>
+     <md-content layout-padding layout="row">
+        <div flex-xs="100" flex="50">
+            <form name="partnerForm" server-validation novalidate>
+                <md-input-container class="md-block">
+                    <label>Имена</label>
+                    <input ng-model="partner.name" name="name" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container> 
+                <md-input-container class="md-block">
+                    <label>Телефонен номер</label>
+                    <input ng-model="partner.phoneNumber" name="phoneNumber" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.phoneNumber}}</span>  
+                </md-input-container>             
+                <md-input-container class="md-block" ng-if="!partner.id">
+                    <label>Код</label>
+                    <md-select name="discountCodeId" ng-model="partner.discountCodeId" required>
+                        <md-option value="" selected></md-option>
+                        <md-option ng-repeat="discountCode in discountCodes" ng-value="discountCode.id">
+                            {{discountCode.code}}
+                        </md-option>
+                    </md-select>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.discountCodeId}}</span>
+                </md-input-container>
+                <md-input-container class="md-block" ng-if="partner.id">
+                    <span>Код   {{partner.discountCodeCode}}
+                    <hr/> 
+                    </span>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Магазин</label>
+                    <md-select name="partnerStoreId" ng-model="partner.partnerStoreId" required>
+                        <md-option value="" selected></md-option>
+                        <md-option ng-repeat="partnerStore in partnerStores" ng-value="partnerStore.id">
+                            {{partnerStore.city}}, {{partnerStore.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+            </form>
+            <md-content layout="row">
+                <md-button ng-disabled="partnerForm.$invalid" ng-click="submitPartner()" class="md-raised md-primary">Запази</md-button>
+                <md-button ng-if="partner.id" class="md-raised md-primary" ng-click="resetPartnerForm()">Отмени</md-button>
+            </md-content>
         </div>
-    </div>
-    <form class="form-horizontal" name="partnerForm">
-        <div class="form-group">
-            <label for="selectPartnerStore" class="col-xs-3">Избери магазин:</label>
-            <div class="col-xs-9">
-                <select name="selectPartnerStore" ng-model="newPartner.partnerStoreId" ng-class="{'error-form-control': partnerForm.selectPartnerStore.$invalid && partnerForm.selectPartnerStore.$dirty}" ng-options="partnerStore.id as partnerStore.city + ' - ' + partnerStore.name for partnerStore in partnerStores" class="form-control" style="width: 50%" required="">
-                </select><br>
-            </div>
-
-<!--             <label for="selectDeviceType" class="col-xs-3">Избери тип:</label>
-            <div class="col-xs-9">
-                <select name="selectDeviceType" ng-model="newPartner.deviceTypeId" ng-class="{'error-form-control': partnerForm.selectDeviceType.$invalid && partnerForm.selectDeviceType.$dirty}" ng-options="deviceType.id as deviceType.name for deviceType in deviceTypes" class="form-control" style="width: 100%" required>
-                </select><br>
-            </div> -->
-
-            <label for="inputPartnerName" class="col-xs-3">Име:</label>
-            <div class="col-xs-9 submit-inputs-margin-bottom">
-                <input class="form-control" style="width: 50%" ng-class="{'error-form-control': partnerForm.inputPartnerName.$invalid && partnerForm.inputPartnerName.$dirty}" name="inputPartnerName" ng-model="newPartner.name" placeholder="Име" ng-change="resetErrorMessage()" required>
-                <span ng-if="isErrorMessageVisible" class="error-message">{{errorMessage}}</span>
-            </div>
-
-            <label for="inputPartnerCode" class="col-xs-3">Код:</label>
-            <div class="col-xs-9 submit-inputs-margin-bottom">
-                <input class="form-control" style="width: 20%" ng-class="{'error-form-control': partnerForm.inputPartnerCode.$invalid && partnerForm.inputPartnerCode.$dirty}" name="inputPartnerCode" ng-model="newPartner.code" placeholder="Код" ng-change="resetErrorMessage()" required>
-                <span ng-if="isErrorMessageVisible" class="error-message">{{errorMessage}}</span>
-            </div>
-
-            <label for="inputPartnerPhoneNumber" class="col-xs-3">Телефон:</label>
-            <div class="col-xs-9">
-                <input class="form-control" style="width: 30%" ng-class="{'error-form-control': partnerForm.inputPartnerPhoneNumber.$invalid && partnerForm.inputPartnerPhoneNumber.$dirty}" name="inputPartnerPhoneNumber" ng-model="newPartner.phoneNumber" placeholder="Телефон" ng-change="resetErrorMessage()" required>
-                <span ng-if="isErrorMessageVisible" class="error-message">{{errorMessage}}</span>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div>
-                <button type="submit" class="btn submit-button" ng-disabled="partnerForm.$invalid" ng-click="submitPartner()">Въведи</button>
-            </div>
-        </div>
-    </form>
-
-    <div class="row" ng-if="newPartner.partnerStoreId">
-        <div class="col-xs-6">
+    </md-content>
+    <md-content layout-padding layout="row" layout-xs="column">
+        <div flex="100">
             <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th><label>Име</label></th>
+                        <th><label>Тел.номер</label></th>
+                        <th><label>Код</label></th>
+                        <th><label>Магазин</label></th>
+                        <th></th>
+                    </tr>
+                </thead>
                 <tbody>
-                    <tr dir-paginate="partner in partners | filter: {partnerStoreId: newPartner.partnerStoreId}: true | itemsPerPage: partnersPerPage track by $index" current-page="currentPage" class="item-row">
+                <tr dir-paginate="partner in partners | itemsPerPage: partnersPerPage track by $index" current-page="currentPage" class="item-row">
                         <td>{{(currentPage - 1) * partnersPerPage + $index + 1}}</td>
                         <td>{{partner.name}}</td>
-                        <td>{{partner.code}}</td>
+                        <td>{{partner.discountCodeCode}}</td>
+                        <td>{{partner.partnerStoreName}}</td>
                         <td>{{partner.phoneNumber}}</td>
+                        <td>
+                            <a href="" ng-click="openPartnerForEdit(partner)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
                     </tr>
                 </tbody>
             </table>
-            <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
         </div>
-        <div class="col-xs-6"></div>
-    </div>
-</div>
+    </md-content>

@@ -1,53 +1,49 @@
-<div ng-controller="PartnerStoreController">
-    <div class="row">
-        <div class="col-xs-12">
-            <h4><label><u>Въвеждане на нов магазин-партньор</u><label></h4>
+<div ng-controller="PartnerStoreController" layout="column" ng-cloak>
+    <md-content layout-padding layout="row">
+        <div flex="40" flex-xs="100">
+            <form name="partnerStoreForm" server-validation novalidate>                
+                <md-input-container class="md-block">
+                    <label>Град</label>
+                    <input ng-model="partnerStore.city" name="city" ng-change="resetServerErrorMessages()" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.city}}</span>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Име</label>
+                    <input ng-model="partnerStore.name" name="name" ng-change="resetServerErrorMessages()" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container>
+            </form>
+            <md-content layout="row">
+                <md-button ng-if="partnerStore.id" class="md-raised md-primary" ng-click="resetPartnerStoreForm()">Отмени</md-button>
+                <md-button ng-disabled="storeForm.$invalid" ng-click="submitPartnerStore()" class="md-raised md-primary">Запази</md-button>
+            </md-content>
         </div>
-    </div>
-    <form class="form-horizontal" name="partnerStoreForm">
-        <div class="form-group">
-            <label for="inputPartnerStoreName" class="col-xs-3">Име на магазина:</label>
-            <div class="col-xs-9">
-                <input class="form-control" ng-model="newPartnerStore.name" name="inputPartnerStoreName" ng-class="{'error-form-control': partnerStoreForm.inputPartnerStoreName.$invalid && partnerStoreForm.inputPartnerStoreName.$dirty}" style="width: 50%" required="true" placeholder="Име" ng-change="resetErrorMessage()">
-                <span ng-if="isErrorMessageVisible" class="error-message">{{errorMessage}}</span>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label for="inputPartnerStoreCity" class="col-xs-3">Град:</label>
-            <div class="col-xs-9">
-                <input class="form-control" ng-model="newPartnerStore.city" name="inputPartnerStoreCity" ng-class="{'error-form-control': partnerStoreForm.inputPartnerStoreCity.$invalid && partnerStoreForm.inputPartnerStoreCity.$dirty}" style="width: 50%" required="true" placeholder="Град" ng-change="resetErrorMessage()">
-                <span ng-if="isErrorMessageVisible" class="error-message">{{errorMessage}}</span>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div>
-                <button type="submit" class="btn submit-button" ng-disabled="partnerStoreForm.$invalid" ng-click="submitPartnerStore()">Въведи</button>
-            </div>
-        </div>
-    </form>
-
-    <div class="row">
-        <div class="col-xs-3">
+    </md-content>
+    <md-content layout-padding layout="row">
+        <div flex="70" flex-xs="100">
             <table class="table table-hover table-condensed">
                 <thead>
                     <tr>
-                        <th>
-                        </th>
-                        <th>
-                        </th>
+                        <th>#</th>
+                        <th>Град</th>
+                        <th>Име</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="partnerStore in partnerStores track by $index" class="item-row">
-                        <td>{{$index + 1}}</td>
-                        <td>{{partnerStore.name + ', ' + partnerStore.city}}</td>
+                    <tr dir-paginate="partnerStore in partnerStores | itemsPerPage: partnerStoresPerPage track by $index" current-page="currentPage" class="item-row">
+                        <td>{{(currentPage - 1) * partnerStoresPerPage + $index + 1}}</td>
+                        <td>{{partnerStore.city}}</td>
+                        <td>{{partnerStore.name}}</td>
+                        <td>
+                            <a href="" ng-click="openPartnerStoreForEdit(partnerStore)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
                     </tr>
                 </tbody>
             </table>
+            <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
         </div>
-        <div class="col-xs-9">
-        </div>
-    </div>
+    </md-content>
 </div>

@@ -1,37 +1,28 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-	.controller('InStockController', function ($scope, $uibModal, ModelService, BrandService, ItemService, ColorService, InStockService, SessionService, KalafcheStoreService, SaleService, PartnerService, ApplicationService) {
+	.controller('InStockController', function ($scope, $element, $mdDialog, ModelService, BrandService, ProductService, InStockService, SessionService, StoreService) {
 
 		init();
 
 		function init() {
             $scope.currentPage = 1; 
             $scope.inStockPerPage = 15;
-			$scope.showSaleModal = false;
 			$scope.inStockList = [];
             $scope.brands = [];
-            $scope.items = [];
+            $scope.products = [];
             $scope.models = [];
-            $scope.colors = [];
-            $scope.kalafcheStores = [];
-            $scope.partners = [];
+            $scope.stores = [];
             $scope.productCode = "";
-            $scope.selectedBrand = {};
-            $scope.selectedModel = {};
-            $scope.selectedKalafcheStore = {};
-            $scope.selectedStock = {};
-            $scope.showSubmitSaleError = false;
-            $scope.submitSaleErrorText = "";
+            $scope.selectedStore = null;
+
+            $scope.currentSale = {};
+            $scope.currentSale.selectedStocks = [];
 
             getAllBrands();
-            getAllItems();
-            getAllDeviceModels();        
-            //getAllPartners(); 
-            getAllKalafcheStores();
-			//getAllInStock();
-
-
+            getAllProducts();
+            getAllDeviceModels();         
+            getAllStores();
 		}
 
         function getAllBrands() {
@@ -40,9 +31,9 @@ angular.module('kalafcheFrontendApp')
             });
         };
 
-        function getAllItems() {
-            ItemService.getAllItems().then(function(response) {
-                $scope.items = response;
+        function getAllProducts() {
+            ProductService.getAllProducts().then(function(response) {
+                $scope.products = response;
             });
 
         };
@@ -53,39 +44,43 @@ angular.module('kalafcheFrontendApp')
             });
         };
 
-        function getAllColors() {
-            ColorService.getAllColors().then(function(response) {
-                $scope.colors = response;
-            });
-
-        };
-
-
-        $scope.getAllInStock = function() {
-            var userKalafcheStoreId = SessionService.currentUser.employeeKalafcheStoreId ? SessionService.currentUser.employeeKalafcheStoreId : 0;
-            var selectedKalafcheStoreId = $scope.selectedKalafcheStore.id ? $scope.selectedKalafcheStore.id : 0;
-            InStockService.getAllInStock(userKalafcheStoreId, selectedKalafcheStoreId).then(function(response) {
+        $scope.getInStock = function() {
+            var userStoreId = SessionService.currentUser.employeeStoreId ? SessionService.currentUser.employeeStoreId : 0;
+            InStockService.getInStock(userStoreId, $scope.selectedStore.id, $scope.selectedBrand.id, $scope.selectedModel.id, $scope.productCode, $scope.selectedBarcode).then(function(response) {
                 $scope.inStockList = response;
                 $scope.resetCurrentPage();
             });
         }
 
-        function getAllKalafcheStores() {
-            KalafcheStoreService.getAllKalafcheStores().then(function(response) {
-                $scope.kalafcheStores = response;
-                $scope.selectedKalafcheStore = KalafcheStoreService.getSelectedKalafcheStore($scope.kalafcheStores, $scope.isAdmin());
-                $scope.getAllInStock();
+        function getAllStores() {
+            StoreService.getAllEntities().then(function(response) {
+                $scope.stores = response;
+                $scope.selectedStore = {"id": SessionService.currentUser.employeeStoreId};
+                console.log(">>>> ");
+                console.log($scope.selectedStore);
             });
 
         };
+
+        $scope.barcodeScanned = function(barcode) {                             
+            $scope.selectedBarcode = barcode;  
+            //findByBarcode();      
+        }
 
         $scope.filterByProductCode = function() {
             var productCodesString = $scope.productCode;
             var productCodes = productCodesString.split(" ");
             return function predicateFunc(inStock) {
-                return productCodes.indexOf(inStock.itemProductCode) !== -1 ;
+                return productCodes.indexOf(inStock.productCode) !== -1 ;
             };
         };
+
+        // $scope.filterByBarcode = function() {
+        //     console.log("<><><>");
+        //     return function predicateFunc(inStock) {
+        //         return inStock.barcode == $scope.barcode;
+        //     };
+        // };
 
         $scope.getNameById = function(list, id) {
             if (list) {
@@ -100,76 +95,78 @@ angular.module('kalafcheFrontendApp')
             return null;
         };
 
-        $scope.getKalafcheStoreById = function(kalafcheStoreId) {
-            var stores = $scope.kalafcheStores;
-            for (var i = 0; i < stores.length; i++) {
-                var currentStore = stores[i];
-                if (currentStore.id === kalafcheStoreId) {
-                    return currentStore.id;
-                }
-            }
-
-            return null;
-        };
-        
-        // $scope.openSaleModal = function(stock){
-        //     $scope.showSaleModal = true;
-        //     $scope.selectedStock = stock;
-        // };
-
 	    $scope.openRelocationModal = function(stock){
             $scope.selectedStock = stock;
-
-            var modalInstance = $uibModal.open({
-                animation: true,
-                templateUrl: 'relocationModal',
-                controller: 'StockModalController',
-                size: "md",
-                resolve: {
-                    selectedStock: function () {
-                            return $scope.selectedStock;
-                        }
-                    }
-                });
-
-            modalInstance.result.then(function (selectedStock) {
-                    $scope.selectedStock = selectedStock;
-                }, function () {
-                    console.log('Modal dismissed at: ' + new Date());
-                }
-            );
+            $mdDialog.show({
+              locals:{selectedStock: $scope.selectedStock, selectedStore: $scope.selectedStore},
+              controller: 'RelocationModalController',
+              templateUrl: 'views/modals/relocation-modal.html',
+              parent: angular.element(document.body)
+            })
+            .then(function(answer) {
+              $scope.status = 'You said the information was "".';
+            }, function() {
+              $scope.status = 'You cancelled the dialog.';
+            });
 	    };
 
         $scope.openSaleModal = function (stock) {
-            $scope.selectedStock = stock;
+            if (stock) {
+                $scope.currentSale.selectedStocks.push(stock);
+                stock.quantity -= 1;
+            }
 
-            var modalInstance = $uibModal.open({
-                animation: true,
-                templateUrl: 'saleModal',
-                controller: 'StockModalController',
-                size: "md",
-                resolve: {
-                    selectedStock: function () {
-                            return $scope.selectedStock;
-                        }
-                    }
-                });
+            $mdDialog.show({
+              locals:{currentSale: $scope.currentSale},
+              controller: 'SaleModalController',
+              templateUrl: 'views/modals/sale-modal.html',
+              parent: angular.element(document.body)
+            })
+            .then(function(answer) {
+              console.log('>>> first function');
+            }, function() {
+              console.log('>>> second function');
+            });
 
-            modalInstance.result.then(function (selectedStock) {
-                    $scope.selectedStock = selectedStock;
-                }, function () {
-                    console.log('Modal dismissed at: ' + new Date());
-                }
-            );
         };
+
+        $scope.openWasteModal = function(stock){
+            $scope.selectedStock = stock;
+            $mdDialog.show({
+              locals:{selectedStock: $scope.selectedStock},
+              controller: 'WasteModalController',
+              templateUrl: 'views/modals/waste-modal.html',
+              parent: angular.element(document.body)
+            })
+            .then(function(answer) {
+              $scope.status = 'You said the information was "".';
+            }, function() {
+              $scope.status = 'You cancelled the dialog.';
+            });
+        };
+
 
         $scope.resetCurrentPage = function() {
             $scope.currentPage = 1;
         };
 
-        $scope.isEmployeeKalafcheStoreSelected = function(stock) { 
-            return stock.kalafcheStoreId === SessionService.currentUser.employeeKalafcheStoreId;
+        $scope.resetDeviceModel = function() {
+            $scope.currentPage = 1;
+            $scope.selectedModel = {};
+        }
+
+        $scope.isEmployeeStoreSelected = function(stock) { 
+            return stock.storeId === SessionService.currentUser.employeeStoreId;
         };
+
+
+        $scope.clearModelSearchTerm= function() {
+            $scope.modelSearchTerm = "";
+        }
+
+        $element.find('#modelSearchTerm').on('keydown', function(ev) {
+            ev.stopPropagation();
+        });
 
         $scope.isTotalSumRowVisible = function() {
             if ($scope.isAdmin() && $scope.inStockPerPage * $scope.currentPage >= $scope.inStockList.length) {
@@ -183,50 +180,17 @@ angular.module('kalafcheFrontendApp')
 
             for (var i = 0; i < $scope.inStockList.length; i++) {
                 var currStock = $scope.inStockList[i];
-                    totalSum += currStock.itemPrice * currStock.quantity;               
+                    totalSum += currStock.productPrice * currStock.quantity;               
             }
 
             return Math.round(totalSum * 100) / 100;
-        };
+        }; 
 
-        // $scope.submitSale = function() {
-        //     if ($scope.partnerCode) {
-        //         if (!$scope.discountPercentage) {
-        //             $scope.submitSaleErrorText = "Въведете процент на отстъпката!";
-        //             $scope.showSubmitSaleError = true;
-        //             console.log("Incorrect discount percentage!!!");
-        //         } else {
-        //          PartnerService.getPartnerByCode($scope.partnerCode).then(
-        //              function(partner) {
-        //                  if (partner) {  
-        //                      var stock = $scope.selectedStock;
-        //                      var sale = {"stockId": stock.id, "partnerId": partner.id, "employeeId": SessionService.currentUser.employeeId, "cost": stock.itemPrice, "discountPercentage": $scope.discountPercentage, "saleTimestamp": ApplicationService.getCurrentTimestamp()};
-        //                      SaleService.submitSale(sale).then(
-        //                          function(response) {
-        //                              $scope.selectedStock.quantity -= 1;
-        //                              $scope.closeModal();
-        //                          }
-        //                      );
-        //                  } else{
-        //                         $scope.submitSaleErrorText = "Несъществуващ код!";
-        //                         $scope.showSubmitSaleError = true;
-        //                      console.log("Incorrect partner's code!!!");
-        //                  }
-        //              }
-        //          );
-        //         }
-        //     } else {
-        //         var stock = $scope.selectedStock;
-        //         var sale = {"stockId": stock.id, "employeeId": SessionService.currentUser.employeeId, "cost": stock.itemPrice, "discountPercentage": $scope.discountPercentage, "saleTimestamp": ApplicationService.getCurrentTimestamp()};
-        //         SaleService.submitSale(sale).then(
-        //             function(response) {
-        //                 $scope.selectedStock.quantity -= 1;
-        //                 $scope.closeModal();
-        //             }
-        //         );
-        //     }
-            
-        // };
-        
+        $scope.printStickersStocks = function() {
+            InStockService.printStickersForStocks($scope.selectedStore.id).then(
+                    function(response) {
+                    }
+                );     
+        };     
         
 	});

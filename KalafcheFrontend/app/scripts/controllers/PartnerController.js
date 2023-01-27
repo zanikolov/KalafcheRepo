@@ -1,65 +1,70 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-    .controller('PartnerController', function($scope, PartnerService, PartnerStoreService, ApplicationService) {
+    .controller('PartnerController', function($scope, PartnerService, PartnerStoreService, DiscountService, ApplicationService, ServerValidationService) {
         
        init();
 
         function init() {
-            $scope.newPartner = {};
+            $scope.partner = {};
             $scope.partnerStores = [];
-            $scope.deviceTypes = [];
+            $scope.discountCodes = [];
             $scope.partners = [];
-            $scope.isErrorMessageVisible = false;  
-            $scope.errorMessage = ""; 
             $scope.currentPage = 1; 
-            $scope.partnersPerPage = 10; 
+            $scope.partnersPerPage = 15; 
 
             getAllPartnerStores();
-            //getAllDeviceTypes();
+            getAvailableDiscountCodes();
             getAllPartners();
         }
 
-        $scope.submitPartner = function() {
-            if (ApplicationService.validateDuplication($scope.newPartner.name, $scope.partners)) {           
-                PartnerService.submitPartner($scope.newPartner).then(function(response) {
-                    $scope.partners.push($scope.newPartner);
-                    resetPartnerState();
-                    $scope.isErrorMessageVisible = false; 
-                    $scope.partnerForm.$setPristine();
-                });
-            } else {
-                $scope.isErrorMessageVisible = true;
-                $scope.errorMessage = "Има въведен партньор с това име";
-            }
-        };
-
-        $scope.resetErrorMessage = function() {
-            $scope.isErrorMessageVisible = false;
-        };
-
-        function getAllPartnerStores() {
+       function getAllPartnerStores() {
             PartnerStoreService.getAllPartnerStores().then(function(response) {
                 $scope.partnerStores = response;
             });
-
         };
 
-        // function getAllDeviceTypes() {
-        //     DeviceTypeService.getAllDeviceTypes().then(function(response) {
-        //         $scope.deviceTypes = response;
-        //     });
-
-        // };
+       function getAvailableDiscountCodes() {
+            DiscountService.getAvailablePartnerDiscountCodes().then(function(response) {
+                $scope.discountCodes = response;
+            });
+        };
 
         function getAllPartners() {
             PartnerService.getAllPartners().then(function(response) {
                 $scope.partners = response;
             });
-
         };
 
-        function resetPartnerState() {
-            $scope.newPartner = {};
-        }
+        $scope.submitPartner = function() {          
+            PartnerService.submitPartner($scope.partner).then(function(response) {
+                $scope.resetPartnerForm();
+                getAllPartners();
+                getAvailableDiscountCodes();          
+            },
+            function(errorResponse) {
+                ServerValidationService.processServerErrors(errorResponse, $scope.partnerForm);
+                $scope.serverErrorMessages = errorResponse.data.errors;
+            });
+        };
+
+        $scope.openPartnerForEdit = function (partner) {
+            $scope.partner = angular.copy(partner);
+            //$scope.discountCodes.push($scope.partner.discountCodeCode);
+        };
+
+        function resetPartner() {
+            $scope.partner = null;
+        };
+
+        $scope.resetPartnerForm = function() {
+            resetPartner();
+            $scope.resetServerErrorMessages();
+            $scope.partnerForm.$setPristine();
+            $scope.partnerForm.$setUntouched();
+        };
+
+        $scope.resetServerErrorMessages = function() {
+            $scope.serverErrorMessages = {};
+        };
     });

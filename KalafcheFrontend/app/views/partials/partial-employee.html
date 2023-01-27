@@ -1,105 +1,81 @@
-<div ng-controller="EmployeeController">
-    <div class="row">
-        <div class="col-xs-12">
-            <h4><label><u>{{pageTitle}}</u><label></h4>
+<div ng-controller="EmployeeController" layout="column" ng-cloak>
+     <md-content layout-padding layout="row">
+        <div flex-xs="100" flex="50">
+            <form name="employeeForm" server-validation novalidate>
+                <md-input-container class="md-block">
+                    <label>Имена</label>
+                    <input ng-model="employee.name" name="name" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container>              
+                <md-input-container class="md-block">
+                    <label>Акаунт</label>
+                    <input ng-model="employee.username" name="username" ng-disabled="employee.id" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.username}}</span>  
+                </md-input-container>
+                <md-input-container class="md-block" ng-if="!employee.id">
+                    <label>Парола</label>
+                    <input ng-model="employee.password" name="code" ng-disabled="employee.id" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.password}}</span>  
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Магазин</label>
+                    <md-select name="storeId" ng-model="employee.storeId" required>
+                        <md-option value="" selected></md-option>
+                        <md-option ng-repeat="store in stores" ng-value="store.id">
+                            {{store.city}}, {{store.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <md-checkbox ng-model="employee.enabled" class="md-primary">
+                        Активен
+                    </md-checkbox>
+                </md-input-container>
+            </form>
+            <md-content layout="row">
+                <md-button ng-disabled="employeeForm.$invalid" ng-click="submitEmployee()" class="md-raised md-primary">Запази</md-button>
+                <md-button ng-if="employee.id" class="md-raised md-primary" ng-click="resetEmployeeForm()">Отмени</md-button>
+            </md-content>
         </div>
-    </div>
-    <form class="form-horizontal" name="employeeForm" ng-show="!selectedEmployee">
-        <div class="form-group">
-            <label for="inputEmployeeName" class="col-xs-3">Имена:</label>
-            <div class="col-xs-9 submit-inputs-margin-bottom">
-                <input class="form-control" style="width: 50%" ng-class="{'error-form-control': employeeForm.inputEmployeeName.$invalid && employeeForm.inputEmployeeName.$dirty}" name="inputEmployeeName" ng-model="newEmployee.name" placeholder="Име" ng-change="resetErrorMessage()" required>
-                <span ng-if="isErrorMessageVisible" class="error-message">{{errorMessage}}</span>
-            </div>
-
-            <label for="selectKalafcheStore" class="col-xs-3">Избери магазин:</label>
-            <div class="col-xs-9">
-                <select name="selectKalafcheStore" ng-model="newEmployee.kalafcheStoreId" ng-class="{'error-form-control': employeeForm.selectKalafcheStore.$invalid && employeeForm.selectKalafcheStore.$dirty}" ng-options="kalafcheStore.id as kalafcheStore.city + ' - ' + kalafcheStore.name for kalafcheStore in kalafcheStores" class="form-control" style="width: 50%" required="">
-                </select><br>
-            </div>
-
-            <label for="inputEmployeeUsername" class="col-xs-3">Акаунт:</label>
-            <div class="col-xs-9 submit-inputs-margin-bottom">
-                <input class="form-control" style="width: 50%" ng-class="{'error-form-control': employeeForm.inputEmployeeUsername.$invalid && employeeForm.inputEmployeeUsername.$dirty}" name="inputEmployeeUsername" ng-model="newEmployee.username" placeholder="Акаунт" required>
-            </div>
-
-            <label for="inputEmployeePassword" class="col-xs-3">Парола:</label>
-            <div class="col-xs-9 submit-inputs-margin-bottom">
-                <input class="form-control" style="width: 50%" ng-class="{'error-form-control': employeeForm.inputEmployeePassword.$invalid && employeeForm.inputEmployeePassword.$dirty}" name="inputEmployeePassword" ng-model="newEmployee.password" placeholder="Парола" required>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div>
-                <button type="submit" class="btn submit-button" ng-disabled="employeeForm.$invalid" ng-click="submitEmployee()">Въведи</button>
-            </div>
-        </div>
-    </form>
-
-    <form class="form-horizontal" name="editEmployeeForm" ng-show="selectedEmployee">
-        <div class="form-group">
-            <label for="inputEmployeeName" class="col-xs-3">Имена:</label>
-            <div class="col-xs-9 submit-inputs-margin-bottom">
-                <input class="form-control" style="width: 50%" ng-class="{'error-form-control': editEmployeeForm.inputEmployeeName.$invalid && editEmployeeForm.inputEmployeeName.$dirty}" name="inputEmployeeName" ng-model="selectedEmployee.name" placeholder="Име" ng-change="resetErrorMessage()" required>
-                <span ng-if="isErrorMessageVisible" class="error-message">{{errorMessage}}</span>
-            </div>
-
-            <label for="selectKalafcheStore" class="col-xs-3">Избери магазин:</label>
-            <div class="col-xs-9">
-                <select name="selectKalafcheStore" ng-model="selectedEmployee.kalafcheStoreId" ng-class="{'error-form-control': editEmployeeForm.selectKalafcheStore.$invalid && editEmployeeForm.selectKalafcheStore.$dirty}" ng-options="kalafcheStore.id as kalafcheStore.city + ' - ' + kalafcheStore.name for kalafcheStore in kalafcheStores" class="form-control" style="width: 50%" required="">
-                </select><br>
-            </div>
-
-            <label for="inputEmployeeUsername" class="col-xs-3">Акаунт:</label>
-            <div class="col-xs-9 submit-inputs-margin-bottom">
-                <span>{{selectedEmployee.username}}</span>
-            </div>
-
-<!--             <label for="inputEmployeePassword" class="col-xs-3">Парола:</label>
-            <div class="col-xs-9 submit-inputs-margin-bottom">
-                <input class="form-control" style="width: 50%" ng-class="{'error-form-control': editEmployeeForm.inputEmployeePassword.$invalid && editEmployeeForm.inputEmployeePassword.$dirty}" name="inputEmployeePassword" ng-model="selectedEmployee.password" placeholder="Парола" required>
-            </div> -->
-        </div>
-
-        <div class="form-group">
-            <div>
-                <button type="submit" class="btn submit-button" ng-disabled="editEmployeeForm.$invalid" ng-click="editEmployee()">Запази</button>
-            </div>
-            <div>
-                <button type="submit" class="btn cancel-button" ng-click="cancelEditEmployee()">Отмени</button>
-            </div>
-        </div>
-    </form>
-
-    <div class="row">
-        <div class="col-xs-9">
+    </md-content>
+    <md-content layout-padding layout="row" layout-xs="column">
+        <div flex="100">
             <table class="table table-hover table-condensed">
                 <thead>
                     <tr>
                         <th></th>
-                        <th><label>Имеna</label></th>
+                        <th><label>Име</label></th>
                         <th><label>Акаунт</label></th>
-                        <th><label>Парола</label></th>
                         <th><label>Магазин</label></th>
+                        <th><label>Активен</label></th>
                         <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr dir-paginate="employee in employees | filter: {kalafcheStoreId: newEmployee.kalafcheStoreId}: true | itemsPerPage: employeesPerPage track by $index" current-page="currentPage" class="item-row">
+                <tr dir-paginate="employee in employees | filter: {storeId: employee.storeId}: true | itemsPerPage: employeesPerPage track by $index" current-page="currentPage" class="item-row">
                         <td>{{(currentPage - 1) * employeesPerPage + $index + 1}}</td>
                         <td>{{employee.name}}</td>
-                        <td>{{employee.username}}</td>
-                        <td>{{employee.password}}</td>
-                        <td>{{employee.kalafcheStoreName}}</td>
+                        <td>{{employee.account}}</td>
+                        <td>{{employee.storeName}}</td>
                         <td>
-                            <a href="" ng-click="selectEmployeeForEdit(employee)"><span class="glyphicon glyphicon-edit kalafche-icon"></span></a>
-                            <a href="" ng-if="employee.enabled" ng-click="deactivateAccount(employee)"><span class="glyphicon glyphicon glyphicon-ban-circle sell-item-icon"></span></a>
+                            <div ng-if="!employee.enabled">
+                                <md-icon md-svg-src="images/icons/close.svg"></md-icon>
+                            </div>
+                            <div ng-if="employee.enabled">
+                                <md-icon md-svg-src="images/icons/check.svg"></md-icon>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="" ng-click="openEmployeeForEdit(employee)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
         </div>
-        <div class="col-xs-6"></div>
-    </div>
+    </md-content>
 </div>

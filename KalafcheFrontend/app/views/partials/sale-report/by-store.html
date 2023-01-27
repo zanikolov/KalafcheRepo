@@ -1,0 +1,114 @@
+<div layout="column" ng-cloak>
+    <md-content layout-padding layout="column">
+        <div flex>
+            <form>    
+                <div layout="row" layout-xs="column" class="md-inline-form">
+                    <div layout-xs="row" flex="50" flex-xs="100">
+                        <md-input-container>
+                            <md-datepicker style="width:100%" ng-model="startDate" md-min-date="startMinDate" md-max-date="startMaxDate" ng-change="changeStartDate()"></md-datepicker>
+                        </md-input-container>
+                        <md-input-container>
+                            <md-datepicker style="width:100%" ng-model="endDate" md-min-date="endMinDate" md-max-date="startMaxDate" ng-change="changeEndDate()"></md-datepicker>
+                        </md-input-container>
+                    </div>
+                </div>
+
+                <!-- <div layout="row" layout-xs="column" class="md-inline-form">
+                    <div layout-xs="row" flex="50" flex-xs="100">
+                        <md-input-container style="width:48%">
+                            <label>Марка</label>
+                            <md-select ng-model="selectedBrand.id" ng-change="resetCurrentPage()">
+                                <md-option value="" selected>Всички</md-option>
+                                <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                                    {{brand.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <md-input-container style="width:48%">
+                            <label>Модел</label>
+                            <md-select ng-model="selectedModel.id" ng-disabled="!selectedBrand.id" ng-change="resetCurrentPage()">
+                                <md-option value="" selected>Всички</md-option>
+                                <md-option ng-repeat="model in models | filter: {deviceBrandId : selectedBrand.id} : true" ng-value="model.id">
+                                    {{model.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <div layout-xs="row" flex-offset="5" flex="25" flex-xs="100">
+                        <md-input-container style="width:100%">
+                            <label>Тип</label>
+                            <md-select name="typeId" ng-model="selectedProductType.id">
+                                <md-option value="" selected>Всички</md-option>
+                                <md-option ng-repeat="productType in productTypes" ng-value="productType.id">
+                                    {{productType.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <div layout-xs="row" flex-offset="5" flex="15" flex-xs="50">
+                        <md-input-container>
+                            <label>Код</label>
+                            <input ng-model="productCode" name="productCode">
+                        </md-input-container>
+                    </div>
+                </div> -->
+                <div layout="row" layout-xs="column" class="md-inline-form">
+                    <md-input-container>
+                        <md-button ng-click="searchSalesByStores()" class="md-raised md-primary">Търси</md-button>
+                    </md-input-container>
+                </div>
+            </form>
+        </div>
+        <div class="report-summary" flex ng-if="isAdmin()">
+            <div layout="column">
+                <div layout="row" ng-if="report.endDate - report.startDate > 86340000">
+                    от {{getReportDate(report.startDate)}} до {{getReportDate(report.endDate)}}
+                </div>
+                <div layout="row" ng-if="report.endDate - report.startDate <= 86340000">
+                    {{getReportDate(report.startDate)}}
+                </div>
+                <div layout="row" flex>
+                    {{report.deviceBrandName}} {{report.deviceModelName}} {{report.productCode}}
+                </div>
+                <div layout="row" flex>
+                    Брой {{report.count}}
+                </div>
+                <div layout="row" flex>
+                    <b>{{report.totalAmount}}лв</b>
+                </div>
+            </div>
+        </div>
+        <div flex>
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>
+                            <label>Магазин</label>
+                        </th>                      
+                        <th>
+                            <label>Артикули</label>
+                        </th>
+                        <th>
+                            <label>Сума</label>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr dir-paginate="salesByStore in report.salesByStores | itemsPerPage:salesByStorePerPage" current-page="currentPage" pagination-id="store">
+                        <td>{{(currentPage - 1) * salesByStorePerPage + $index + 1}}</td>
+                        <td>{{salesByStore.storeName}}</td>
+                        <td>{{salesByStore.count}}</td>
+                        <td>{{salesByStore.amount}}лв</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center">
+                <dir-pagination-controls pagination-id="store" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+<!--         <div flex ng-if="report.saleByStore.length > 0 && isAdmin()">
+            <md-button ng-click="generateExcel()" class="md-raised md-primary">Excel</md-button>
+        </div> -->
+    </md-content>
+</div>

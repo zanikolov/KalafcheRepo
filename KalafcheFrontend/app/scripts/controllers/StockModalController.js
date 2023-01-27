@@ -1,12 +1,13 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-	.controller('StockModalController', function ($scope, $uibModalInstance, selectedStock, PartnerService, SaleService, SessionService, ApplicationService, StockRelocationService, OrderedStockService) {
+	.controller('StockModalController', function ($scope, $uibModalInstance, selectedStock, selectedStore, PartnerService, SaleService, SessionService, ApplicationService, RelocationService, OrderedStockService) {
 
         init();
 
         function init() {
             $scope.selectedStock = selectedStock;
+            $scope.selectedStore = selectedStore;
             $scope.partner = null;
             $scope.isSubmitButonDisabled = false;
             $scope.invalidPartnerCodeErrorText = "Несъществуващ код!";
@@ -16,7 +17,7 @@ angular.module('kalafcheFrontendApp')
             $scope.showSalePriceErrorText = false;
 
             //Stock order
-            console.log(selectedStock);
+            console.log($scope.selectedStore);
             $scope.stockForOrder = selectedStock.selectedStock;
             $scope.orderedStockList = selectedStock.orderedStockList;
         };
@@ -32,7 +33,7 @@ angular.module('kalafcheFrontendApp')
         			if ($scope.partner) {  
         				var stock = $scope.selectedStock;
                         var partner = $scope.partner;
-        				var sale = {"stockId": stock.id, "partnerId": partner.id, "employeeId": SessionService.currentUser.employeeId, "cost": stock.itemPrice, "salePrice": $scope.salePrice, "saleTimestamp": ApplicationService.getCurrentTimestamp()};
+        				var sale = {"stockId": stock.id, "partnerId": partner.id, "employeeId": SessionService.currentUser.employeeId, "cost": stock.productPrice, "salePrice": $scope.salePrice, "saleTimestamp": ApplicationService.getCurrentTimestamp()};
     		        	SaleService.submitSale(sale).then(
     			            function(response) {
     			            	$scope.selectedStock.quantity -= 1;
@@ -44,7 +45,7 @@ angular.module('kalafcheFrontendApp')
                 }
             } else {
                 var stock = $scope.selectedStock;
-                var sale = {"stockId": stock.id, "employeeId": SessionService.currentUser.employeeId, "cost": stock.itemPrice, "salePrice": $scope.salePrice, "saleTimestamp": ApplicationService.getCurrentTimestamp()};
+                var sale = {"stockId": stock.id, "employeeId": SessionService.currentUser.employeeId, "cost": stock.productPrice, "salePrice": $scope.salePrice, "saleTimestamp": ApplicationService.getCurrentTimestamp()};
                 SaleService.submitSale(sale).then(
                     function(response) {
                         $scope.selectedStock.quantity -= 1;
@@ -57,9 +58,10 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.submitRelocation = function() {
-                var stock = $scope.selectedStock;
-                var relocation = {"stockId": stock.id, "fromKalafcheStoreId": stock.kalafcheStoreId, "toKalafcheStoreId": SessionService.currentUser.employeeKalafcheStoreId, "employeeId": SessionService.currentUser.employeeId, "relocationRequestTimestamp": ApplicationService.getCurrentTimestamp(), "quantity": $scope.quantityForRelocation};
-                StockRelocationService.submitRelocation(relocation).then(
+                var itemId = $scope.selectedStock.itemId;
+                var sourceStoreId = $scope.selectedStore.id
+                var relocation = {"itemId": itemId, "sourceStoreId": sourceStoreId, "destStoreId": SessionService.currentUser.employeeStoreId, "quantity": $scope.quantityForRelocation};
+                RelocationService.submitRelocation(relocation).then(
                     function(response) {
                         $scope.selectedStock.quantity -= $scope.quantityForRelocation;
                         $scope.selectedStock.orderedQuantity += $scope.quantityForRelocation;
@@ -70,11 +72,9 @@ angular.module('kalafcheFrontendApp')
 
         $scope.submitOrderedStock = function() {
             var stock = $scope.stockForOrder;
-            var orderedStock = {"itemId": stock.itemId, "deviceModelId": stock.deviceModelId, "stockOrderId": stock.stockOrderId, "quantity": $scope.quantityForOrder, "deviceModelName": stock.deviceModelName, "deviceBrandName": stock.deviceBrandName, "itemName": stock.itemName, "itemProductCode": stock.itemProductCode};
+            var orderedStock = {"productId": stock.productId, "deviceModelId": stock.deviceModelId, "stockOrderId": stock.stockOrderId, "quantity": $scope.quantityForOrder, "deviceModelName": stock.deviceModelName, "deviceBrandName": stock.deviceBrandName, "productName": stock.productName, "productCode": stock.productCode};
             OrderedStockService.submitOrderedStock(orderedStock).then(
                 function(response) {
-                    console.log(">>>>>");
-                    console.log(response);
                     orderedStock.id = response.data;
                     $scope.orderedStockList.push(orderedStock);
                     $uibModalInstance.close($scope.orderedStockList);

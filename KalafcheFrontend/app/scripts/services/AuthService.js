@@ -6,14 +6,18 @@ angular.module('kalafcheFrontendApp')
             login: login,
             logout: logout,
             isAuthorized: isAuthorized,
-            isAuthenticated: isAuthenticated
+            isAuthenticated: isAuthenticated,
+            isAdmin: isAdmin,
+            isSuperAdmin: isSuperAdmin,
+            isUser: isUser,
+            isManager: isManager
         });
 
 
         function login(credentials) {
             var authorizationHeader = 'Basic ' + btoa(credentials.username + ':' + credentials.password);
             //$http.defaults.headers.common['Authorization'] = authorizationHeader;
-            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/service/employee/getEmployee', 
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/employee/login', 
                     {headers: {'Authorization': authorizationHeader}});
         };
 
@@ -27,7 +31,7 @@ angular.module('kalafcheFrontendApp')
             } else {
                 var currentUser = $cookies.getObject("currentUser");
 
-                if (currentUser && currentUser.userId) {
+                if (currentUser && currentUser.employeeId) {
                     SessionService.currentUser = currentUser;
                     $rootScope.currentUser = currentUser;
 
@@ -56,14 +60,73 @@ angular.module('kalafcheFrontendApp')
             for (var i = 0; i < roles.length; i++) {
                 var role = roles[i];
 
-                if (authorizedRoles.indexOf(role.name) !== -1) {
+                if (authorizedRoles.indexOf(role) !== -1) {
                     return true;
                 }
             };
 
             return false;
         };
+
+        function isAdmin() {
+            var roles = SessionService.currentUser.userRoles;
+
+            if (roles) {
+                for (var i = 0; i < roles.length; i++) {
+                    var role = roles[i];
+
+                    if (role === "ROLE_ADMIN" || role === "ROLE_SUPERADMIN") {
+                        return true;
+                    }
+                }
+            }
+
+              return false;
+        }  
+
+        function isSuperAdmin() {
+            var roles = SessionService.currentUser.userRoles;
+            if (roles) {
+                for (var i = 0; i < roles.length; i++) {
+                    var role = roles[i];
+                    if (role === "ROLE_SUPERADMIN") {
+                        return true;
+                    }
+                }
+            }
+
+              return false;
+        } 
+
+
+        function isManager() {
+          var roles = SessionService.currentUser.userRoles;
+          if (roles) {
+            for (var i = 0; i < roles.length; i++) {
+                    var role = roles[i];
+                    if (role === "ROLE_MANAGER") {
+                        return true;
+                    }
+                }
+          }
+
+          return false;
+        }
+
+        function isUser() {
+          var roles = SessionService.currentUser.userRoles;
+          if (roles) {
+            for (var i = 0; i < roles.length; i++) {
+                    var role = roles[i];
+                    if (role === "ROLE_USER") {
+                        return true;
+                    }
+                }
+          }
+
+          return false;
+        }
  
-  
+
     });
   

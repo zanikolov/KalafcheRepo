@@ -1,39 +1,52 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-    .controller('BrandController', function($scope, BrandService, ApplicationService) {
-        
+    .directive('brand', function() {
+        return {
+            restrict: 'E',
+            scope: {},
+            templateUrl: 'views/partials/device/brand.html',
+            controller: BrandController,
+            controllerAs: 'vm'
+        }
+    });
+  
+    function BrandController($scope, BrandService, ServerValidationService) {
+        var vm = this;
         init();
 
         function init() {
-            $scope.newBrand = {};
+            $scope.deviceBrand = {};
             $scope.brands = [];
-            $scope.isErrorMessageVisible = false;  
-            $scope.errorMessage = "";  
+            $scope.serverErrorMessages = {};
+
+            $scope.brandsPerPage = 10;
+            $scope.currentPage = 1;
 
             getAllDeviceBrands();
         }
 
         $scope.submitBrand = function() {
-            if (ApplicationService.validateDuplication($scope.newBrand.name, $scope.brands)) {
-                BrandService.submitBrand($scope.newBrand).then(function(response) {
-                    $scope.brands.push($scope.newBrand);
+            BrandService.submitBrand($scope.deviceBrand).then(
+                function(response) {
+                    getAllDeviceBrands();
                     resetBrandState();
-                    $scope.isErrorMessageVisible = false; 
+                    $scope.resetServerErrorMessages();
                     $scope.deviceBrandForm.$setPristine();
+                    $scope.deviceBrandForm.$setUntouched();
+                },
+                function(errorResponse) {
+                    ServerValidationService.processServerErrors(errorResponse, $scope.deviceBrandForm);
+                    $scope.serverErrorMessages = errorResponse.data.errors;
                 });
-            } else {
-                $scope.isErrorMessageVisible = true;
-                $scope.errorMessage = "Има въведена марка с това име";
-            }
         };
 
-        $scope.resetErrorMessage = function() {
-            $scope.isErrorMessageVisible = false;
+        $scope.resetServerErrorMessages = function() {
+            $scope.serverErrorMessages = {};
         };
 
         function resetBrandState() {
-            $scope.newBrand = {};
+            $scope.deviceBrand = {};
         }
 
         function getAllDeviceBrands() {
@@ -41,4 +54,49 @@ angular.module('kalafcheFrontendApp')
                 $scope.brands = response;
             });
         };
-    });
+    };
+
+    // .controller('BrandController', function($scope, BrandService, ServerValidationService) {
+        
+    //     init();
+
+    //     function init() {
+    //         $scope.deviceBrand = {};
+    //         $scope.brands = [];
+    //         $scope.serverErrorMessages = {};
+
+    //         $scope.brandsPerPage = 10;
+    //         $scope.currentPage = 1;
+
+    //         getAllDeviceBrands();
+    //     }
+
+    //     $scope.submitBrand = function() {
+    //         BrandService.submitBrand($scope.deviceBrand).then(
+    //             function(response) {
+    //                 getAllDeviceBrands();
+    //                 resetBrandState();
+    //                 resetServerErrorMessages();
+    //                 $scope.deviceBrandForm.$setPristine();
+    //                 $scope.deviceBrandForm.$setUntouched();
+    //             },
+    //             function(errorResponse) {
+    //                 ServerValidationService.processServerErrors(errorResponse, $scope.deviceBrandForm);
+    //                 $scope.serverErrorMessages = errorResponse.data.errors;
+    //             });
+    //     };
+
+    //      function resetServerErrorMessages() {
+    //         $scope.serverErrorMessages = {};
+    //     };
+
+    //     function resetBrandState() {
+    //         $scope.deviceBrand = {};
+    //     }
+
+    //     function getAllDeviceBrands() {
+    //         BrandService.getAllDeviceBrands().then(function(response) {
+    //             $scope.brands = response;
+    //         });
+    //     };
+    // });

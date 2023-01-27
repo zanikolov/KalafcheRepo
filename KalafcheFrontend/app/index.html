@@ -10,31 +10,77 @@
     <!-- build:css(.) styles/vendor.css -->
     <!-- bower:css -->
     <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="bower_components/angular-material/angular-material.css" />
+    <link rel="stylesheet" href="bower_components/angular-material-icons/angular-material-icons.css" />
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:css(.tmp) styles/main.css -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/main-material.css">
     <link rel="stylesheet" href="styles/additional.css">
     <link rel="stylesheet" href="styles/spinner.css">
     <link rel="stylesheet" href="styles/dir-pagination.css">
     <!-- endbuild  -->
-    <style type="text/css">
 
-    </style>
 </head>
 
-<body ng-controller="ApplicationController">
+<body ng-controller="ApplicationController" layout="row" ng-cloak>
 <!--     <div ui-view="modal"> </div> -->
 <!-- Pop up for login  -->
 
    <!-- End of pop up for login -->
-    <div class="container-fluid main-container">
-        
+
+
+    <div ng-show="sideNavVisible">
+        <md-sidenav layout="column" class="md-sidenav-left md-whiteframe-z2" md-component-id="left" md-is-locked-open="$mdMedia('gt-lg')">
+            <md-toolbar class="md-tall md-hue-2">
+                <div layout="column" layout="center center" class="md-toolbar-tools-bottom inset">
+                    <div>{{currentUser.employeeName}}</div>
+                    <div flex>{{currentUser.username}} <a href="" ng-click="logout()" flex><md-icon md-svg-src="images/icons/exit_to_app.svg" aria-label="Отпиши ме"></md-icon></a></div>
+                </div>
+            </md-toolbar>
+            <md-list>
+                <md-item ng-repeat="item in menu">
+                    <a ui-sref="{{item.link}}" ng-if="(isAdmin() && item.admin) || (isManager() && item.manager) || (isUser() && item.user)">
+                        <md-item-content ng-click="toggleSidenav('left')" md-ink-ripple layout="row" layout-align="start center">
+                            <div class="inset">{{item.title}}</div>
+                        </md-item-content>
+                    </a>
+                </md-item>
+            </md-list>
+        </md-sidenav>
+    </div>
+    <div layout="column" class="relative" layout-fill role="main">
+        <div ng-show="sideNavVisible">
+            <md-toolbar>
+                <div class="md-toolbar-tools">
+                    <md-button ng-click="toggleSidenav('left')" aria-label="Menu">
+                        <md-icon md-svg-src="images/icons/menu.svg" aria-label="menu"></md-icon>
+                    </md-button>
+<!--                     <img style="height:65px" src="images/logo_small_transperant.png" class="header-img" />
+                    <span flex></span>  -->
+                    <h3 flex-offset="15" flex>{{pageTitle}}</h3>
+                    <span flex></span>                 
+                </div>
+            </md-toolbar>
+        </div>
+        <md-content flex md-scroll-y>
+            <div id="view" ng-class="{'disabled-page': isLoading}" ui-view></div>
+            <div ng-if="isLoading" layout="row" class="spinner-material" layout-sm="column" layout-align="space-around">
+              <md-progress-circular md-mode="indeterminate"></md-progress-circular>
+            </div>
+        </md-content>
+    </div>
+
+
+
+
+
+
+<!--     <div class="container-fluid main-container">     
         <div class="row" ng-cloak>
-<!--             <div class="col-xs-1">
-            </div> -->
             <div class="col-xs-12">
                 <div class="row header" style="padding: 0px;">
                     <div class="col-xs-6" class="logo">
@@ -59,11 +105,17 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="panel panel-default" ui-sref="newStock">
-                                    <div class="panel-heading sidebar-btn collapseall">
-                                        <div class="panel-title">
+                                <div class="panel panel-default">
+                                    <div class="panel-heading sidebar-btn">
+                                        <div data-parent="#accordion" data-toggle="collapse" data-target="#collapse1" class="panel-title">
                                             <span class="menu-panel-header">Нова стока</span>
                                         </div>
+                                    </div>
+                                    <div id="collapse1" class="panel-collapse collapse collapse">
+                                        <ul class="list-group">
+                                            <li class="list-group-item submenu-panel" ui-sref="newStockValidation">Валидация</li>
+                                            <li class="list-group-item submenu-panel" ui-sref="newStock">Импорт</li>
+                                        </ul>
                                     </div>
                                 </div>
                                 <div class="panel panel-default">
@@ -74,14 +126,14 @@
                                     </div>
                                     <div id="collapse2" class="panel-collapse collapse collapse">
                                         <ul class="list-group">
-                                            <li class="list-group-item submenu-panel" ui-sref="deviceType">Тип устройства</li>
                                             <li class="list-group-item submenu-panel" ui-sref="brand">Mарки</li>
                                             <li class="list-group-item submenu-panel" ui-sref="model">Модели</li>
-                                            <li ng-if="isAdmin()" class="list-group-item submenu-panel" ui-sref="partner">Партньори</li>
-                                            <li class="list-group-item submenu-panel" ui-sref="partnerStore">Обекти партньори</li>
+                                            <li class="list-group-item submenu-panel" ui-sref="product">Продукти</li>
                                             <li class="list-group-item submenu-panel" ui-sref="item">Артикули</li>
                                             <li ng-if="isSuperAdmin()" class="list-group-item submenu-panel" ui-sref="employee">Служители</li>
-                                            <li ng-if="isSuperAdmin()" class="list-group-item submenu-panel" ui-sref="kalafcheStore">Магазини</li>
+                                            <li ng-if="isSuperAdmin()" class="list-group-item submenu-panel" ui-sref="store">Магазини</li>
+                                            <li ng-if="isAdmin()" class="list-group-item submenu-panel" ui-sref="partner">Партньори</li>
+                                            <li class="list-group-item submenu-panel" ui-sref="partnerStore">Обекти партньори</li>
                                         </ul>
                                     </div>
                                 </div>
@@ -105,7 +157,7 @@
                                         </ul>
                                     </div>
                                 </div>
-                                <div class="panel panel-default" ui-sref="stockRelocation">
+                                <div class="panel panel-default" ui-sref="relocation">
                                     <div class="panel-heading sidebar-btn collapseall">
                                         <div class="panel-title">
                                             <span class="menu-panel-header">Релокация</span>
@@ -118,14 +170,7 @@
                                             <span class="menu-panel-header">Активности</span>
                                         </div>
                                     </div>
-                                </div>
-                            <!--<div ng-if="isAdmin()" class="panel panel-default" ui-sref="stockOrder">
-                                    <div class="panel-heading sidebar-btn collapseall">
-                                        <div class="panel-title">
-                                            <span class="menu-panel-header">Поръчки</span>
-                                        </div>
-                                    </div>
-                                </div> -->                               
+                                </div>                             
                             </div> 
                         </div>
                     </div>
@@ -143,16 +188,9 @@
                         </div>
                     </div>
                 </div>
-<!--                 <div class="row">
-                    <div class="col-xs-12" style="padding: 0px;">
-                        <div class="footer"></div>
-                    </div>
-                </div> -->
             </div>
-<!--             <div class="col-xs-1 right-border">
-            </div> -->
         </div>
-    </div>
+    </div> -->
     <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
 <!--     <script>
     $(document).ready(function() {
@@ -164,7 +202,6 @@
             }, A[l].l = +new Date, a = n.createElement(g),
             r = n.getElementsByTagName(g)[0], a.src = u, r.parentNode.insertBefore(a, r)
     }(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
-
     ga('create', 'UA-XXXXX-X');
     ga('send', 'pageview');
     </script> -->
@@ -182,6 +219,13 @@
     <script src="bower_components/angular-ui-router/release/angular-ui-router.js"></script>
     <script src="bower_components/angularUtils-pagination/dirPagination.js"></script>
     <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.js"></script>
+    <script src="bower_components/angular-aria/angular-aria.js"></script>
+    <script src="bower_components/angular-messages/angular-messages.js"></script>
+    <script src="bower_components/angular-material/angular-material.js"></script>
+    <script src="bower_components/angular-material-icons/angular-material-icons.min.js"></script>
+    <script src="bower_components/blob-polyfill/Blob.js"></script>
+    <script src="bower_components/file-saver.js/FileSaver.js"></script>
+    <script src="bower_components/angular-file-saver/dist/angular-file-saver.bundle.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
     <!-- build:js({.tmp,app}) scripts/scripts.js -->
@@ -191,59 +235,97 @@
     <script src="scripts/controllers/main.js"></script>
     <script src="scripts/controllers/about.js"></script>
     <script src="scripts/controllers/ApplicationController.js"></script>
-    <script src="scripts/controllers/NewStockController.js"></script>
+    <script src="scripts/controllers/NewStockImportController.js"></script>
+    <script src="scripts/controllers/NewStockValidationController.js"></script>
     <script src="scripts/controllers/InStockController.js"></script>
     <script src="scripts/controllers/BrandController.js"></script>
     <script src="scripts/controllers/ModelController.js"></script>
     <script src="scripts/controllers/DeviceTypeController.js"></script>
-    <script src="scripts/controllers/ItemController.js"></script>
-    <script src="scripts/controllers/SaleReportController.js"></script>
+    <script src="scripts/controllers/ProductController.js"></script>
+    <script src="scripts/controllers/ProductTypeController.js"></script>
+    <script src="scripts/controllers/ProductModalController.js"></script>
+    <script src="scripts/controllers/SaleTransactionReportController.js"></script>
+    <script src="scripts/controllers/SaleItemReportController.js"></script>
+    <script src="scripts/controllers/SalesByStoresReportController.js"></script>
+    <script src="scripts/controllers/MonthlyTurnoverReportController.js"></script>
+    <script src="scripts/controllers/SaleSplitReportController.js"></script>
     <script src="scripts/controllers/StockReportController.js"></script>
     <script src="scripts/controllers/loginModalController.js"></script>
     <script src="scripts/controllers/LoginController.js"></script>
-    <script src="scripts/controllers/StockModalController.js"></script>
+    <script src="scripts/controllers/RelocationModalController.js"></script>
+    <script src="scripts/controllers/SaleModalController.js"></script>
     <script src="scripts/controllers/OrderModalController.js"></script>
-    <script src="scripts/controllers/StockRelocationController.js"></script>
+    <script src="scripts/controllers/RelocationController.js"></script>
+    <script src="scripts/controllers/WasteModalController.js"></script>
+    <script src="scripts/controllers/RefundModalController.js"></script>
     <script src="scripts/controllers/PartnerController.js"></script>
     <script src="scripts/controllers/PartnerStoreController.js"></script>
+    <script src="scripts/controllers/LoyalCustomerController.js"></script>
     <script src="scripts/controllers/StockOrderController.js"></script>
     <script src="scripts/controllers/EmployeeController.js"></script>
-    <script src="scripts/controllers/KalafcheStoreController.js"></script>
+    <script src="scripts/controllers/StoreController.js"></script>
     <script src="scripts/controllers/ActivityReportController.js"></script>
+    <script src="scripts/controllers/ItemController.js"></script>
+    <script src="scripts/controllers/ItemFormController.js"></script>
+    <script src="scripts/controllers/WasteReportController.js"></script>
+    <script src="scripts/controllers/RefundReportController.js"></script>
+    <script src="scripts/controllers/ExpenseFormController.js"></script>
+    <script src="scripts/controllers/ExpenseReportController.js"></script>
+    <script src="scripts/controllers/ExpenseTypeController.js"></script>
+    <script src="scripts/controllers/RevisionReportController.js"></script>
+    <script src="scripts/controllers/CurrentRevisionController.js"></script>
+    <script src="scripts/controllers/DiscountCampaignController.js"></script>
+    <script src="scripts/controllers/DiscountCodeController.js"></script>
+    <script src="scripts/controllers/ImportBarcodesController.js"></script>
+
     <!-- Services -->
     <script src="scripts/services/ApplicationService.js"></script>
     <script src="scripts/services/BrandService.js"></script>
     <script src="scripts/services/ModelService.js"></script>
     <script src="scripts/services/DeviceTypeService.js"></script>
-    <script src="scripts/services/ItemService.js"></script>
+    <script src="scripts/services/ProductService.js"></script>
     <script src="scripts/services/NewStockService.js"></script>
     <script src="scripts/services/InStockService.js"></script>
-    <script src="scripts/services/ColorService.js"></script>
     <script src="scripts/services/AuthService.js"></script>
     <script src="scripts/services/SessionService.js"></script>
-    <script src="scripts/services/KalafcheStoreService.js"></script>
+    <script src="scripts/services/StoreService.js"></script>
     <script src="scripts/services/SaleService.js"></script>
     <script src="scripts/services/PartnerService.js"></script>
+    <script src="scripts/services/LoyalCustomerService.js"></script>
     <script src="scripts/services/PartnerStoreService.js"></script>
-    <script src="scripts/services/StockRelocationService.js"></script>
+    <script src="scripts/services/RelocationService.js"></script>
     <script src="scripts/services/StockOrderService.js"></script>
     <script src="scripts/services/OrderedStockService.js"></script>
     <script src="scripts/services/EmployeeService.js"></script>
     <script src="scripts/services/ActivityReportService.js"></script>
+    <script src="scripts/services/ItemService.js"></script>
+    <script src="scripts/services/ServerValidationService.js"></script>
+    <script src="scripts/services/WasteService.js"></script>
+    <script src="scripts/services/RefundService.js"></script>
+    <script src="scripts/services/ExpenseService.js"></script>
+    <script src="scripts/services/RevisionService.js"></script>
+    <script src="scripts/services/DiscountService.js"></script>
+    <script src="scripts/services/ImportBarcodesService.js"></script>
     
     <!-- Directives -->
     <script src="scripts/directives/SaleModalDirective.js"></script>
     <script src="scripts/directives/EnterKeyPressDirective.js"></script>
+    <script src="scripts/directives/FileModelDirective.js"></script>
+    <script src="scripts/directives/ServerValidationDirective.js"></script>
+    <script src="scripts/directives/ExpandAllSalesDirective.js"></script>
+    <script src="scripts/directives/ImageInputDirective.js"></script>
+    <script src="scripts/directives/item/ItemForm.js"></script>
+    <script src="scripts/directives/BarcodeScannerDirective.js"></script>
 
+    <!-- Interceptors -->
     <script src="scripts/interceptors/AuthInterceptor.js"></script>
     <script src="scripts/interceptors/SessionTimeoutInterceptor.js"></script>
     <script src="scripts/interceptors/LoadingInterceptor.js"></script>
-    
-    <!-- <script src="scripts/interceptors/SpinnerInterceptor.js"></script> -->
 
     <!-- Constants -->
     <script src="scripts/constants/UserRoles.js"></script>
     <script src="scripts/constants/AuthEvents.js"></script>
+
     <!-- endbuild -->
 </body>
 

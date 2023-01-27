@@ -1,0 +1,47 @@
+<div layout="column" ng-cloak>
+    <md-content layout-padding layout="row" layout-xs="column">
+        <div flex-xs="100" flex-md="50">
+            <form name="deviceModelForm" server-validation novalidate>                
+                <md-input-container class="md-block">
+                    <label>Марка</label>
+                    <md-select ng-model="deviceModel.deviceBrandId" ng-change="resetDeviceModelName()"  ng-selected="false" required>
+                        <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                            {{brand.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Име на модел</label>
+                    <input ng-model="deviceModel.name" name="name" ng-change="resetServerErrorMessages()" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container>
+            </form>
+            <md-content layout="row">
+                <md-button ng-if="deviceModel.id" class="md-raised md-primary" ng-click="cancelEditDeviceModel()">Отмени</md-button>
+                <md-button ng-disabled="deviceModelForm.$invalid" ng-click="submitModel()" class="md-raised md-primary">Запази</md-button>
+            </md-content>
+        </div>
+        <div ng-show="deviceModel.deviceBrandId" flex="100">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Марка</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr dir-paginate="model in models | filter: {deviceBrandId: deviceModel.deviceBrandId}: true | itemsPerPage: modelsPerPage track by $index" current-page="currentPage" pagination-id="model" class="item-row">
+                        <td>{{(currentPage - 1) * modelsPerPage + $index + 1}}</td>
+                        <td>{{model.name}}</td>
+                        <td>
+                            <a href="" ng-click="editDeviceModel(model)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <dir-pagination-controls pagination-id="model" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+        </div>
+    </md-content>
+</div>

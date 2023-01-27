@@ -8,7 +8,7 @@ angular.module('kalafcheFrontendApp')
 		});
 
     	function submitBrand(brand) {	
-			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/service/deviceBrand/insertBrand', brand)
+			return $http.put(Environment.apiEndpoint + '/KalafcheBackend/deviceBrand', brand)
             	.then(
                 	function(response) {
                     	console.log(response);
@@ -17,7 +17,7 @@ angular.module('kalafcheFrontendApp')
     	}
 
         function getAllDeviceBrands() {  
-            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/service/deviceBrand/getAllDeviceBrands')
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/deviceBrand')
                 .then(
                     function(response) {
                         return response.data

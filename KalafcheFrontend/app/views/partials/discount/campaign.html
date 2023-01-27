@@ -1,0 +1,74 @@
+<div layout="column" ng-cloak>
+     <md-content layout-padding layout="row">
+        <div flex="50" flex-xs="100">
+            <form name="campaignForm" server-validation novalidate>             
+                    <md-input-container class="md-block">
+                        <label>Име</label>
+                        <input  name="name" ng-model="campaign.name" ng-disabled="campaign.id" maxlength="200" required>
+                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                    </md-input-container> 
+                    <md-input-container class="md-block">
+                        <label>Код</label>
+                        <input  name="code" ng-model="campaign.code" ng-disabled="campaign.id" maxlength="20" required>
+                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>
+                    </md-input-container> 
+                    <md-input-container class="md-block">
+                        <label>Описание</label>
+                        <input ng-model="campaign.description" name="description">
+                    </md-input-container>
+                    <div layout="row">
+                        <md-input-container flex="20">
+                            <label>Стойност</label>
+                            <input name="discountValue" ng-model="campaign.discountValue" required>
+                        </md-input-container>
+                        <md-input-container flex="30">
+                            <label>Тип</label>
+                            <md-select name="discountTypeId" ng-model="campaign.discountTypeId" required>
+                                <md-option value="" selected></md-option>
+                                <md-option ng-repeat="type in types" ng-value="type.id">
+                                    {{type.sign}} ({{type.name}})
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </md-content>
+    <md-content  layout="row">
+        <md-button ng-click="submitCampaign()" ng-disabled="campaignForm.$invalid" class="md-raised md-primary">Запази</md-button>
+        <md-button ng-if="campaign.id" class="md-raised md-primary" ng-click="resetCampaignForm()">Отмени</md-button>
+    </md-content>
+    <hr/>
+    <md-content layout-padding layout="row">
+        <div flex="100">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                    	<th><label>Име</label></th>
+                    	<th><label>Отстъпка</label></th>
+                        <th><label>Започната на</label></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr dir-paginate="campaign in campaigns | itemsPerPage: campaignsPerPage track by $index" current-page="currentPage" pagination-id="campaign" class="item-row">
+                        <td>{{(currentPage - 1) * campaignsPerPage + $index + 1}}</td>
+                        <td>{{campaign.name}}</td>
+                        <td>-{{campaign.discountValue}}{{campaign.discountTypeSign}}</td>
+                        <td>{{getCampaignTimestamp(campaign.createTimestamp)}}</td>
+                        <td>
+                            <a href="" ng-click="editCampaign(campaign)">
+                                <md-icon  class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls pagination-id="campaign" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+    </md-content>
+</div>

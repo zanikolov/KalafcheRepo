@@ -1,0 +1,28 @@
+<md-dialog flex="60" ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Въвеждане на {{selectedItem.name}}</h2>
+        <span flex></span>
+        <md-button class="md-icon-button" ng-click="closeModal()">
+          <md-icon md-svg-src="images/icons/close.svg" aria-label="Затвори"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+        <item-form item="selectedItem"></item-form>
+    </md-dialog-content>
+</md-dialog>
+
+
+
+<!--     <div class="modal-header">
+        <button type="button" class="close" ng-click="closeModal()" aria-hidden="true">&times;</button> 
+        <label><h4 class="modal-title">Артикул</h4></label><br/>
+        <label>{{selectedItem.name}}</label>
+    </div>
+    <div class="modal-body">                
+        <item-form item="selectedItem"></item-form>
+    </div>
+    <div class="modal-footer">
+    </div> -->

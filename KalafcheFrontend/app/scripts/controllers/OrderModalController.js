@@ -20,13 +20,9 @@ angular.module('kalafcheFrontendApp')
 
         $scope.submitOrderedStock = function() {
             var stock = $scope.orderedStock;
-            var orderedStock = {"itemId": stock.itemId, "deviceModelId": stock.deviceModelId, "stockOrderId": stock.stockOrderId, "quantity": $scope.quantityForOrder};
+            var orderedStock = {"productId": stock.productId, "deviceModelId": stock.deviceModelId, "stockOrderId": stock.stockOrderId, "quantity": $scope.quantityForOrder};
             OrderedStockService.submitOrderedStock(orderedStock).then(
                 function(response) {
-                    console.log(">>>>>");
-                    console.log(response);
-
-                    //stock.orderedQuantity = $scope.quantityForOrder
                     $uibModalInstance.close($scope.quantityForOrder);
                 }
             );

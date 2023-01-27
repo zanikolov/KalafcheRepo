@@ -8,7 +8,7 @@ angular.module('kalafcheFrontendApp')
 		});
 
     	function submitModel(model) {	
-			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/service/deviceModel/insertModel', model)
+			return $http.put(Environment.apiEndpoint + '/KalafcheBackend/deviceModel', model)
             	.then(
                 	function(response) {
                     	console.log(response);
@@ -17,11 +17,30 @@ angular.module('kalafcheFrontendApp')
     	}
 
         function getAllDeviceModels() {   
-            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/service/deviceModel/getAllDeviceModels')
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/deviceModel')
                 .then(
                     function(response) {
                         return response.data
                     }
                 ) ;
         }
+
+        function submitModel(model) { 
+            if (model.id) {
+                return $http.post(Environment.apiEndpoint + '/KalafcheBackend/deviceModel', model)
+                    .then(
+                        function(response) {
+                            return response.data;
+                        }
+                    )
+            } else {
+                return $http.put(Environment.apiEndpoint + '/KalafcheBackend/deviceModel', model)
+                    .then(
+                        function(response) {
+                            return response.data;
+                        }
+                    )
+            }
+        }
+
 	});
