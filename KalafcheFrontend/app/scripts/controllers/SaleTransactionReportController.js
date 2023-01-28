@@ -30,10 +30,10 @@ angular.module('kalafcheFrontendApp')
             $scope.endDatePopup = {opened: false};
 
             getCurrentDate();
-            var yesterday = new Date();
-            yesterday.setDate(yesterday.getDate() - 1);
+            var twoMonthsAgo = new Date();
+            twoMonthsAgo.setMonth(twoMonthsAgo.getMonth() - 2);
             var today = new Date();
-            $scope.startMinDate = AuthService.isAdmin() ? new Date(2015, 5, 22) : yesterday;
+            $scope.startMinDate = AuthService.isAdmin() ? new Date(2015, 5, 22) : twoMonthsAgo;
             $scope.startMaxDate = today;
             $scope.startDateOptions = {
                 formatYear: 'yy',
