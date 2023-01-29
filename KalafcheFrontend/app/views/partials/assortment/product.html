@@ -30,10 +30,15 @@
                     <input ng-model="product.fabric" name="fabric" required>
                     <span ng-message="serverError" class="label label-error">{{serverErrorMessages.fabric}}</span>
                 </md-input-container>
-                <md-input-container class="md-block" flex="15">
+                <md-input-container class="md-block" flex="25">
                     <label>Цена</label>
                     <input type="number" min="0" step="0.01" ng-model="product.price" name="price" required>
                     <span ng-message="serverError" class="label label-error">{{serverErrorMessages.price}}</span>
+                </md-input-container>
+                <md-input-container class="md-block" flex="25">
+                    <label>Доставна цена</label>
+                    <input type="number" min="0" step="0.01" ng-model="product.purchasePrice" name="purchasePrice">
+                    <!-- <span ng-message="serverError" class="label label-error">{{serverErrorMessages.price}}</span> -->
                 </md-input-container>
             </form>
         </div>
@@ -67,6 +72,7 @@
                         <th><label>Име</label></th>
                         <th><label>Тип</label></th>
                         <th><label>Състав</label></th>
+                        <th><label>Доставна цена</label></th>
                         <th><label>Цена</label></th>
                         <th></th>
                     </tr>
@@ -77,6 +83,7 @@
                         <td>{{product.name}}</td>
                         <td>{{product.typeName}}</td>
                         <td>{{product.fabric}}</td>
+                        <td>{{product.purchasePrice}}</td>
                         <td>{{product.price}}</td>
                         <td>
                             <a href="" ng-click="editProduct(product)">

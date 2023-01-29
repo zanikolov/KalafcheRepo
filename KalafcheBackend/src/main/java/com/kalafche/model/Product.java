@@ -1,5 +1,6 @@
 package com.kalafche.model;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -17,8 +18,8 @@ public class Product extends BaseModel {
 	private String typeName;
 	private Integer masterTypeId;
 	private String masterTypeName;
-	private float price;
-	private float purchasePrice;
+	private BigDecimal price;
+	private BigDecimal purchasePrice;
 	private List<ProductSpecificPrice> specificPrices;
 	private MultipartFile pic;
 
@@ -62,11 +63,11 @@ public class Product extends BaseModel {
 		this.typeName = typeName;
 	}
 
-	public float getPrice() {
+	public BigDecimal getPrice() {
 		return price;
 	}
 
-	public void setPrice(float price) {
+	public void setPrice(BigDecimal price) {
 		this.price = price;
 	}
 
@@ -86,18 +87,12 @@ public class Product extends BaseModel {
 		this.name = name;
 	}
 
-	public float getPurchasePrice() {
-		if (userHasRole("ROLE_SUPERADMIN")) {
-			return purchasePrice;
-		} else {
-			return 0;
-		}
+	public BigDecimal getPurchasePrice() {
+		return purchasePrice;
 	}
 
-	public void setPurchasePrice(float purchasePrice) {
-		if (userHasRole("ROLE_SUPERADMIN")) {
-			this.purchasePrice = purchasePrice;
-		}
+	public void setPurchasePrice(BigDecimal purchasePrice) {
+		this.purchasePrice = purchasePrice;
 	}
 
 	public MultipartFile getPic() {
