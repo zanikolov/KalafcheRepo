@@ -18,9 +18,9 @@ import com.kalafche.model.ProductType;
 @Service
 public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 	
-	private static final String GET_ALL_PRODUCTS_QUERY = "select p.id, p.name, p.code, p.price, p.fabric, p.type_id, pt.name as type_name, pmt.id as master_type_id, pmt.name as master_type_name from product p left join product_type pt on p.type_id = pt.id left join product_master_type pmt on pmt.id = pt.master_type_id order by code desc";
-	private static final String INSERT_PRODUCT = "insert into product(name, code, description, price, fabric, type_id) values (?, ?, ?, ?, ?, ?)";
-	private static final String UPDATE_PRODUCT = "update product set name = ?, description = ?, fabric = ?, price = ?, type_id = ? where id = ?";
+	private static final String GET_ALL_PRODUCTS_QUERY = "select p.id, p.name, p.code, p.price, p.purchase_price, p.fabric, p.type_id, pt.name as type_name, pmt.id as master_type_id, pmt.name as master_type_name from product p left join product_type pt on p.type_id = pt.id left join product_master_type pmt on pmt.id = pt.master_type_id order by code desc";
+	private static final String INSERT_PRODUCT = "insert into product(name, code, description, price, purchase_price, fabric, type_id) values (?, ?, ?, ?, ?, ?, ?)";
+	private static final String UPDATE_PRODUCT = "update product set name = ?, description = ?, fabric = ?, price = ?, purchase_price = ?, type_id = ? where id = ?";
 	private static final String GET_PRODUCT_BY_CODE_QUERY = "select * from product where code = ?";
 	private static final String CHECK_IF_PRODUCT_NAME_EXISTS = "select count(*) from product where name = ?";
 	private static final String CHECK_IF_PRODUCT_CODE_EXISTS = "select count(*) from product where code = ?";
@@ -103,12 +103,12 @@ public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 
 	@Override
 	public void insertProduct(Product product) {
-		getJdbcTemplate().update(INSERT_PRODUCT, product.getName(), product.getCode(), product.getDescription(), product.getPrice(), product.getFabric(), product.getTypeId());	
+		getJdbcTemplate().update(INSERT_PRODUCT, product.getName(), product.getCode(), product.getDescription(), product.getPrice(), product.getPurchasePrice(), product.getFabric(), product.getTypeId());	
 	}
 	
 	@Override
 	public void updateProduct(Product product) {
-		getJdbcTemplate().update(UPDATE_PRODUCT, product.getName(), product.getDescription(), product.getFabric(), product.getPrice(), product.getTypeId(), product.getId());
+		getJdbcTemplate().update(UPDATE_PRODUCT, product.getName(), product.getDescription(), product.getFabric(), product.getPrice(), product.getPurchasePrice(), product.getTypeId(), product.getId());
 	}
 
 	@Override
