@@ -36,14 +36,12 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"s.is_cash_payment, " +
 			"sum(si.sale_price) as amount, " +
 			"e.name as employee_name, " +
-			"CONCAT(ks.city, \", \", ks.name) as store_name, " +
-			"dc.code as discount_code_code " +
+			"CONCAT(ks.city, \", \", ks.name) as store_name " +
 			"from sale s " +
 			"join sale_item si on si.sale_id = s.id " +
 			//"join sale_item si2 on si2.sale_id = s.id" +
 			"join employee e on s.employee_id = e.id " +
-			"join store ks on s.store_id = ks.id " +
-			"left join discount_code dc on s.discount_code_id = dc.id ";
+			"join store ks on s.store_id = ks.id ";
 	
 	private static final String GET_ALL_SALE_ITEMS_QUERY = "select " +
 			"si.id, " +
@@ -64,10 +62,10 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"ks.id as store_id, " +
 			"CONCAT(ks.city, \", \", ks.name) as store_name, " +
 			"dca.code as discountCampaignCode, " +
-			"dc.code as discountCodeCode " +
+			"dc.code as discountCode " +
 			"from sale_item si " +
 			"join sale s on si.sale_id = s.id " +
-			"left join discount_code dc on s.discount_code_id = dc.id " +
+			"left join discount_code dc on si.discount_code_id = dc.id " +
 			"left join discount_campaign dca on dc.discount_campaign_id = dca.id " +
 			"join item_vw iv on iv.id = si.item_id " +
 			"join store ks on ks.id = s.store_id " +
@@ -95,8 +93,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	private static final String MASTER_PRODUCT_TYPE_QUERY = " and iv.product_master_type_id = ?";
 	private static final String PRODUCT_TYPE_QUERY = " and iv.product_type_id = ?";
 	private static final String PRICE_QUERY = " and si.sale_price between ? and ?";
-	private static final String INSERT_SALE = "insert into sale (employee_id, store_id, sale_timestamp, is_cash_payment, discount_code_id)"
-			+ " values (?, ?, ?, ?, ?)";
+	private static final String INSERT_SALE = "insert into sale (employee_id, store_id, sale_timestamp, is_cash_payment)"
+			+ " values (?, ?, ?, ?)";
 	private static final String ORDER_BY_SALE = " order by s.sale_timestamp";
 	private static final String ORDER_BY_STORE = " order by ks.id";
 	private static final String GROUP_BY_SALE = " group by s.id";
@@ -121,7 +119,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"join device_model dm on i.device_model_id = dm.id " +
 			"join device_brand db on dm.device_brand_id = db.id " +
 			"where si.sale_id = ?";
-	private static final String INSERT_SALE_ITEM = "insert into sale_item(sale_id, item_id, item_price, sale_price) values (?, ?, ?, ?)";
+	private static final String INSERT_SALE_ITEM = "insert into sale_item(sale_id, item_id, item_price, sale_price, discount_code_id) values (?, ?, ?, ?, ?)";
 	
 	private static final String UPDATE_REFUNDED_SALE_ITEM = "update sale_item set is_refunded = true where id = ?";
 
@@ -366,11 +364,6 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			statement.setInt(2, sale.getStoreId());
 			statement.setLong(3, sale.getSaleTimestamp());
 			statement.setBoolean(4, sale.getIsCashPayment());
-			if (sale.getDiscountCodeId() != null) {
-				statement.setInt(5, sale.getDiscountCodeId());
-			} else {
-				statement.setNull(5, Types.INTEGER);
-			}
 
 			int affectedRows = statement.executeUpdate();
 
@@ -481,7 +474,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	@Override
 	public void insertSaleItem(SaleItem saleItem) {
 		getJdbcTemplate().update(INSERT_SALE_ITEM, saleItem.getSaleId(), saleItem.getItemId(), saleItem.getItemPrice(),
-				saleItem.getSalePrice());
+				saleItem.getSalePrice(), saleItem.getDiscountCodeId());
 	}
 	
 	@Override

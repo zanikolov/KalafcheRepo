@@ -15,10 +15,7 @@ angular.module('kalafcheFrontendApp')
         };
 
         function calculateTotalSum() {
-            console.log($scope.sale.selectedStocks);
-            console.log($scope.code);
-
-            SaleService.getTotalSum($scope.sale.selectedStocks, $scope.code).then(
+            SaleService.getTotalSum($scope.sale.selectedStocks).then(
                 function(response){
                     console.log(response);
                     $scope.totalSumReport = response;
@@ -28,13 +25,14 @@ angular.module('kalafcheFrontendApp')
         $scope.submitSale = function() {
             $scope.loading = true;
             var requestBody = {};
-            if ($scope.discountCode) {
-                requestBody.discountCodeCode = $scope.code;
-            }
+
             requestBody.isCashPayment = $scope.sale.isCashPayment;
             requestBody.saleItems = [];
             angular.forEach($scope.sale.selectedStocks, function(stock){
-                requestBody.saleItems.push({"itemId": stock.itemId});
+                var item = {};
+                item.itemId = stock.itemId;
+                item.discountCode = stock.discountCode ? stock.discountCode.code : null;
+                requestBody.saleItems.push(item);
             });
             SaleService.submitSale(requestBody).then(
                 function(response) {
@@ -73,23 +71,23 @@ angular.module('kalafcheFrontendApp')
             $mdDialog.cancel();
         }
 
-        $scope.onChangeDiscountCode = function () {
-            if ($scope.code) {
-                DiscountService.getDiscountCode($scope.code).then(
+        $scope.onChangeDiscountCode = function (stock) {
+            if (stock.code) {
+                DiscountService.getDiscountCode(stock.code).then(
                     function(discountCode) {
-                        $scope.discountCode = discountCode;
+                        stock.discountCode = discountCode;
                         $scope.serverErrorMessages = {};
                         calculateTotalSum();
                     },
                     function(errorResponse) {
-                        $scope.discountCode = null
+                        stock.discountCode = null
                         ServerValidationService.processServerErrors(errorResponse, $scope.saleForm);
                         $scope.serverErrorMessages = errorResponse.data.errors;
                         calculateTotalSum();
                     }                );
             } else {
                 $scope.serverErrorMessages = {};
-                $scope.discountCode = null;
+                stock.discountCode = null;
                 calculateTotalSum();
             }
         }

@@ -32,6 +32,8 @@ public interface SaleService {
 	public byte[] getProductTypeSplitReport(SaleSplitReportRequest saleSplitReportRequest);
 
 	public byte[] getTransactionSplitReport(SaleSplitReportRequest saleSplitReportRequest);
+
+	public TotalSumReport calculateTotalSum(List<SaleItem> selectedSaleItems);
 	
 	
 

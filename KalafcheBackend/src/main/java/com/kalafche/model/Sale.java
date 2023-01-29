@@ -23,8 +23,6 @@ public class Sale {
 	private String partnerCode;
 	private List<SaleItem> saleItems;
 	private Boolean isCashPayment;
-	private Integer discountCodeId;
-	private Integer discountCodeCode;
 
 	public Sale() {
 	}
@@ -171,22 +169,6 @@ public class Sale {
 
 	public void setIsCashPayment(Boolean isCashPayment) {
 		this.isCashPayment = isCashPayment;
-	}
-
-	public Integer getDiscountCodeId() {
-		return discountCodeId;
-	}
-
-	public void setDiscountCodeId(Integer discountCodeId) {
-		this.discountCodeId = discountCodeId;
-	}
-
-	public Integer getDiscountCodeCode() {
-		return discountCodeCode;
-	}
-
-	public void setDiscountCodeCode(Integer discountCodeCode) {
-		this.discountCodeCode = discountCodeCode;
 	}
 
 	public BigDecimal getAmount() {

@@ -143,7 +143,10 @@
                         </th>
                         <th>
                             <label>Дата</label>
-                        </th>                      
+                        </th> 
+                        <th>
+                            <label>Отстъпка</label>
+                        </th>                     
                         <th>
                             <label>Цена</label>
                         </th>
@@ -161,6 +164,7 @@
                         <td>{{saleItem.storeName}}</td>
                         <td>{{saleItem.employeeName}}</td>
                         <td>{{getSaleTimestamp(saleItem.saleTimestamp)}}</td>
+                        <td>{{saleItem.discountCode}}</td>
                         <td>{{saleItem.itemPrice}}лв</td>
                         <td>{{saleItem.salePrice}}лв</td>
                     </tr>

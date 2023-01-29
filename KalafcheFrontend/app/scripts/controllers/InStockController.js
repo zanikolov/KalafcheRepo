@@ -112,7 +112,7 @@ angular.module('kalafcheFrontendApp')
 
         $scope.openSaleModal = function (stock) {
             if (stock) {
-                $scope.currentSale.selectedStocks.push(stock);
+                $scope.currentSale.selectedStocks.push(angular.copy(stock));
                 stock.quantity -= 1;
             }
 

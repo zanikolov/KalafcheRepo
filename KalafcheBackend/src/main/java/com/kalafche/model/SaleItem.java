@@ -23,6 +23,10 @@ public class SaleItem {
 	private String employeeName;
 	private Boolean isRefunded;
 	private String discountCampaignCode;
+	private Integer discountCodeId;
+	private Integer discountCode;
+	private String discountType;
+	private String discountValue;
 
 	public Integer getId() {
 		return id;
@@ -174,6 +178,38 @@ public class SaleItem {
 
 	public void setDiscountCampaignCode(String discountCampaignCode) {
 		this.discountCampaignCode = discountCampaignCode;
+	}
+
+	public Integer getDiscountCodeId() {
+		return discountCodeId;
+	}
+
+	public void setDiscountCodeId(Integer discountCodeId) {
+		this.discountCodeId = discountCodeId;
+	}
+
+	public Integer getDiscountCode() {
+		return discountCode;
+	}
+
+	public void setDiscountCode(Integer discountCode) {
+		this.discountCode = discountCode;
+	}
+
+	public String getDiscountType() {
+		return discountType;
+	}
+
+	public void setDiscountType(String discountType) {
+		this.discountType = discountType;
+	}
+
+	public String getDiscountValue() {
+		return discountValue;
+	}
+
+	public void setDiscountValue(String discountValue) {
+		this.discountValue = discountValue;
 	}
 
 }

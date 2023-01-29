@@ -25,7 +25,6 @@ import com.kalafche.model.SaleItemExcelReportRequest;
 import com.kalafche.model.SaleReport;
 import com.kalafche.model.SaleSplitReportRequest;
 import com.kalafche.model.TotalSumReport;
-import com.kalafche.model.TotalSumRequest;
 import com.kalafche.service.SaleService;
 import com.kalafche.service.fileutil.SaleItemExcelReportService;
 
@@ -77,7 +76,10 @@ public class SaleController {
 	
 	@PutMapping
 	public void insertSale(@RequestBody Sale sale) throws SQLException, InterruptedException {
-		//TimeUnit.SECONDS.sleep(5);
+		for (SaleItem item : sale.getSaleItems()) {
+			System.out.println(item.getItemId());
+			System.out.println(item.getDiscountCode());
+		}
 		saleService.submitSale(sale);
 	}
 	
@@ -87,8 +89,8 @@ public class SaleController {
 	}
 	
 	@PostMapping("/totalSum")
-	public TotalSumReport getTotalSum(@RequestBody TotalSumRequest totalSumRequest) {
-		return saleService.calculateTotalSum(totalSumRequest);
+	public TotalSumReport getTotalSum(@RequestBody List<SaleItem> selectedSaleItems) {
+		return saleService.calculateTotalSum(selectedSaleItems);
 	}
 	
 	@PostMapping("/productTypeSplit")
@@ -126,7 +128,7 @@ public class SaleController {
 	}
 	
 	@PostMapping("/excel")
-	public ResponseEntity<byte[]> getTotalSum(@RequestBody SaleItemExcelReportRequest saleItemExcelReportRequest) {
+	public ResponseEntity<byte[]> generateExcel(@RequestBody SaleItemExcelReportRequest saleItemExcelReportRequest) {
 		byte[] contents = saleItemExcelReportService.generateExcel(saleItemExcelReportRequest);
 		
 		HttpHeaders headers = new HttpHeaders();

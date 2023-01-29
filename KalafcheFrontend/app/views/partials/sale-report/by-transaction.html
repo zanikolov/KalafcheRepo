@@ -62,9 +62,6 @@
                             <label>Търговец</label>
                         </th>
                         <th>
-                            <label>Отстъпка</label>
-                        </th>
-                        <th>
                             <label>Плащане</label>
                         </th>  
                         <th>
@@ -80,7 +77,6 @@
                         <td>{{(currentPage - 1) * salesPerPage + $index + 1}}</td>
                         <td>{{sale.storeName}}</td>
                         <td>{{sale.employeeName}}</td>
-                        <td>{{sale.discountCodeCode}}</td>
                         <td>
                             <span ng-if="sale.isCashPayment">В брой</span>
                             <span ng-if="!sale.isCashPayment">С карта</span>

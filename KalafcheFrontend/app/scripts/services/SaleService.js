@@ -15,17 +15,22 @@ angular.module('kalafcheFrontendApp')
             getTransactionSplitReport: getTransactionSplitReport
 		});
 
-        function getTotalSum(items, code) {
-            var prices = [];
+        function getTotalSum(items) {
+            var selectedSaleItems = [];
             angular.forEach(items, function(item) {
-                prices.push(item.productPrice);
+                var selectedSaleItem = {};
+                selectedSaleItem.itemPrice = item.productPrice;
+                if (item.discountCode) {
+                    selectedSaleItem.discountValue = item.discountCode.discountValue;
+                    selectedSaleItem.discountType = item.discountCode.discountTypeCode;
+                    selectedSaleItem.discountCode = item.discountCode.code;
+                }
+                selectedSaleItems.push(selectedSaleItem);
             })
 
-            var request = {};
-            request.prices = prices;
-            request.discountCode = code
+console.log(selectedSaleItems);
 
-            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/totalSum', request)
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/totalSum', selectedSaleItems)
                 .then(
                     function(response) {
                         return response.data

@@ -1,4 +1,4 @@
-<md-dialog flex="60">
+<md-dialog flex="90">
   <form name="saleForm" server-validation novalidate ng-cloak>
     <md-toolbar>
       <div class="md-toolbar-tools">
@@ -13,32 +13,16 @@
     <md-dialog-content>
         <md-content layout-padding layout="column">
             <div flex>           
-                    <div layout="row">
-                        <md-input-container>
-                            <label>Плащане</label>
-                            <md-select name="selectPayment" ng-model="sale.isCashPayment" required>
-                                <md-option ng-repeat="type in [{ name: 'С карта', value: false }, { name: 'В брой', value: true }]" ng-value="type.value">
-                                    {{type.name}}
-                                </md-option>
-                            </md-select>
-                        </md-input-container>
-                        <md-input-container flex-offset="5">
-                            <label>Код</label>
-                            <input name="code" ng-model="code" ng-blur="onChangeDiscountCode()">
-                        </md-input-container>
-                        <md-input-container>
-                            <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>
-                        </md-input-container>
-                        <md-input-container ng-if="discountCode.discountCampaignCode == 'PARTNER'">
-                            <span>{{discountCode.discountCampaignName}} {{discountCode.discountValue}}{{discountCode.discountTypeSign}} - {{discountCode.partnerName}} {{discountCode.partnerStoreName}}</span>
-                        </md-input-container>
-                        <md-input-container ng-if="discountCode.discountCampaignCode == 'LOYAL'">
-                            <span>{{discountCode.discountCampaignName}} {{discountCode.discountValue}}{{discountCode.discountTypeSign}} - {{discountCode.loyalCustomerName}}</span>
-                        </md-input-container>
-                        <md-input-container ng-if="discountCode.discountCampaignCode != 'LOYAL' && discountCode.discountCampaignCode != 'PARTNER'">
-                            <span>{{discountCode.discountCampaignName}} {{discountCode.discountValue}}{{discountCode.discountTypeSign}}</span>
-                        </md-input-container>
-                    </div>   
+                <div layout="row">
+                    <md-input-container>
+                        <label>Плащане</label>
+                        <md-select name="selectPayment" ng-model="sale.isCashPayment" required>
+                            <md-option ng-repeat="type in [{ name: 'С карта', value: false }, { name: 'В брой', value: true }]" ng-value="type.value">
+                                {{type.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>   
             </div>
             <div flex>
                 <div layout="row">
@@ -53,6 +37,10 @@
                                     <label>Продукт</label>
                                 </th>
                                 <th>
+                                    <label>Код</label>
+                                </th>
+                                <th></th>
+                                <th>
                                     <label>Цена</label>
                                 </th>
                                 <th></th>
@@ -62,7 +50,15 @@
                             <tr ng-repeat="stock in sale.selectedStocks track by $index" class="item-row">
                                 <td>{{$index + 1}}</td>
                                 <td>{{stock.deviceModelName}}</td>
-                                <td>{{stock.productCode}} {{stock.productName}}</td>
+                                <td>{{stock.productCode}} {{stock.productName}}</td>                              
+                                <td>
+                                    <input name="code" ng-model="stock.code" ng-blur="onChangeDiscountCode(stock)">
+                                </td>
+                               <td>
+                                    <span ng-if="stock.discountCode.discountCampaignCode == 'PARTNER'">{{stock.discountCode.discountCampaignName}} {{stock.discountCode.discountValue}}{{stock.discountCode.discountTypeSign}} - {{stock.discountCode.partnerName}} {{stock.discountCode.partnerStoreName}}</span>
+                                    <span ng-if="stock.discountCode.discountCampaignCode == 'LOYAL'">{{stock.discountCode.discountCampaignName}} {{stock.discountCode.discountValue}}{{stock.discountCode.discountTypeSign}} - {{stock.discountCode.loyalCustomerName}}</span>
+                                    <span ng-if="stock.discountCode.discountCampaignCode != 'LOYAL' && stock.discountCode.discountCampaignCode != 'PARTNER'">{{stock.discountCode.discountCampaignName}} {{stock.discountCode.discountValue}}{{stock.discountCode.discountTypeSign}}</span>
+                                </td>
                                 <td>{{stock.productPrice}}</td>
                                 <td>
                                     <a href="" ng-click="removeStock($index, stock)">
