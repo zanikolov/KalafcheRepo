@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kalafche.dao.ExpenseDao;
 import com.kalafche.dao.StoreDao;
 import com.kalafche.exceptions.DuplicationException;
+import com.kalafche.model.DailyReportData;
 import com.kalafche.model.Employee;
 import com.kalafche.model.Expense;
 import com.kalafche.model.ExpenseReport;
@@ -108,8 +109,18 @@ public class ExpenseServiceImpl implements ExpenseService {
 	
 	private void validateExpenseType(ExpenseType expenseType) {
 		if (expenseDao.checkIfExpenseTypeExists(expenseType)) {
-			throw new DuplicationException("code", "����������� ���.");
+			throw new DuplicationException("code", "Code duplication.");
 		}
+	}
+
+	@Override
+	public DailyReportData getExpenseDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+		return expenseDao.selectExpenseTotalAndCount(startDateTime, endDateTime, storeId);
+	}
+
+	@Override
+	public DailyReportData getCollectionDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+		return expenseDao.selectCollectionTotalAndCount(startDateTime, endDateTime, storeId);
 	}
 	
 }

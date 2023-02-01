@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.kalafche.dao.SaleDao;
+import com.kalafche.model.DailyReportData;
 import com.kalafche.model.Sale;
 import com.kalafche.model.SalesByStore;
 import com.kalafche.model.SalesByStoreByDayByProductType;
@@ -72,6 +73,14 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"join item_vw iv on iv.id = si.item_id " +
 			"join store ks on ks.id = s.store_id " +
 			"join employee e on e.id = s.employee_id ";
+	
+	private static final String GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY = "select " +
+			"count(si.id) as count, " +
+			"sum(si.sale_price) as totalAmount " +
+			"from sale_item si " +
+			"join sale s on si.sale_id = s.id " +
+			"where sale_timestamp between ? and ? " +
+			"and store_id = ? ";
 
 	private static final String GET_SALES_BY_STORE_QUERY = "select " +
 			"ks.id as storeId, " +
@@ -571,6 +580,11 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		
 		return getJdbcTemplate().query(
 				searchQuery, argsArr, getTransactionsByStoreByDayRowMapper());
+	}
+
+	@Override
+	public DailyReportData selectSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
+		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY, DailyReportData.class, startDateTime, endDateTime, storeId);
 	}
 	
 }
