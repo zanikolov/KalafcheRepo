@@ -40,4 +40,8 @@ public abstract interface SaleDao {
 
 	public abstract DailyReportData selectSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
 
+	public abstract DailyReportData selectSaleItemWithCardPaymentTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public abstract DailyReportData selectRefundedSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
+
 }

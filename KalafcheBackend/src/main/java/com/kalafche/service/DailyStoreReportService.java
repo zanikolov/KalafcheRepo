@@ -3,6 +3,7 @@ package com.kalafche.service;
 import java.util.List;
 
 import com.kalafche.model.DailyStoreReport;
+import com.kalafche.model.DayInMillis;
 
 public interface DailyStoreReportService {
 
@@ -10,7 +11,7 @@ public interface DailyStoreReportService {
 
 	DailyStoreReport getDailyStoreReportById(Integer dailyStoreReportId);
 
-	DailyStoreReport getDailyStoreReportByDay(Long day);
+	DailyStoreReport getDailyStoreReportByDay(Integer storeId, DayInMillis day);
 
 	DailyStoreReport calculateDailyStoreReport(Integer storeId);
 

@@ -79,9 +79,11 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"sum(si.sale_price) as totalAmount " +
 			"from sale_item si " +
 			"join sale s on si.sale_id = s.id " +
-			"where sale_timestamp between ? and ? " +
-			"and store_id = ? ";
-
+			"where s.sale_timestamp between ? and ? " +
+			"and s.store_id = ? ";
+	
+	private static final String CARD_PAYMENT_CRITERIA = " and s.is_cash_payment <> true";
+	
 	private static final String GET_SALES_BY_STORE_QUERY = "select " +
 			"ks.id as storeId, " +
 			"ks.code as storeCode, " +
@@ -585,6 +587,16 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	@Override
 	public DailyReportData selectSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
 		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY, DailyReportData.class, startDateTime, endDateTime, storeId);
+	}
+	
+	@Override
+	public DailyReportData selectRefundedSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
+		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + REFUND_QUERY, DailyReportData.class, startDateTime, endDateTime, storeId);
+	}
+	
+	@Override
+	public DailyReportData selectSaleItemWithCardPaymentTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
+		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + CARD_PAYMENT_CRITERIA, DailyReportData.class, startDateTime, endDateTime, storeId);
 	}
 	
 }

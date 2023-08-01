@@ -606,5 +606,15 @@ public class SaleServiceImpl implements SaleService {
 	public DailyReportData getSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
 		return saleDao.selectSaleItemTotalAndCount(startDateTime, endDateTime, storeId);
 	}
+	
+	@Override
+	public DailyReportData getRefundedSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+		return saleDao.selectRefundedSaleItemTotalAndCount(startDateTime, endDateTime, storeId);
+	}
+
+	@Override
+	public DailyReportData getCardPaymentDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+		return saleDao.selectSaleItemWithCardPaymentTotalAndCount(startDateTime, endDateTime, storeId);
+	}
 
 }

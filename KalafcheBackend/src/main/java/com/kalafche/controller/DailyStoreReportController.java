@@ -33,10 +33,10 @@ public class DailyStoreReportController {
 		return dailyStoreReportService.getDailyStoreReportById(dailyStoreReportId);
 	}
 	
-	@GetMapping("/{day}")
-	public DailyStoreReport getRevision(@PathVariable(value = "day") Long day) {
-		return dailyStoreReportService.getDailyStoreReportByDay(day);
-	}
+//	@GetMapping("/{day}")
+//	public DailyStoreReport getRevision(@PathVariable(value = "day") Long day) {
+//		return dailyStoreReportService.getDailyStoreReportByDay(day);
+//	}
 	
 	@GetMapping("/current/{storeId}")
 	public DailyStoreReport calculateDailyStoreReport(@PathVariable(value = "storeId") Integer storeId) {

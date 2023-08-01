@@ -1,6 +1,6 @@
 package com.kalafche.service;
 
-import com.kalafche.model.TodayInMillis;
+import com.kalafche.model.DayInMillis;
 
 public interface DateService {
 
@@ -8,5 +8,5 @@ public interface DateService {
 
 	public String convertMillisToDateTimeString(Long millis, String dateFormat, Boolean withTime);
 
-	TodayInMillis getTodayInMillis();
+	DayInMillis getTodayInMillis(Integer dayShift);
 }

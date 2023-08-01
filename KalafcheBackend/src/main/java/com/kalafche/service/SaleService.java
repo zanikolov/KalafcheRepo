@@ -35,6 +35,10 @@ public interface SaleService {
 	public byte[] getTransactionSplitReport(SaleSplitReportRequest saleSplitReportRequest);
 
 	public DailyReportData getSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public DailyReportData getCardPaymentDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public DailyReportData getRefundedSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
 	
 	
 

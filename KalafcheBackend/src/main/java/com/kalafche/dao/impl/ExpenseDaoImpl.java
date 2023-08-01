@@ -62,7 +62,8 @@ public class ExpenseDaoImpl extends JdbcDaoSupport implements ExpenseDao {
 			"join expense_type et on e.type_id = et.id " +
 			"where e.create_timestamp between ? and ? " +
 			"and e.store_id = ? " +
-			"and et.is_admin = false; ";
+			"and et.is_admin = false " +
+			"and et.code != 'COLLECTION'; ";
 	
 	private static final String GET_COLLECTION_TOTAL_AND_COUNT_QUERY = "select " +
 			"count(e.id) as count, " +

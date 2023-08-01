@@ -1,6 +1,6 @@
 package com.kalafche.model;
 
-public class TodayInMillis {
+public class DayInMillis {
 
 	private Long startDateTime;
 	private Long endDateTime;
