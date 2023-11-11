@@ -3,6 +3,7 @@ package com.kalafche.service;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.kalafche.model.DailyReportData;
 import com.kalafche.model.PastPeriodSaleReport;
 import com.kalafche.model.Sale;
 import com.kalafche.model.SaleItem;
@@ -34,6 +35,12 @@ public interface SaleService {
 	public byte[] getTransactionSplitReport(SaleSplitReportRequest saleSplitReportRequest);
 
 	public TotalSumReport calculateTotalSum(List<SaleItem> selectedSaleItems);
+
+	public DailyReportData getSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public DailyReportData getCardPaymentDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public DailyReportData getRefundedSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
 	
 	
 

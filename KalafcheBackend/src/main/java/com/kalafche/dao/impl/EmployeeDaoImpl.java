@@ -22,7 +22,7 @@ import com.kalafche.model.Employee;
 @Service
 public class EmployeeDaoImpl extends JdbcDaoSupport implements EmployeeDao {
 
-	private static final String GET_EMPLOYEE_BY_USERNAME = "select id, username, name, store_id, job_responsibility_id from employee where username = ?";
+	private static final String GET_EMPLOYEE_BY_USERNAME = "select e.id, e.username, e.name, e.store_id, e.job_responsibility_id from employee e where username = ?";
 	private static final String GET_ALL_EMPLOYEE = "select "
 			+ "e.id, "
 			+ "username, "

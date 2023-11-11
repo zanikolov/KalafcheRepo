@@ -242,6 +242,14 @@ angular.module('kalafcheFrontendApp')
           admin: true,
           manager: true,
           user: true
+        },        
+        {
+          link : 'dailyStoreReport',
+          title: 'Дневни отчети',
+          icon: 'dashboard',
+          admin: true,
+          manager: true,
+          user: true
         },
         {
           link : 'revision',

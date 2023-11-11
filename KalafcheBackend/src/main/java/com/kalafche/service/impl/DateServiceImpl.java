@@ -7,6 +7,7 @@ import java.util.TimeZone;
 
 import org.springframework.stereotype.Service;
 
+import com.kalafche.model.DayInMillis;
 import com.kalafche.service.DateService;
 
 @Service
@@ -16,6 +17,12 @@ public class DateServiceImpl implements DateService {
 	public long getCurrentMillisBGTimezone() {
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Sofia"));
 		return cal.getTimeInMillis();
+	}
+	
+	@Override
+	public Date getCurrentTimeBGTimezone() {
+		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Sofia"));
+		return cal.getTime();
 	}
 
 	@Override
@@ -33,6 +40,27 @@ public class DateServiceImpl implements DateService {
 		String formattedDate = sdf.format(date);
 		
 		return formattedDate;
+	}
+	
+	@Override
+	public DayInMillis getTodayInMillis(Integer dayShift) {
+		DayInMillis dayInMillis = new DayInMillis();
+		Calendar day = Calendar.getInstance(TimeZone.getTimeZone("Europe/Sofia"));
+		day.add(Calendar.DATE, dayShift);
+		
+		day.set(Calendar.HOUR_OF_DAY, 0);
+		day.set(Calendar.MINUTE, 0);
+		day.set(Calendar.SECOND, 0);
+		day.set(Calendar.MILLISECOND, 0);
+		dayInMillis.setStartDateTime(day.getTimeInMillis());
+		
+		day.set(Calendar.HOUR_OF_DAY, 23);
+		day.set(Calendar.MINUTE, 59);
+		day.set(Calendar.SECOND, 59);
+		day.set(Calendar.MILLISECOND, 999);
+		dayInMillis.setEndDateTime(day.getTimeInMillis());
+		
+		return dayInMillis;
 	}
 	
 }

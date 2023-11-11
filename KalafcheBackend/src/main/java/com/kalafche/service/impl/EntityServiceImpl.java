@@ -86,4 +86,9 @@ public class EntityServiceImpl implements EntityService {
 		return stores;
 	}
 
+	@Override
+	public StoreDto getStoreById(Integer storeId) {
+		return storeDao.selectStore(storeId.toString());
+	}
+
 }

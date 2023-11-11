@@ -27,8 +27,8 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 			"join employee e on e.id = sm.employee_id " +
 			"where e.username = ? ";
 	private static final String SELECT_ALL_STORE_IDS = "select GROUP_CONCAT(id) from store";
-	private static final String INSERT_STORE = "insert into store (name, city, code, is_store) values (?, ?, ?, true)";
-	private static final String UPDATE_STORE = "update store set name = ?, city = ? where id = ?";
+	private static final String INSERT_STORE = "insert into store (name, city, code, is_store, opening_hours_from_hr, opening_hours_from_min, opening_hours_to_hr, opening_hours_to_min) values (?, ?, ?, true, ?, ?, ?, ?)";
+	private static final String UPDATE_STORE = "update store set name = ?, city = ?, opening_hours_from_hr = ?, opening_hours_from_min = ?, opening_hours_to_hr = ?, opening_hours_to_min = ? where id = ?";
 	private static final String CHECK_IF_STORE_NAME_EXISTS = "select count(*) from store where name = ? and city = ?";
 	private static final String CHECK_IF_STORE_CODE_EXISTS = "select count(*) from store where code = ?";
 	private static final String ID_NOT_CLAUSE = " and id <> ?";
@@ -57,7 +57,9 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 
 	@Override
 	public void insertStore(StoreDto store) {
-		getJdbcTemplate().update(INSERT_STORE, store.getName(), store.getCity(), store.getCode());		
+		getJdbcTemplate().update(INSERT_STORE, store.getName(), store.getCity(), store.getCode(),
+				store.getOpeningHoursFromHr(), store.getOpeningHoursFromMin(), store.getOpeningHoursToHr(),
+				store.getOpeningHoursToMin());
 	}
 
 	@Override
@@ -107,7 +109,9 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 
 	@Override
 	public void updateStore(StoreDto store) {
-		getJdbcTemplate().update(UPDATE_STORE, store.getName(), store.getCity(), store.getId());		
+		getJdbcTemplate().update(UPDATE_STORE, store.getName(), store.getCity(), store.getOpeningHoursFromHr(),
+				store.getOpeningHoursFromMin(), store.getOpeningHoursToHr(), store.getOpeningHoursToMin(),
+				store.getId());
 	}
 
 	@Override
