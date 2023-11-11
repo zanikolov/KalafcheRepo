@@ -16,6 +16,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.ExpenseDao;
+import com.kalafche.model.DailyReportData;
 import com.kalafche.model.Expense;
 import com.kalafche.model.ExpenseType;
 
@@ -53,9 +54,29 @@ public class ExpenseDaoImpl extends JdbcDaoSupport implements ExpenseDao {
 	private static final String UPDATE_EXPENSE_TYPE = "update expense_type set name = ?,  is_admin = ? where id = ?";
 	private static final String CHECK_IF_EXPENSE_TYPE_EXISTS = "select count(*) from expense_type where code = ?";
 	private static final String BY_NO_ID_CLAUSE = " and id <> ?";
+
+	private static final String GET_EXPENSE_TOTAL_AND_COUNT_QUERY = "select " +
+			"count(e.id) as count, " +
+			"sum(e.price) as totalAmount " +
+			"from expense e " +
+			"join expense_type et on e.type_id = et.id " +
+			"where e.create_timestamp between ? and ? " +
+			"and e.store_id = ? " +
+			"and et.is_admin = false " +
+			"and et.code != 'COLLECTION'; ";
+	
+	private static final String GET_COLLECTION_TOTAL_AND_COUNT_QUERY = "select " +
+			"count(e.id) as count, " +
+			"sum(e.price) as totalAmount " +
+			"from expense e " +
+			"join expense_type et on e.type_id = et.id " +
+			"where e.create_timestamp between ? and ? " +
+			"and e.store_id = ? " +
+			"and et.code = 'COLLECTION'; ";
 	
 	private BeanPropertyRowMapper<Expense> rowMapper;
 	private BeanPropertyRowMapper<ExpenseType> expenseTypeRowMapper;
+	private BeanPropertyRowMapper<DailyReportData> dailyReportDataRowMapper;
 	
 	@Autowired
 	public ExpenseDaoImpl(DataSource dataSource) {
@@ -79,6 +100,15 @@ public class ExpenseDaoImpl extends JdbcDaoSupport implements ExpenseDao {
 		}
 		
 		return expenseTypeRowMapper;
+	}
+	
+	private BeanPropertyRowMapper<DailyReportData> getDailyReportDataRowMapper() {
+		if (dailyReportDataRowMapper == null) {
+			dailyReportDataRowMapper = new BeanPropertyRowMapper<DailyReportData>(DailyReportData.class);
+			dailyReportDataRowMapper.setPrimitivesDefaultedForNullValue(true);
+		}
+		
+		return dailyReportDataRowMapper;
 	}
 	
 	@Override
@@ -151,6 +181,16 @@ public class ExpenseDaoImpl extends JdbcDaoSupport implements ExpenseDao {
 		}
 			
 		return exists != null && exists > 0 ;
+	}
+
+	@Override
+	public DailyReportData selectExpenseTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
+		return getJdbcTemplate().queryForObject(GET_EXPENSE_TOTAL_AND_COUNT_QUERY, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
+	}
+
+	@Override
+	public DailyReportData selectCollectionTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
+		return getJdbcTemplate().queryForObject(GET_COLLECTION_TOTAL_AND_COUNT_QUERY, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
 	}
 
 }

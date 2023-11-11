@@ -380,3 +380,8 @@
     .positiveDelta {
         color: green !important;
     }
+
+    .detailed-daily-store-report {
+        padding-left: 50px;
+        border: solid;
+    }

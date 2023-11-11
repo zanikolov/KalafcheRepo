@@ -1,0 +1,60 @@
+<md-dialog flex="60">
+  <form name="dailyStoreReportForm" server-validation novalidate ng-cloak>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>Текущ отчет <strong>{{dailyStoreReport.storeName}}</strong></h2>
+        <span flex></span>
+        <md-button ng-disabled="loading" class="md-icon-button" ng-click="closeModal()">
+          <md-icon md-svg-src="images/icons/close.svg" aria-label="Затвори"></md-icon>
+        </md-button>
+      </div>
+    </md-toolbar>
+
+    <md-dialog-content>
+        <md-content layout-padding layout="column">
+            <div flex> 
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span>Генериран от: {{dailyStoreReport.employeeName}}</span></div>
+                </div>
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span>Магазин: {{dailyStoreReport.storeName}}</span></div>
+                </div>
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span>Към дата: {{getTimestamp(dailyStoreReport.createTimestamp)}}</span></div>
+                </div>
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span>Старт каса: {{dailyStoreReport.initialBalance}}</span></div>
+                </div>
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span>Продадени Артикули: {{dailyStoreReport.soldItemsCount}}</span></div>
+                </div>
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span>Върнати артикули: {{dailyStoreReport.refundedItemsCount}}</span></div>
+                </div>
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span>Приход: {{dailyStoreReport.income}}</span></div>
+                </div>
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span>С карта: {{dailyStoreReport.cardPayment}}</span></div>
+                </div>
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span>Инкасо: {{dailyStoreReport.collected}}</span></div>
+                </div>
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span>Разходи: {{dailyStoreReport.expense}}</span></div>
+                </div>
+                <hr/>
+                <div layout="row" layout-xs="column">
+                    <div flex="80"><span><strong>Каса: {{dailyStoreReport.finalBalance}}</strong></span></div>
+                </div>
+            </div>
+        </md-content>
+    </md-dialog-content>
+
+    <md-dialog-actions style="padding-left:0px !important" layout="row">
+      <md-button ng-if="isFinalizeButtonVisible" class="md-raised md-primary" ng-click="finalizeDailyStoreReport()">Приключи</md-button>
+      <span flex></span>
+      <md-button ng-disabled="loading" class="md-raised md-primary" ng-click="closeModal()">Затвори</md-button>
+    </md-dialog-actions>
+  </form>
+</md-dialog>

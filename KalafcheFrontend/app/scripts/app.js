@@ -161,6 +161,13 @@ angular
                     authorizedRoles: [UserRoles.superAdmin, UserRoles.admin],
                     title: "Промоции"
                 }      
+            }).state('dailyStoreReport', {
+                url: '/daily-store-report',
+                templateUrl: 'views/partials/daily-store-report.html',
+                data: {
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
+                    title: "Дневен отчет"
+                }      
             }).state('rawItem', {
                 url: '/rawItem',
                 templateUrl: 'views/partials/partial-import-barcodes.html',

@@ -1,0 +1,108 @@
+<div ng-controller="DailyStoreReportController" layout="column" ng-cloak>
+    <md-content layout-padding layout="column">
+        <div flex>
+            <form>    
+                <div layout="row" layout-xs="column" class="md-inline-form">
+                    <div layout-xs="row" flex="20" flex-xs="100">
+                        <md-input-container style="width:95%" ng-if="isAdmin() || isManager()">
+                            <label>Магазин</label>
+                            <md-select name="selectStore" ng-model="selectedStore.id" ng-change="searchDailyStoreReports()">
+                                <md-option value="0">Всички магазини</md-option>
+                                <md-option ng-repeat="store in stores" ng-value="store.id">
+                                    {{store.city}}, {{store.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <div layout-xs="row" flex-offset="5" flex="50" flex-xs="100">
+                        <md-input-container>
+                            <md-datepicker style="width:100%" ng-model="startDate" md-min-date="startMinDate" md-max-date="startMaxDate" ng-change="changeStartDate()"></md-datepicker>
+                        </md-input-container>
+                        <md-input-container flex-offset="5">
+                            <md-datepicker style="width:100%" ng-model="endDate" md-min-date="endMinDate" md-max-date="startMaxDate" ng-change="changeEndDate()"></md-datepicker>
+                        </md-input-container>
+                    </div>
+                    <div layout-xs="row" flex-offset="5" flex="15" flex-xs="100">
+                            <md-input-container>
+                                <md-button ng-click="searchDailyStoreReports()" class="md-raised md-primary">Търси</md-button>
+                            </md-input-container>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div flex>
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>
+                            <label>Магазин</label>
+                        </th>                   
+                        <th>
+                            <label>Служител</label>
+                        </th>
+                        <th>
+                            <label>Дата</label>
+                        </th>                      
+                        <th>
+                            <label>Баланс</label>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-click="expand(dailyStoreReport)" expand dir-paginate-start="dailyStoreReport in dailyStoreReports | itemsPerPage:dailyStoreReportsPerPage" current-page="currentPage">
+                        <td>{{(currentPage - 1) * dailyStoreReportsPerPage + $index + 1}}</td>
+                        <td>{{dailyStoreReport.storeName}}</td>
+                        <td>{{dailyStoreReport.employeeName}}</td>
+                        <td>{{getTimestamp(dailyStoreReport.createTimestamp)}}</td>
+                        <td>{{dailyStoreReport.finalBalance}}лв</td>
+                    </tr>
+                    <tr dir-paginate-end ng-show="dailyStoreReport.expanded">
+                        <td colspan="5" class="detailed-daily-store-report" style="padding-left:50px; border:#dbdfe5 solid">
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Генериран от: {{dailyStoreReport.employeeName}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Магазин: {{dailyStoreReport.storeName}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Дата: {{getTimestamp(dailyStoreReport.createTimestamp)}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Старт каса: {{dailyStoreReport.initialBalance}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Продадени Артикули: {{dailyStoreReport.soldItemsCount}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Върнати артикули: {{dailyStoreReport.refundedItemsCount}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Приход: {{dailyStoreReport.income}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>С карта: {{dailyStoreReport.cardPayment}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Инкасо: {{dailyStoreReport.collected}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Разходи: {{dailyStoreReport.expense}}</span></div>
+                            </div>
+                            <hr/>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span><strong>Каса: {{dailyStoreReport.finalBalance}}</strong></span></div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+        <div flex>
+            <md-button ng-click="openCurrentDailyStoreReportModal()" ng-if="selectedStore.id && selectedStore.id != 0" class="md-raised md-primary">Текущ отчет</md-button>
+        </div>
+    </md-content>
+</div>

@@ -78,7 +78,7 @@ public class DiscountServiceImpl implements DiscountService {
 	
 	private void validateDiscountCode(DiscountCode discountCode) {
 		if (discountDao.checkIfDiscountCodeExists(discountCode)) {
-			throw new DuplicationException("code", "Съществуващ код.");
+			throw new DuplicationException("code", "Code duplication.");
 		}
 	}
 

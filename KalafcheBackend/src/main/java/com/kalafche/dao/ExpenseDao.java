@@ -3,6 +3,7 @@ package com.kalafche.dao;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.kalafche.model.DailyReportData;
 import com.kalafche.model.Expense;
 import com.kalafche.model.ExpenseType;
 
@@ -19,5 +20,9 @@ public interface ExpenseDao {
 	public void updateExpenseType(ExpenseType expenseType);
 
 	public boolean checkIfExpenseTypeExists(ExpenseType expenseType);
+
+	public DailyReportData selectExpenseTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public DailyReportData selectCollectionTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
 	
 }

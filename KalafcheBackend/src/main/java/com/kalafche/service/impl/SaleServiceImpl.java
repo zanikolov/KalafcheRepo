@@ -29,6 +29,7 @@ import com.kalafche.dao.ItemDao;
 import com.kalafche.dao.SaleDao;
 import com.kalafche.dao.StoreDao;
 import com.kalafche.exceptions.DomainObjectNotFoundException;
+import com.kalafche.model.DailyReportData;
 import com.kalafche.model.DiscountCode;
 import com.kalafche.model.Employee;
 import com.kalafche.model.PastPeriodSaleReport;
@@ -770,6 +771,21 @@ public class SaleServiceImpl implements SaleService {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	@Override
+	public DailyReportData getSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+		return saleDao.selectSaleItemTotalAndCount(startDateTime, endDateTime, storeId);
+	}
+	
+	@Override
+	public DailyReportData getRefundedSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+		return saleDao.selectRefundedSaleItemTotalAndCount(startDateTime, endDateTime, storeId);
+	}
+
+	@Override
+	public DailyReportData getCardPaymentDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+		return saleDao.selectSaleItemWithCardPaymentTotalAndCount(startDateTime, endDateTime, storeId);
 	}
 
 }
