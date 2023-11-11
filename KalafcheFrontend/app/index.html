@@ -74,6 +74,134 @@
         </md-content>
     </div>
 
+<!--     <div class="container-fluid main-container">     
+        <div class="row" ng-cloak>
+            <div class="col-xs-12">
+                <div class="row header" style="padding: 0px;">
+                    <div class="col-xs-6" class="logo">
+                        <img src="images/logo_small.png" class="header-img" />
+                    </div>
+                    <div class="col-xs-6">
+                        <div class="user-info">
+                            <span class="glyphicon glyphicon-user"></span>
+                            <span> {{currentUser.employeeName}} </span>
+                            <a href="" ng-click="logout()"><span class="glyphicon glyphicon-log-out"></span></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-xs-2" style="padding: 0px;">
+                        <div class="sidebar">
+                            <div class="panel-group" id="accordion">
+                                <div class="panel panel-default" ui-sref="inStock">
+                                    <div class="panel-heading sidebar-btn collapseall">
+                                        <div class="panel-title">
+                                            <span class="menu-panel-header">Търсене</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading sidebar-btn">
+                                        <div data-parent="#accordion" data-toggle="collapse" data-target="#collapse1" class="panel-title">
+                                            <span class="menu-panel-header">Нова стока</span>
+                                        </div>
+                                    </div>
+                                    <div id="collapse1" class="panel-collapse collapse collapse">
+                                        <ul class="list-group">
+                                            <li class="list-group-item submenu-panel" ui-sref="newStockValidation">Валидация</li>
+                                            <li class="list-group-item submenu-panel" ui-sref="newStock">Импорт</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default">
+                                    <div class="panel-heading sidebar-btn">
+                                        <div data-parent="#accordion" data-toggle="collapse" data-target="#collapse2" class="panel-title">
+                                            <span class="menu-panel-header">Въвеждане</span>
+                                        </div>
+                                    </div>
+                                    <div id="collapse2" class="panel-collapse collapse collapse">
+                                        <ul class="list-group">
+                                            <li class="list-group-item submenu-panel" ui-sref="brand">Mарки</li>
+                                            <li class="list-group-item submenu-panel" ui-sref="model">Модели</li>
+                                            <li class="list-group-item submenu-panel" ui-sref="product">Продукти</li>
+                                            <li class="list-group-item submenu-panel" ui-sref="item">Артикули</li>
+                                            <li ng-if="isSuperAdmin()" class="list-group-item submenu-panel" ui-sref="employee">Служители</li>
+                                            <li ng-if="isSuperAdmin()" class="list-group-item submenu-panel" ui-sref="store">Магазини</li>
+                                            <li ng-if="isAdmin()" class="list-group-item submenu-panel" ui-sref="partner">Партньори</li>
+                                            <li class="list-group-item submenu-panel" ui-sref="partnerStore">Обекти партньори</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div ng-if="!isAdmin()" class="panel panel-default" ui-sref="saleReport">
+                                    <div class="panel-heading sidebar-btn collapseall">
+                                        <div class="panel-title">
+                                            <span class="menu-panel-header">Справки</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div ng-if="isAdmin()" class="panel panel-default">
+                                    <div class="panel-heading sidebar-btn">
+                                        <div data-parent="#accordion" data-toggle="collapse" data-target="#collapse3" class="panel-title">
+                                            <span class="menu-panel-header">Справки</span>
+                                        </div>
+                                    </div>
+                                    <div id="collapse3" class="panel-collapse collapse collapse">
+                                        <ul class="list-group">
+                                            <li class="list-group-item submenu-panel" ui-sref="saleReport">Продажби</li>
+                                            <li class="list-group-item submenu-panel" ui-sref="stockReport">Наличности</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="panel panel-default" ui-sref="relocation">
+                                    <div class="panel-heading sidebar-btn collapseall">
+                                        <div class="panel-title">
+                                            <span class="menu-panel-header">Релокация</span>
+                                        </div>
+                                    </div>
+                                </div> 
+                                <div ng-if="isAdmin()" class="panel panel-default" ui-sref="activityReport">
+                                    <div class="panel-heading sidebar-btn collapseall">
+                                        <div class="panel-title">
+                                            <span class="menu-panel-header">Активности</span>
+                                        </div>
+                                    </div>
+                                </div>                             
+                            </div> 
+                        </div>
+                    </div>
+                    <div class="col-xs-10" style="padding: 0px;">
+                        <div class="content">
+                            <div id="view" ui-view></div>
+                            <div ng-if="isLoading" id="spinner">
+                                <div class="spinner">
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                    <div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div> -->
+    <!-- Google Analytics: change UA-XXXXX-X to be your site's ID -->
+<!--     <script>
+    $(document).ready(function() {
+        $("#loginModal").modal('show');
+    });
+    ! function(A, n, g, u, l, a, r) {
+        A.GoogleAnalyticsObject = l, A[l] = A[l] || function() {
+                (A[l].q = A[l].q || []).push(arguments)
+            }, A[l].l = +new Date, a = n.createElement(g),
+            r = n.getElementsByTagName(g)[0], a.src = u, r.parentNode.insertBefore(a, r)
+    }(window, document, 'script', '//www.google-analytics.com/analytics.js', 'ga');
+    ga('create', 'UA-XXXXX-X');
+    ga('send', 'pageview');
+    </script> -->
+    <!-- build:js(.) scripts/vendor.js -->
+    <!-- bower:js -->
     <script src="bower_components/jquery/dist/jquery.js"></script>
     <script src="bower_components/angular/angular.js"></script>
     <script src="bower_components/bootstrap/dist/js/bootstrap.js"></script>
