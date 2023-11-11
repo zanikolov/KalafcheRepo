@@ -24,19 +24,14 @@ public class DailyStoreReportController {
 	private DailyStoreReportService dailyStoreReportService;
 	
 	@PutMapping
-	public DailyStoreReport generateDailyStoreReport() throws SQLException {
-		return dailyStoreReportService.generateDailyStoreReport();
+	public DailyStoreReport finalizeDailyStoreReport() throws SQLException {
+		return dailyStoreReportService.finalizeDailyStoreReport();
 	}
 	
 	@GetMapping("/{dailyStoreReportId}")
-	public DailyStoreReport getRevision(@PathVariable(value = "dailyStoreReportId") Integer dailyStoreReportId) {
+	public DailyStoreReport getDailyStoreReport(@PathVariable(value = "dailyStoreReportId") Integer dailyStoreReportId) {
 		return dailyStoreReportService.getDailyStoreReportById(dailyStoreReportId);
 	}
-	
-//	@GetMapping("/{day}")
-//	public DailyStoreReport getRevision(@PathVariable(value = "day") Long day) {
-//		return dailyStoreReportService.getDailyStoreReportByDay(day);
-//	}
 	
 	@GetMapping("/current/{storeId}")
 	public DailyStoreReport calculateDailyStoreReport(@PathVariable(value = "storeId") Integer storeId) {
@@ -45,8 +40,13 @@ public class DailyStoreReportController {
 	
 	@GetMapping
 	public List<DailyStoreReport> searchDailyStoreReports(@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds, 
-			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds, @RequestParam(value = "storeId") Integer storeId) {
-		return dailyStoreReportService.searchDailyStoreReports(startDateMilliseconds, endDateMilliseconds, storeId);
+			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds, @RequestParam(value = "storeIds") String storeIds) {
+		return dailyStoreReportService.searchDailyStoreReports(startDateMilliseconds, endDateMilliseconds, storeIds);
+	}
+	
+	@GetMapping("/checkFinalization/{storeId}")
+	public Boolean isDailyStoreReportCanBeFinalized(@PathVariable(value = "storeId") Integer storeId) {
+		return dailyStoreReportService.isDailyStoreReportCanBeFinalized(storeId);
 	}
 	
 }

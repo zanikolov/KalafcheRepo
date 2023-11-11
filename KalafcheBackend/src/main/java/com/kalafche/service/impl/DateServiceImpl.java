@@ -18,6 +18,12 @@ public class DateServiceImpl implements DateService {
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Sofia"));
 		return cal.getTimeInMillis();
 	}
+	
+	@Override
+	public Date getCurrentTimeBGTimezone() {
+		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Europe/Sofia"));
+		return cal.getTime();
+	}
 
 	@Override
 	public String convertMillisToDateTimeString(Long millis, String dateFormat, Boolean withTime) {

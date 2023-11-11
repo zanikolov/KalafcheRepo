@@ -11,6 +11,10 @@ public class SaleItem {
 	private Integer productId;
 	private String productCode;
 	private String productName;
+	private Integer productTypeId;
+	private String productTypeName;
+	private Integer productMasterTypeId;
+	private String productMasterTypeName;
 	private Integer deviceModelId;
 	private String deviceModelName;
 	private Integer deviceBrandId;
@@ -38,6 +42,14 @@ public class SaleItem {
 
 	public void setSaleId(Integer saleId) {
 		this.saleId = saleId;
+	}
+
+	public Long getSaleTimestamp() {
+		return saleTimestamp;
+	}
+
+	public void setSaleTimestamp(Long saleTimestamp) {
+		this.saleTimestamp = saleTimestamp;
 	}
 
 	public Integer getItemId() {
@@ -70,6 +82,38 @@ public class SaleItem {
 
 	public void setProductName(String productName) {
 		this.productName = productName;
+	}
+
+	public Integer getProductTypeId() {
+		return productTypeId;
+	}
+
+	public void setProductTypeId(Integer productTypeId) {
+		this.productTypeId = productTypeId;
+	}
+
+	public String getProductTypeName() {
+		return productTypeName;
+	}
+
+	public void setProductTypeName(String productTypeName) {
+		this.productTypeName = productTypeName;
+	}
+
+	public Integer getProductMasterTypeId() {
+		return productMasterTypeId;
+	}
+
+	public void setProductMasterTypeId(Integer productMasterTypeId) {
+		this.productMasterTypeId = productMasterTypeId;
+	}
+
+	public String getProductMasterTypeName() {
+		return productMasterTypeName;
+	}
+
+	public void setProductMasterTypeName(String productMasterTypeName) {
+		this.productMasterTypeName = productMasterTypeName;
 	}
 
 	public Integer getDeviceModelId() {
@@ -150,14 +194,6 @@ public class SaleItem {
 
 	public void setEmployeeName(String employeeName) {
 		this.employeeName = employeeName;
-	}
-
-	public Long getSaleTimestamp() {
-		return saleTimestamp;
-	}
-
-	public void setSaleTimestamp(Long saleTimestamp) {
-		this.saleTimestamp = saleTimestamp;
 	}
 
 	public Boolean getIsRefunded() {

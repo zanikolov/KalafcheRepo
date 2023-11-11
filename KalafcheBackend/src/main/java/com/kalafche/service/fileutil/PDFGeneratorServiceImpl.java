@@ -64,7 +64,6 @@ public class PDFGeneratorServiceImpl implements PDFGeneratorService {
 		        	stockTable.addCell(configureCell("      ", font, 2));
 		        	
 		        	//Product Type
-		        	//stockTable.addCell(configureCell("Ð�Ñ€Ñ‚Ð¸ÐºÑƒÐ»", font));
 		        	stockTable.addCell(configureCell(stock.getProductTypeName(), font, 2));
 		        	
 		        	//Product code

@@ -126,7 +126,7 @@ public class SaleController {
 	}
 	
 	@PostMapping("/excel")
-	public ResponseEntity<byte[]> getTotalSum(@RequestBody SaleItemExcelReportRequest saleItemExcelReportRequest) {
+	public ResponseEntity<byte[]> generateExcel(@RequestBody SaleItemExcelReportRequest saleItemExcelReportRequest) {
 		byte[] contents = saleItemExcelReportService.generateExcel(saleItemExcelReportRequest);
 		
 		HttpHeaders headers = new HttpHeaders();

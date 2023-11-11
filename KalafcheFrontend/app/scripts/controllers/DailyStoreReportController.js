@@ -1,23 +1,14 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-    .directive('expenseReport', function() {
-        return {
-            restrict: 'E',
-            scope: {},
-            templateUrl: 'views/partials/expense/report.html',
-            controller: ExpenseReportController
-        }
-    });
-
-    function ExpenseReportController($scope, $rootScope, $mdDialog, ApplicationService, ExpenseService, AuthService, StoreService, SessionService) {
+    .controller('DailyStoreReportController', function DailyStoreReportController($scope, $rootScope, $mdDialog, ApplicationService, DailyStoreReportService, AuthService, StoreService, SessionService) {
 
         init();
 
         function init() {
             $scope.currentPage = 1;  
-            $scope.expensesPerPage = 15;
-            $scope.expenses = []; 
+            $scope.dailyStoreReportsPerPage = 15;
+            $scope.dailyStoreReports = []; 
             $scope.stores = [];
             $scope.selectedStore = {};
             
@@ -60,9 +51,9 @@ angular.module('kalafcheFrontendApp')
 
         };
 
-        $scope.searchExpenses = function() {
-            ExpenseService.searchExpenses($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id).then(function(response) {
-                $scope.expenses = response.expenses;
+        $scope.searchDailyStoreReports = function() {
+            DailyStoreReportService.searchDailyStoreReports($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id).then(function(response) {
+                $scope.dailyStoreReports = response;
             });    
         }
 
@@ -92,7 +83,7 @@ angular.module('kalafcheFrontendApp')
             StoreService.getAllStoresForSaleReport().then(function(response) {
                 $scope.stores = response;
                 $scope.selectedStore =  {"id": SessionService.currentUser.employeeStoreId};
-                $scope.searchExpenses();
+                $scope.searchDailyStoreReports();
             });
 
         };
@@ -105,8 +96,8 @@ angular.module('kalafcheFrontendApp')
             $scope.currentPage = 1;
         };
 
-        $scope.expand = function(expense) {
-            expense.expanded = !expense.expanded;
+        $scope.expand = function(dailyStoreReport) {
+            dailyStoreReport.expanded = !dailyStoreReport.expanded;
         };
 
         $scope.isAdmin = function() {
@@ -121,25 +112,20 @@ angular.module('kalafcheFrontendApp')
             return AuthService.isUser();
         }
 
-        $scope.showImage = function(expense){
+        $scope.openCurrentDailyStoreReportModal = function () {
             $mdDialog.show({
-                locals:{imgSrc:"https://drive.google.com/uc?export=view&id=" + expense.fileId},
-                controller: function($scope, imgSrc) { $scope.imgSrc = imgSrc; },
-                templateUrl: 'views/modals/image-modal.html',
-                clickOutsideToClose:true,
-                parent: angular.element(document.body)
+              locals:{currentDailyStoreReport: DailyStoreReportService.calculateDailyStoreReport($scope.selectedStore.id)},
+              controller: 'DailyStoreReportModalController',
+              templateUrl: 'views/modals/daily-store-report-modal.html',
+              parent: angular.element(document.body)
             })
             .then(function(answer) {
-                $scope.status = 'You said the information was "".';
+              console.log('>>> first function');
             }, function() {
-                $scope.status = 'You cancelled the dialog.';
+              console.log('>>> second function');
             });
+
         };
 
-        $rootScope.$on("ExpenseCreated", function () {
-            console.log("<><><><>");
-            $scope.searchExpenses();
-        })
-
-    };
+    });
 

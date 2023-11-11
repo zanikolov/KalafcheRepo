@@ -6,14 +6,11 @@ public class StoreDto {
 	private String city;
 	private String name;
 	private String code;
-
-	public StoreDto() {}
+	private Integer openingHoursFromHr;
+	private Integer openingHoursFromMin;
+	private Integer openingHoursToHr;
+	private Integer openingHoursToMin;
 	
-	public StoreDto(Integer id, String name) {
-		this.id = id;
-		this.name = name;
-	}
-
 	public Integer getId() {
 		return id;
 	}
@@ -46,6 +43,46 @@ public class StoreDto {
 		this.code = code;
 	}
 
+	public Integer getOpeningHoursFromHr() {
+		return openingHoursFromHr;
+	}
+
+	public void setOpeningHoursFromHr(Integer openingHoursFromHr) {
+		this.openingHoursFromHr = openingHoursFromHr;
+	}
+
+	public Integer getOpeningHoursFromMin() {
+		return openingHoursFromMin;
+	}
+
+	public void setOpeningHoursFromMin(Integer openingHoursFromMin) {
+		this.openingHoursFromMin = openingHoursFromMin;
+	}
+
+	public Integer getOpeningHoursToHr() {
+		return openingHoursToHr;
+	}
+
+	public void setOpeningHoursToHr(Integer openingHoursToHr) {
+		this.openingHoursToHr = openingHoursToHr;
+	}
+
+	public Integer getOpeningHoursToMin() {
+		return openingHoursToMin;
+	}
+
+	public void setOpeningHoursToMin(Integer openingHoursToMin) {
+		this.openingHoursToMin = openingHoursToMin;
+	}
+
+	public StoreDto() {
+	}
+
+	public StoreDto(Integer id, String name) {
+		this.id = id;
+		this.name = name;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -70,5 +107,5 @@ public class StoreDto {
 			return false;
 		return true;
 	}
-	
+
 }

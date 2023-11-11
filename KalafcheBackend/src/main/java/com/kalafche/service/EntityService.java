@@ -16,4 +16,6 @@ public interface EntityService {
 
 	List<StoreDto> getManagedStoresByEmployee();
 
+	StoreDto getStoreById(Integer storeId);
+
 }

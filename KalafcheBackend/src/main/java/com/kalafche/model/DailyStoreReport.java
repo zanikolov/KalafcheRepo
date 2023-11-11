@@ -21,7 +21,7 @@ public class DailyStoreReport {
 	private BigDecimal expense;
 	private BigDecimal initialBalance;
 	private BigDecimal finalBalance;
-
+	
 	public Integer getId() {
 		return id;
 	}

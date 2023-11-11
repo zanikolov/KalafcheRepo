@@ -55,6 +55,10 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"iv.product_id, " +
 			"iv.product_code, " +
 			"iv.product_name, " +
+			"iv.product_type_id, " +
+			"iv.product_type_name, " +
+			"iv.product_master_type_id, " +
+			"iv.product_master_type_name, " +
 			"iv.device_model_id, " +
 			"iv.device_model_name, " +
 			"iv.device_brand_id, " +
@@ -98,7 +102,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	
 	private static final String PERIOD_CRITERIA_QUERY = " where sale_timestamp between ? and ?";
 	private static final String STORE_CRITERIA_QUERY = " and ks.id in (%s)";
-	private static final String REFUND_QUERY = " and si.is_refunded <> true";
+	private static final String NOT_REFUND_QUERY = " and si.is_refunded <> true";
+	private static final String REFUND_QUERY = " and si.is_refunded is true";
 	private static final String PRODUCT_CODE_QUERY = " and iv.product_code in (%s)";
 	private static final String DEVICE_BRAND_QUERY = " and iv.device_brand_id = ?";
 	private static final String DEVICE_MODEL_QUERY = " and iv.device_model_id = ?";
@@ -316,6 +321,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	private BeanPropertyRowMapper<SalesByStore> saleByStoreRowMapper;
 	private BeanPropertyRowMapper<SalesByStoreByDayByProductType> saleByStoreByDayByProductTypeRowMapper;
 	private BeanPropertyRowMapper<TransactionsByStoreByDay> transactionsByStoreByDayRowMapper;
+	private BeanPropertyRowMapper<DailyReportData> dailyReportDataRowMapper;
 
 	@Autowired
 	public SaleDaoImpl(DataSource dataSource) {
@@ -366,6 +372,15 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		}
 		
 		return transactionsByStoreByDayRowMapper;
+	}
+	
+	private BeanPropertyRowMapper<DailyReportData> getDailyReportDataRowMapper() {
+		if (dailyReportDataRowMapper == null) {
+			dailyReportDataRowMapper = new BeanPropertyRowMapper<DailyReportData>(DailyReportData.class);
+			dailyReportDataRowMapper.setPrimitivesDefaultedForNullValue(true);
+		}
+		
+		return dailyReportDataRowMapper;
 	}
 
 	@Override
@@ -421,7 +436,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	public List<SaleItem> searchSaleItems(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
 			String productCode, Integer deviceBrandId, Integer deviceModelId, Integer masterProductTypeId, Integer productTypeId, Float priceFrom,
 			Float priceTo, String discountCampaignCode) {
-		String searchQuery = GET_ALL_SALE_ITEMS_QUERY + PERIOD_CRITERIA_QUERY + String.format(STORE_CRITERIA_QUERY, storeIds) + REFUND_QUERY;
+		String searchQuery = GET_ALL_SALE_ITEMS_QUERY + PERIOD_CRITERIA_QUERY + String.format(STORE_CRITERIA_QUERY, storeIds) + NOT_REFUND_QUERY;
 		List<Object> argsList = new ArrayList<Object>();
 		argsList.add(startDateMilliseconds);
 		argsList.add(endDateMilliseconds);
@@ -586,17 +601,17 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 
 	@Override
 	public DailyReportData selectSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
-		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY, DailyReportData.class, startDateTime, endDateTime, storeId);
+		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
 	}
 	
 	@Override
 	public DailyReportData selectRefundedSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
-		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + REFUND_QUERY, DailyReportData.class, startDateTime, endDateTime, storeId);
+		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + REFUND_QUERY, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
 	}
 	
 	@Override
 	public DailyReportData selectSaleItemWithCardPaymentTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
-		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + CARD_PAYMENT_CRITERIA, DailyReportData.class, startDateTime, endDateTime, storeId);
+		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + CARD_PAYMENT_CRITERIA, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
 	}
 	
 }

@@ -76,6 +76,7 @@ public class ExpenseDaoImpl extends JdbcDaoSupport implements ExpenseDao {
 	
 	private BeanPropertyRowMapper<Expense> rowMapper;
 	private BeanPropertyRowMapper<ExpenseType> expenseTypeRowMapper;
+	private BeanPropertyRowMapper<DailyReportData> dailyReportDataRowMapper;
 	
 	@Autowired
 	public ExpenseDaoImpl(DataSource dataSource) {
@@ -99,6 +100,15 @@ public class ExpenseDaoImpl extends JdbcDaoSupport implements ExpenseDao {
 		}
 		
 		return expenseTypeRowMapper;
+	}
+	
+	private BeanPropertyRowMapper<DailyReportData> getDailyReportDataRowMapper() {
+		if (dailyReportDataRowMapper == null) {
+			dailyReportDataRowMapper = new BeanPropertyRowMapper<DailyReportData>(DailyReportData.class);
+			dailyReportDataRowMapper.setPrimitivesDefaultedForNullValue(true);
+		}
+		
+		return dailyReportDataRowMapper;
 	}
 	
 	@Override
@@ -175,12 +185,12 @@ public class ExpenseDaoImpl extends JdbcDaoSupport implements ExpenseDao {
 
 	@Override
 	public DailyReportData selectExpenseTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
-		return getJdbcTemplate().queryForObject(GET_EXPENSE_TOTAL_AND_COUNT_QUERY, DailyReportData.class, startDateTime, endDateTime, storeId);
+		return getJdbcTemplate().queryForObject(GET_EXPENSE_TOTAL_AND_COUNT_QUERY, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
 	}
 
 	@Override
 	public DailyReportData selectCollectionTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
-		return getJdbcTemplate().queryForObject(GET_COLLECTION_TOTAL_AND_COUNT_QUERY, DailyReportData.class, startDateTime, endDateTime, storeId);
+		return getJdbcTemplate().queryForObject(GET_COLLECTION_TOTAL_AND_COUNT_QUERY, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
 	}
 
 }

@@ -7,7 +7,7 @@ import com.kalafche.model.DayInMillis;
 
 public interface DailyStoreReportService {
 
-	DailyStoreReport generateDailyStoreReport();
+	DailyStoreReport finalizeDailyStoreReport();
 
 	DailyStoreReport getDailyStoreReportById(Integer dailyStoreReportId);
 
@@ -16,6 +16,8 @@ public interface DailyStoreReportService {
 	DailyStoreReport calculateDailyStoreReport(Integer storeId);
 
 	List<DailyStoreReport> searchDailyStoreReports(Long startDateMilliseconds, Long endDateMilliseconds,
-			Integer storeId);
+			String storeIds);
+
+	Boolean isDailyStoreReportCanBeFinalized(Integer storeId);
 
 }

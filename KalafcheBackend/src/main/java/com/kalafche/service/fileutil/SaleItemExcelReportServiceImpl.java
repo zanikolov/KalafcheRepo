@@ -40,6 +40,12 @@ public class SaleItemExcelReportServiceImpl implements SaleItemExcelReportServic
 
 			Cell productNameCell = row.createCell(colNum++);
 			productNameCell.setCellValue((String) saleItem.getProductName());
+			
+			Cell productTypeNameCell = row.createCell(colNum++);
+			productTypeNameCell.setCellValue((String) saleItem.getProductTypeName());
+			
+			Cell productMasterTypeNameCell = row.createCell(colNum++);
+			productMasterTypeNameCell.setCellValue((String) saleItem.getProductMasterTypeName());
 
 			Cell storeNameCell = row.createCell(colNum++);
 			storeNameCell.setCellValue((String) saleItem.getStoreName());
@@ -51,6 +57,9 @@ public class SaleItemExcelReportServiceImpl implements SaleItemExcelReportServic
 			saleTimestampCell
 					.setCellValue((String) dateService.convertMillisToDateTimeString(saleItem.getSaleTimestamp(), "dd-MM-yyyy", true));
 
+			Cell itemPriceCell = row.createCell(colNum++);
+			itemPriceCell.setCellValue((String) saleItem.getItemPrice().toPlainString());
+			
 			Cell salePriceCell = row.createCell(colNum++);
 			salePriceCell.setCellValue((String) saleItem.getSalePrice().toPlainString());
 		}
