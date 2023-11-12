@@ -76,10 +76,6 @@ public class SaleController {
 	
 	@PutMapping
 	public void insertSale(@RequestBody Sale sale) throws SQLException, InterruptedException {
-		for (SaleItem item : sale.getSaleItems()) {
-			System.out.println(item.getItemId());
-			System.out.println(item.getDiscountCode());
-		}
 		saleService.submitSale(sale);
 	}
 	

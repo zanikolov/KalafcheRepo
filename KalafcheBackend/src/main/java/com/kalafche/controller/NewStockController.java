@@ -66,7 +66,6 @@ public class NewStockController {
 	
 	@PostMapping("/approve")
 	public void approveNewStock(@RequestBody NewStock newStock) {
-		System.out.println(">>> " + newStock.getDeviceBrandName() + " " + newStock.getDeviceModelName() + ", "+ newStock.getQuantity() + ", " + newStock.getProductCode() + ", " + newStock.getStoreId());
 		newStockService.approveNewStock(newStock);
 	}
 	

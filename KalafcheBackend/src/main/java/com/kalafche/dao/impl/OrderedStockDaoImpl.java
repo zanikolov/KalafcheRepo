@@ -90,7 +90,6 @@ public class OrderedStockDaoImpl extends JdbcDaoSupport implements OrderedStockD
 				if (generatedKeys.next()) {
 					return generatedKeys.getInt(1);
 				} else {
-					System.out.println("The ordered stock was updated.");
 					return 0;
 				}
 			}

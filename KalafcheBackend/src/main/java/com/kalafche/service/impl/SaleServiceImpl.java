@@ -442,8 +442,6 @@ public class SaleServiceImpl implements SaleService {
 	public TotalSumReport calculateTotalSum(List<SaleItem> selectedSaleItems) {
 		TotalSumReport totalSumReport = new TotalSumReport();
 		
-		selectedSaleItems.stream().forEach(item -> {System.out.println(item.getItemPrice());});
-		
 		BigDecimal totalSum = selectedSaleItems.stream().map(SaleItem::getItemPrice)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 		totalSumReport.setTotalSum(totalSum);		

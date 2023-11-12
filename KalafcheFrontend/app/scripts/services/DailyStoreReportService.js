@@ -5,7 +5,7 @@ angular.module('kalafcheFrontendApp')
 		angular.extend(this, {
 			searchDailyStoreReports: searchDailyStoreReports,
             calculateDailyStoreReport: calculateDailyStoreReport,
-            generateDailyStoreReport: generateDailyStoreReport,
+            finalizeDailyStoreReport: finalizeDailyStoreReport,
             isDailyStoreReportCanBeFinalized: isDailyStoreReportCanBeFinalized
 		});
 
@@ -34,8 +34,8 @@ angular.module('kalafcheFrontendApp')
                 );
         }
 
-        function generateDailyStoreReport() {
-            return $http.put(Environment.apiEndpoint + '/KalafcheBackend/dailyStoreReport')
+        function finalizeDailyStoreReport(storeId) {
+            return $http.put(Environment.apiEndpoint + '/KalafcheBackend/dailyStoreReport/' + storeId)
                     .then(
                         function(response) {
                             return response.data;

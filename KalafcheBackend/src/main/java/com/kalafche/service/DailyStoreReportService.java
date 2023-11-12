@@ -7,7 +7,7 @@ import com.kalafche.model.DayInMillis;
 
 public interface DailyStoreReportService {
 
-	DailyStoreReport finalizeDailyStoreReport();
+	DailyStoreReport finalizeDailyStoreReport(Integer storeId);
 
 	DailyStoreReport getDailyStoreReportById(Integer dailyStoreReportId);
 

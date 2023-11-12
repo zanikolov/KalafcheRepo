@@ -1,7 +1,6 @@
 package com.kalafche.service.impl;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +41,8 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 	DailyStoreReportDao dailyStoreReportDao;
 	
 	@Override
-	public DailyStoreReport finalizeDailyStoreReport() {
+	public DailyStoreReport finalizeDailyStoreReport(Integer storeId) {
 		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
-		Integer storeId = null;
 		DailyStoreReport report = null;
 		
 		if (loggedInEmployee.getRoles().contains("ROLE_USER")) {
@@ -52,7 +50,7 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 		}
 		
 		if (isDailyStoreReportCanBeFinalized(storeId)) {
-			report = calculateDailyStoreReport(null);
+			report = calculateDailyStoreReport(storeId);
 			dailyStoreReportDao.insertDailyStoreReport(report);
 		}
 		
@@ -122,9 +120,9 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 	@Override
 	public Boolean isDailyStoreReportCanBeFinalized(Integer storeId) {
 		Employee loggedInEmployee = employeeService.getLoggedInEmployee();		
-		if (!loggedInEmployee.getRoles().contains("ROLE_USER")) {
-			return false;
-		}
+//		if (!loggedInEmployee.getRoles().contains("ROLE_USER")) {
+//			return false;
+//		}
 		
 		if (getDailyStoreReportByDay(loggedInEmployee.getStoreId(), dateService.getTodayInMillis(0)) != null) {
 			return false;

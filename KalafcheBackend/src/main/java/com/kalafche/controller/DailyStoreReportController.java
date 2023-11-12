@@ -23,9 +23,9 @@ public class DailyStoreReportController {
 	@Autowired
 	private DailyStoreReportService dailyStoreReportService;
 	
-	@PutMapping
-	public DailyStoreReport finalizeDailyStoreReport() throws SQLException {
-		return dailyStoreReportService.finalizeDailyStoreReport();
+	@PutMapping("/{storeId}")
+	public DailyStoreReport finalizeDailyStoreReport(@PathVariable(value = "storeId") Integer storeId) throws SQLException {
+		return dailyStoreReportService.finalizeDailyStoreReport(storeId);
 	}
 	
 	@GetMapping("/{dailyStoreReportId}")

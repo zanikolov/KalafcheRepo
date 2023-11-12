@@ -540,8 +540,6 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		}
 		searchQuery += ORDER_PRODUCT_TYPE_SPLIT_REPORT;
 		
-		System.out.println(dateService.convertMillisToDateTimeString(startDateMilliseconds, "yyyy-MM-dd", false));
-		System.out.println(dateService.convertMillisToDateTimeString(endDateMilliseconds, "yyyy-MM-dd", false));
 		List<Object> argsList = new ArrayList<Object>();
 		argsList.add(dateService.convertMillisToDateTimeString(startDateMilliseconds, "yyyy-MM-dd", false));
 		argsList.add(dateService.convertMillisToDateTimeString(endDateMilliseconds, "yyyy-MM-dd", false));
@@ -567,14 +565,6 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		Long startDateMillisecondsPrevYear = startDateMilliseconds - yearInMillis;
 		Long endDateMillisecondsPrevYear = endDateMilliseconds - yearInMillis;
 		
-		System.out.println(dateService.convertMillisToDateTimeString(startDateMilliseconds, "yyyy-MM-dd", false));
-		System.out.println(dateService.convertMillisToDateTimeString(endDateMilliseconds, "yyyy-MM-dd", false));
-		System.out.println(startDateMilliseconds);
-		System.out.println(endDateMilliseconds);
-		System.out.println(dateService.convertMillisToDateTimeString(startDateMillisecondsPrevYear, "yyyy-MM-dd", false));
-		System.out.println(dateService.convertMillisToDateTimeString(endDateMillisecondsPrevYear, "yyyy-MM-dd", false));
-		System.out.println(startDateMillisecondsPrevYear);
-		System.out.println(endDateMillisecondsPrevYear);
 		List<Object> argsList = new ArrayList<Object>();
 		argsList.add(dateService.convertMillisToDateTimeString(startDateMilliseconds, "yyyy-MM-dd", false));
 		argsList.add(dateService.convertMillisToDateTimeString(endDateMilliseconds, "yyyy-MM-dd", false));

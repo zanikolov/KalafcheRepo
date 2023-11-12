@@ -74,20 +74,12 @@ public class PhoneHomeProductDaoImpl extends JdbcDaoSupport implements
 
 	@Override
 	public List<PhoneHomeProduct> getPhoneHomeProductsByCode(int code) {
-		List<PhoneHomeProduct> products = getJdbcTemplate().query(GET_PHONE_HOME_PRODUCTS, getRowMapper());
-
-		System.out.println(">>>>> " + products.size());
-		
-		return products;
+		return getJdbcTemplate().query(GET_PHONE_HOME_PRODUCTS, getRowMapper());
 	}
 
 	@Override
 	public List<PhoneHomeProduct> getPhoneHomeProductsForSaleByBrand(int code) {
-		List<PhoneHomeProduct> products = getJdbcTemplate().query(GET_BRANDS_FOR_SALE, getRowMapper());
-
-		System.out.println(">>>>> " + products.size());
-		
-		return products;
+		return getJdbcTemplate().query(GET_BRANDS_FOR_SALE, getRowMapper());
 	}
 	
 }

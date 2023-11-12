@@ -14,7 +14,7 @@ angular.module('kalafcheFrontendApp')
 
         $scope.finalizeDailyStoreReport = function() {
             $scope.loading = true;
-            DailyStoreReportService.generateDailyStoreReport().then(
+            DailyStoreReportService.finalizeDailyStoreReport($scope.dailyStoreReport.storeId).then(
                 function(response) {
                     $mdDialog.cancel();
                     $scope.loading = false;

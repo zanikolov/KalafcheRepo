@@ -37,7 +37,6 @@ public class WasteController {
 	public void submitWaste(@RequestParam("wasteImage") MultipartFile wasteImage,
 			@RequestParam("itemId") Integer itemId, @RequestParam("description") String description)
 			throws SQLException, IllegalStateException, IOException, GeneralSecurityException {
-		System.out.println(">>>>> " + description);
 		wasteService.submitWaste(new Waste(itemId, description), wasteImage);
 	}
 	
