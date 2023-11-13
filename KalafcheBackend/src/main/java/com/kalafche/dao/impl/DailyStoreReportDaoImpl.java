@@ -89,5 +89,4 @@ public class DailyStoreReportDaoImpl extends JdbcDaoSupport implements DailyStor
 
 		return getJdbcTemplate().query(searchQuery, getRowMapper(), startDateMilliseconds, endDateMilliseconds);
 	}
-
 }

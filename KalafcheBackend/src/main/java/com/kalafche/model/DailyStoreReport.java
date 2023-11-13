@@ -7,6 +7,8 @@ public class DailyStoreReport {
 	private Integer id;
 	private Integer storeId;
 	private String storeName;
+	private Integer companyId;
+	private String companyName;
 	private Long createTimestamp;
 	private Long lastUpdateTimestamp;
 	private Integer employeeId;
@@ -21,6 +23,17 @@ public class DailyStoreReport {
 	private BigDecimal expense;
 	private BigDecimal initialBalance;
 	private BigDecimal finalBalance;
+	
+	public DailyStoreReport() {
+		this.soldItemsCount = 0;
+		this.refundedItemsCount = 0;
+		this.income = BigDecimal.ZERO;
+		this.collected = BigDecimal.ZERO;
+		this.cardPayment = BigDecimal.ZERO;
+		this.expense = BigDecimal.ZERO;
+		this.initialBalance = BigDecimal.ZERO;
+		this.finalBalance = BigDecimal.ZERO;
+	}
 	
 	public Integer getId() {
 		return id;
@@ -44,6 +57,22 @@ public class DailyStoreReport {
 
 	public void setStoreName(String storeName) {
 		this.storeName = storeName;
+	}
+
+	public Integer getCompanyId() {
+		return companyId;
+	}
+
+	public void setCompanyId(Integer companyId) {
+		this.companyId = companyId;
+	}
+
+	public String getCompanyName() {
+		return companyName;
+	}
+
+	public void setCompanyName(String companyName) {
+		this.companyName = companyName;
 	}
 
 	public Long getCreateTimestamp() {

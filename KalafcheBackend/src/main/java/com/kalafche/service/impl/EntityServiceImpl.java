@@ -91,4 +91,9 @@ public class EntityServiceImpl implements EntityService {
 		return storeDao.selectStore(storeId.toString());
 	}
 
+	@Override
+	public List<Integer> getStoreIdsByCompanyId(Integer companyId) {
+		return storeDao.getStoreIdsByCompanyId(companyId);
+	}
+
 }

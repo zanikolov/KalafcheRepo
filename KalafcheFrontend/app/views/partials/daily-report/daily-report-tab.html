@@ -1,0 +1,10 @@
+<md-content>
+	<md-tabs md-dynamic-height md-border-bottom>
+  		<md-tab label="Магазини">
+  			<daily-store-report></daily-store-report>
+  		</md-tab>
+  		<md-tab  ng-if="isAdmin()" label="Фирми">
+  			<daily-company-report></daily-company-report>
+  		</md-tab>
+  	</md-tabs>
+</md-content>

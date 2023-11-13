@@ -44,6 +44,12 @@ public class DailyStoreReportController {
 		return dailyStoreReportService.searchDailyStoreReports(startDateMilliseconds, endDateMilliseconds, storeIds);
 	}
 	
+	@GetMapping("/companies")
+	public List<DailyStoreReport> searchDailyCompanyReports(@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds, 
+			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds, @RequestParam(value = "companyId") Integer companyId) {
+		return dailyStoreReportService.searchDailyCompanyReports(startDateMilliseconds, endDateMilliseconds, companyId);
+	}
+	
 	@GetMapping("/checkFinalization/{storeId}")
 	public Boolean isDailyStoreReportCanBeFinalized(@PathVariable(value = "storeId") Integer storeId) {
 		return dailyStoreReportService.isDailyStoreReportCanBeFinalized(storeId);

@@ -15,9 +15,9 @@ import com.kalafche.model.StoreDto;
 @Service
 public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 
-	private static final String SELECT_STORE_BY_ID = "select * from store where id = ?";
-	private static final String GET_ALL_ENTITES = "select * from store";
-	private static final String SELECT_STORES = "select * from store where is_store is true";
+	private static final String SELECT_STORE_BY_ID = "select s.id as id, s.name as name, s.city, s.code as code, s.company_id, c.name as company_name, c.code as company_code from store s left join company c on s.company_id = c.id where s.id = ?";
+	private static final String GET_ALL_ENTITES = "select s.id as id, s.name as name, s.city, s.code as code, s.company_id, c.name as company_name, c.code as company_code from store s left join company c on s.company_id = c.id";
+	private static final String SELECT_STORES = "select s.id as id, s.name as name, s.city, s.code as code, s.company_id, c.name as company_name, c.code as company_code from store s left join company c on s.company_id = c.id where is_store is true";
 	private static final String SELECT_STORE_IDS_BY_MANAGER = "select GROUP_CONCAT(st.id) from store st " +
 			"join store_manager sm on st.id = sm.store_id " +
 			"join employee e on e.id = sm.employee_id " +
@@ -27,11 +27,12 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 			"join employee e on e.id = sm.employee_id " +
 			"where e.username = ? ";
 	private static final String SELECT_ALL_STORE_IDS = "select GROUP_CONCAT(id) from store";
-	private static final String INSERT_STORE = "insert into store (name, city, code, is_store, opening_hours_from_hr, opening_hours_from_min, opening_hours_to_hr, opening_hours_to_min) values (?, ?, ?, true, ?, ?, ?, ?)";
-	private static final String UPDATE_STORE = "update store set name = ?, city = ?, opening_hours_from_hr = ?, opening_hours_from_min = ?, opening_hours_to_hr = ?, opening_hours_to_min = ? where id = ?";
+	private static final String INSERT_STORE = "insert into store (name, city, code, company_id, is_store) values (?, ?, ?, ?, true)";
+	private static final String UPDATE_STORE = "update store set name = ?, city = ?, company_id = ? where id = ?";
 	private static final String CHECK_IF_STORE_NAME_EXISTS = "select count(*) from store where name = ? and city = ?";
 	private static final String CHECK_IF_STORE_CODE_EXISTS = "select count(*) from store where code = ?";
 	private static final String ID_NOT_CLAUSE = " and id <> ?";
+	private static final String SELECT_STORE_IDS_BY_COMPANY = "select st.id from store st where company_id = ?";
 
 	private BeanPropertyRowMapper<StoreDto> rowMapper;
 	
@@ -57,9 +58,7 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 
 	@Override
 	public void insertStore(StoreDto store) {
-		getJdbcTemplate().update(INSERT_STORE, store.getName(), store.getCity(), store.getCode(),
-				store.getOpeningHoursFromHr(), store.getOpeningHoursFromMin(), store.getOpeningHoursToHr(),
-				store.getOpeningHoursToMin());
+		getJdbcTemplate().update(INSERT_STORE, store.getName(), store.getCity(), store.getCode(), store.getCompanyId());
 	}
 
 	@Override
@@ -109,14 +108,17 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 
 	@Override
 	public void updateStore(StoreDto store) {
-		getJdbcTemplate().update(UPDATE_STORE, store.getName(), store.getCity(), store.getOpeningHoursFromHr(),
-				store.getOpeningHoursFromMin(), store.getOpeningHoursToHr(), store.getOpeningHoursToMin(),
-				store.getId());
+		getJdbcTemplate().update(UPDATE_STORE, store.getName(), store.getCity(), store.getCompanyId(), store.getId());
 	}
 
 	@Override
 	public List<StoreDto> selectManagedStoresByEmployee(String loggedInEmployeeUsername) {
 		return getJdbcTemplate().query(SELECT_STORES_BY_MANAGER, getRowMapper(), loggedInEmployeeUsername);
+	}
+	
+	@Override
+	public List<Integer> getStoreIdsByCompanyId(Integer companyId) {
+		return getJdbcTemplate().queryForList(SELECT_STORE_IDS_BY_COMPANY, Integer.class, companyId);
 	}
 
 }

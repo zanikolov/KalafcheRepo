@@ -17,31 +17,15 @@
                     <input ng-model="store.code" name="code" ng-disabled="store.id" ng-change="resetServerErrorMessages()" required>
                     <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>
                 </md-input-container>
-<!--                 <md-input-container flex style="width:18%">
-                    <label>От час</label>
-                    <input ng-model="store.openingHoursFromHr" type="number" min="0" max="24" name="openingHoursFromHr" ng-change="resetServerErrorMessages()">
+                <md-input-container class="md-block">
+                    <label>Фирма</label>
+                    <md-select name="storeId" ng-model="store.companyId" required>
+                        <md-option value="" selected></md-option>
+                        <md-option ng-repeat="company in companies" ng-value="company.id">
+                            {{company.name}}
+                        </md-option>
+                    </md-select>
                 </md-input-container>
-                <md-input-container flex style="width:2%">
-                    <span>:</span>
-                </md-input-container>
-                <md-input-container flex style="width:18%">
-                    <label>От мин</label>
-                    <input ng-model="store.openingHoursFromMin" type="number" min="0" max="59" name="openingHoursFromMin" ng-change="resetServerErrorMessages()">
-                </md-input-container>
-                <md-input-container flex style="width:10%">
-                    <span></span>
-                </md-input-container>
-                <md-input-container flex style="width:18%">
-                    <label>До час</label>
-                    <input ng-model="store.openingHoursToHr" type="number" min="0" max="24" name="openingHoursToHr" ng-change="resetServerErrorMessages()">
-                </md-input-container>
-                <md-input-container flex style="width:2%">
-                    <span>:</span>
-                </md-input-container>
-                <md-input-container flex style="width:18%">
-                    <label>До мин</label>
-                    <input ng-model="store.openingHoursToMin" type="number" min="0" max="59" name="openingHoursToMin" ng-change="resetServerErrorMessages()">
-                </md-input-container> -->
             </form>
             <md-content layout="row">
                 <md-button ng-if="store.id" class="md-raised md-primary" ng-click="resetStoreForm()">Отмени</md-button>
@@ -58,6 +42,7 @@
                         <th>Град</th>
                         <th>Име</th>
                         <th>Код</th>
+                        <th>Фирма</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -67,6 +52,7 @@
                         <td>{{store.city}}</td>
                         <td>{{store.name}}</td>
                         <td>{{store.code}}</td>
+                        <td>{{store.companyName}}</td>
                         <td>
                             <a href="" ng-click="openStoreForEdit(store)">
                                 <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
