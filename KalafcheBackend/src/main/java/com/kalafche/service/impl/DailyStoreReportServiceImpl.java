@@ -1,6 +1,7 @@
 package com.kalafche.service.impl;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import com.kalafche.model.DailyStoreReport;
 import com.kalafche.model.DayInMillis;
 import com.kalafche.model.Employee;
 import com.kalafche.model.StoreDto;
+import com.kalafche.service.CompanyService;
 import com.kalafche.service.DailyStoreReportService;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
@@ -36,6 +38,9 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 	
 	@Autowired
 	EntityService storeService;
+	
+	@Autowired
+	CompanyService companyService;
 	
 	@Autowired
 	DailyStoreReportDao dailyStoreReportDao;
@@ -129,6 +134,30 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 		}
 		
 		return true;
+	}
+
+	@Override
+	public List<DailyStoreReport> searchDailyCompanyReports(Long startDateMilliseconds, Long endDateMilliseconds, Integer companyId) {
+		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
+		DailyStoreReport companyReport = new DailyStoreReport();
+		companyReport.setCreateTimestamp(dateService.getCurrentMillisBGTimezone());
+		companyReport.setEmployeeName(loggedInEmployee.getName());
+		companyReport.setCompanyName(companyService.getCompanyById(companyId).getName());
+		List<Integer> storeIds = storeService.getStoreIdsByCompanyId(companyId);
+		
+		for (Integer storeId : storeIds) {
+			DailyStoreReport storeReport = calculateDailyStoreReport(storeId);
+			companyReport.setSoldItemsCount(companyReport.getSoldItemsCount() + storeReport.getSoldItemsCount());
+			companyReport.setRefundedItemsCount(companyReport.getRefundedItemsCount() + storeReport.getRefundedItemsCount());
+			companyReport.setIncome(companyReport.getIncome().add(storeReport.getIncome()));
+			companyReport.setCollected(companyReport.getCollected().add(storeReport.getCollected()));
+			companyReport.setCardPayment(companyReport.getCardPayment().add(storeReport.getCardPayment()));
+			companyReport.setExpense(companyReport.getExpense().add(storeReport.getExpense()));
+			companyReport.setInitialBalance(companyReport.getInitialBalance().add(storeReport.getInitialBalance()));
+			companyReport.setFinalBalance(companyReport.getFinalBalance().add(storeReport.getFinalBalance()));
+		}
+		
+		return Arrays.asList(companyReport);
 	}
 
 }

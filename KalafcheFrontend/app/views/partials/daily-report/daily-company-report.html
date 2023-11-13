@@ -1,0 +1,76 @@
+<div layout="column" ng-cloak>
+    <md-content layout-padding layout="column">
+        <div flex>
+            <form>    
+                <div layout="row" layout-xs="column" class="md-inline-form">
+                    <div layout-xs="row" flex="20" flex-xs="100">
+                        <md-input-container style="width:95%" ng-if="isAdmin() || isManager()">
+                            <label>Фирма</label>
+                            <md-select name="selectCompany" ng-model="selectedCompany.id" ng-change="searchDailyCompanyReports()">
+                                <md-option ng-repeat="company in companies" ng-value="company.id">
+                                    {{company.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div ng-if="dailyCompanyReports.length > 0" flex>
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-click="expand(dailyCompanyReport)" expand dir-paginate-start="dailyCompanyReport in dailyCompanyReports | itemsPerPage:dailyCompanyReportsPerPage" current-page="currentPage">
+                        <td></td>
+                        <td><strong>{{dailyCompanyReport.companyName}}</strong></td>
+                        <td><strong>{{getTimestamp(dailyCompanyReport.createTimestamp)}}</strong></td>
+                    </tr>
+                    <tr dir-paginate-end ng-show="true">
+                        <td colspan="5" class="detailed-daily-store-report" style="padding-left:50px; border:#dbdfe5 solid">
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Генериран от: {{dailyCompanyReport.employeeName}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Фирма: {{dailyCompanyReport.companyName}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Дата: {{getTimestamp(dailyCompanyReport.createTimestamp)}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Старт каса: {{dailyCompanyReport.initialBalance}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Продадени Артикули: {{dailyCompanyReport.soldItemsCount}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Върнати артикули: {{dailyCompanyReport.refundedItemsCount}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Приход: {{dailyCompanyReport.income}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>С карта: {{dailyCompanyReport.cardPayment}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Инкасо: {{dailyCompanyReport.collected}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Разходи: {{dailyCompanyReport.expense}}</span></div>
+                            </div>
+                            <hr/>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span><strong>Каса: {{dailyCompanyReport.finalBalance}}</strong></span></div>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+    </md-content>
+</div>

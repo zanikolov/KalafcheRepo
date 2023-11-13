@@ -4,6 +4,7 @@ angular.module('kalafcheFrontendApp')
 	.service('DailyStoreReportService', function($http, Environment) {
 		angular.extend(this, {
 			searchDailyStoreReports: searchDailyStoreReports,
+            searchDailyCompanyReports: searchDailyCompanyReports,
             calculateDailyStoreReport: calculateDailyStoreReport,
             finalizeDailyStoreReport: finalizeDailyStoreReport,
             isDailyStoreReportCanBeFinalized: isDailyStoreReportCanBeFinalized
@@ -11,12 +12,28 @@ angular.module('kalafcheFrontendApp')
 
         function searchDailyStoreReports(startDateMilliseconds, endDateMilliseconds, storeIds) { 
             var params = {"params" : 
-            	{"startDateMilliseconds": startDateMilliseconds, 
-            	"endDateMilliseconds": endDateMilliseconds, 
+                {"startDateMilliseconds": startDateMilliseconds, 
+                "endDateMilliseconds": endDateMilliseconds, 
                 "storeIds": storeIds}};
             console.log(params);
 
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/dailyStoreReport', params)
+                .then(
+                    function(response) {
+                        console.log(response.data);
+                        return response.data
+                    }
+                );
+        }
+
+        function searchDailyCompanyReports(startDateMilliseconds, endDateMilliseconds, companyId) { 
+            var params = {"params" : 
+                {"startDateMilliseconds": startDateMilliseconds, 
+                "endDateMilliseconds": endDateMilliseconds,
+                "companyId": companyId}};
+            console.log(params);
+
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/dailyStoreReport/companies', params)
                 .then(
                     function(response) {
                         console.log(response.data);

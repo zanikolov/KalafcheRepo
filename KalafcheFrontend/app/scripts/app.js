@@ -163,7 +163,7 @@ angular
                 }      
             }).state('dailyStoreReport', {
                 url: '/daily-store-report',
-                templateUrl: 'views/partials/daily-store-report.html',
+                templateUrl: 'views/partials/daily-report/daily-report-tab.html',
                 data: {
                     authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
                     title: "Дневен отчет"

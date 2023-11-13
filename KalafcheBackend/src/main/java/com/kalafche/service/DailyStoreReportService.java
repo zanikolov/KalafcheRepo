@@ -20,4 +20,6 @@ public interface DailyStoreReportService {
 
 	Boolean isDailyStoreReportCanBeFinalized(Integer storeId);
 
+	List<DailyStoreReport> searchDailyCompanyReports(Long startDateMilliseconds, Long endDateMilliseconds, Integer companyId);
+
 }

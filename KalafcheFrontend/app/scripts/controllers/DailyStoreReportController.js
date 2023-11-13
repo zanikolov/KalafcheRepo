@@ -1,8 +1,18 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-    .controller('DailyStoreReportController', function DailyStoreReportController($scope, $rootScope, $mdDialog, ApplicationService, DailyStoreReportService, AuthService, StoreService, SessionService) {
+    .directive('dailyStoreReport', function() {
+        return {
+            restrict: 'E',
+            scope: {},
+            templateUrl: 'views/partials/daily-report/daily-store-report.html',
+            controller: DailyStoreReportController,
+            controllerAs: 'vm'
+        }
+    });
 
+    function DailyStoreReportController($scope, $rootScope, $mdDialog, ApplicationService, DailyStoreReportService, AuthService, StoreService, SessionService) {
+        var vm = this;
         init();
 
         function init() {
@@ -127,5 +137,5 @@ angular.module('kalafcheFrontendApp')
 
         };
 
-    });
+    };
 

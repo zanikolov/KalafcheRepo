@@ -24,4 +24,6 @@ public interface StoreDao {
 
 	public abstract List<StoreDto> selectManagedStoresByEmployee(String loggedInEmployeeUsername);
 
+	public abstract List<Integer> getStoreIdsByCompanyId(Integer companyId);
+
 }
