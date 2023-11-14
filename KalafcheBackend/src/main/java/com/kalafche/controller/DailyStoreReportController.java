@@ -35,7 +35,7 @@ public class DailyStoreReportController {
 	
 	@GetMapping("/current/{storeId}")
 	public DailyStoreReport calculateDailyStoreReport(@PathVariable(value = "storeId") Integer storeId) {
-		return dailyStoreReportService.calculateDailyStoreReport(storeId);
+		return dailyStoreReportService.calculateDailyStoreReport(storeId, false);
 	}
 	
 	@GetMapping
@@ -51,8 +51,8 @@ public class DailyStoreReportController {
 	}
 	
 	@GetMapping("/checkFinalization/{storeId}")
-	public Boolean isDailyStoreReportCanBeFinalized(@PathVariable(value = "storeId") Integer storeId) {
-		return dailyStoreReportService.isDailyStoreReportCanBeFinalized(storeId);
+	public Boolean canDailyStoreReportBeFinalized(@PathVariable(value = "storeId") Integer storeId) {
+		return dailyStoreReportService.canDailyStoreReportBeFinalized(storeId, false);
 	}
 	
 }

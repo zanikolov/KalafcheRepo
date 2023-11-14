@@ -13,12 +13,12 @@ public interface DailyStoreReportService {
 
 	DailyStoreReport getDailyStoreReportByDay(Integer storeId, DayInMillis day);
 
-	DailyStoreReport calculateDailyStoreReport(Integer storeId);
+	DailyStoreReport calculateDailyStoreReport(Integer storeId, Boolean scheduled);
 
 	List<DailyStoreReport> searchDailyStoreReports(Long startDateMilliseconds, Long endDateMilliseconds,
 			String storeIds);
 
-	Boolean isDailyStoreReportCanBeFinalized(Integer storeId);
+	Boolean canDailyStoreReportBeFinalized(Integer storeId, Boolean scheduled);
 
 	List<DailyStoreReport> searchDailyCompanyReports(Long startDateMilliseconds, Long endDateMilliseconds, Integer companyId);
 

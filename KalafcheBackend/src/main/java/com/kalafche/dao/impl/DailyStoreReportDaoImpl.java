@@ -39,7 +39,7 @@ public class DailyStoreReportDaoImpl extends JdbcDaoSupport implements DailyStor
 			"dsr.refunded_items_count as refunded_items_count " +
 			"from daily_store_report dsr " +
 			"join store ks on ks.id = dsr.store_id " +
-			"join employee em on em.id = dsr.employee_id ";
+			"left join employee em on em.id = dsr.employee_id ";
 	
 	private static final String PERIOD_CRITERIA_QUERY = " where create_timestamp between ? and ?";
 	private static final String STORE_CRITERIA_QUERY = " and ks.id in (%s)";

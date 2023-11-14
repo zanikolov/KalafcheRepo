@@ -73,7 +73,7 @@ public class EntityServiceImpl implements EntityService {
 	public List<StoreDto> getManagedStoresByEmployee() {
 		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
 		List<StoreDto> stores = new ArrayList<>();
-		if (loggedInEmployee.getRoles().contains("ROLE_ADMIN")) {
+		if (loggedInEmployee.getRoles().contains("ROLE_ADMIN") || loggedInEmployee.getRoles().contains("ROLE_SUPERADMIN")) {
 			stores = storeDao.selectStores();
 		}
 		if (loggedInEmployee.getRoles().contains("ROLE_MANAGER")) {

@@ -1,10 +1,12 @@
 package com.kalafche.service.impl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DailyStoreReportDao;
@@ -54,8 +56,8 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 			storeId = loggedInEmployee.getStoreId();
 		}
 		
-		if (isDailyStoreReportCanBeFinalized(storeId)) {
-			report = calculateDailyStoreReport(storeId);
+		if (canDailyStoreReportBeFinalized(storeId, false)) {
+			report = calculateDailyStoreReport(storeId, false);
 			dailyStoreReportDao.insertDailyStoreReport(report);
 		}
 		
@@ -74,10 +76,13 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 	}
 
 	@Override
-	public DailyStoreReport calculateDailyStoreReport(Integer storeId) {
-		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
-		if (loggedInEmployee.getRoles().contains("ROLE_USER")) {
-			storeId = loggedInEmployee.getStoreId();
+	public DailyStoreReport calculateDailyStoreReport(Integer storeId, Boolean scheduled) {
+		Employee loggedInEmployee = null;
+		if (!scheduled) {
+			loggedInEmployee = employeeService.getLoggedInEmployee();
+			if (loggedInEmployee.getRoles().contains("ROLE_USER")) {
+				storeId = loggedInEmployee.getStoreId();
+			}
 		}
 		DayInMillis todayInMillis = dateService.getTodayInMillis(0);
 		DayInMillis yesterdayInMillis = dateService.getTodayInMillis(-1);
@@ -92,18 +97,22 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 		report.setInitialBalance(yesterdayReport != null && yesterdayReport.getFinalBalance() != null ? yesterdayReport.getFinalBalance() : BigDecimal.ZERO);
 		report.setStoreId(storeId);
 		report.setCreateTimestamp(dateService.getCurrentMillisBGTimezone());
-		report.setEmployeeId(loggedInEmployee.getId());
 		report.setLastUpdateTimestamp(dateService.getCurrentMillisBGTimezone());
-		report.setUpdatedByEmployeeId(loggedInEmployee.getId());
+		if (scheduled) {
+			report.setEmployeeName("System generated");
+		} else {
+			report.setEmployeeId(loggedInEmployee.getId());
+			report.setUpdatedByEmployeeId(loggedInEmployee.getId());
+			report.setEmployeeName(loggedInEmployee.getName());
+		}
 		StoreDto store = storeService.getStoreById(storeId);
 		report.setStoreName(store.getCity() + ", " + store.getName());
-		report.setEmployeeName(loggedInEmployee.getName());
 		report.setSoldItemsCount(saleItemDailyReportData.getCount());
 		report.setRefundedItemsCount(refundedSaleItemDailyReportData.getCount());
-		report.setIncome(saleItemDailyReportData.getTotalAmount() != null ? saleItemDailyReportData.getTotalAmount() : BigDecimal.ZERO);
-		report.setExpense(expensesDailyReportData.getTotalAmount() != null ? expensesDailyReportData.getTotalAmount() : BigDecimal.ZERO);
-		report.setCollected(collectionDailyReportData.getTotalAmount() != null ? collectionDailyReportData.getTotalAmount() : BigDecimal.ZERO);
-		report.setCardPayment(cardPaymentDailyReportData.getTotalAmount() != null ? cardPaymentDailyReportData.getTotalAmount() : BigDecimal.ZERO);		
+		report.setIncome(saleItemDailyReportData.getTotalAmount() != null ? saleItemDailyReportData.getTotalAmount().setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+		report.setExpense(expensesDailyReportData.getTotalAmount() != null ? expensesDailyReportData.getTotalAmount().setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+		report.setCollected(collectionDailyReportData.getTotalAmount() != null ? collectionDailyReportData.getTotalAmount().setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);
+		report.setCardPayment(cardPaymentDailyReportData.getTotalAmount() != null ? cardPaymentDailyReportData.getTotalAmount().setScale(2, RoundingMode.HALF_UP) : BigDecimal.ZERO);		
 		report.setFinalBalance(calculateFinalBalance(report));
 				
 		return report;
@@ -119,17 +128,19 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 	
 	private BigDecimal calculateFinalBalance(DailyStoreReport report) {
 		return report.getInitialBalance().add(report.getIncome()).subtract(report.getExpense())
-				.subtract(report.getCollected()).subtract(report.getCardPayment());
+				.subtract(report.getCollected()).subtract(report.getCardPayment()).setScale(2, RoundingMode.HALF_UP);
 	}
 
 	@Override
-	public Boolean isDailyStoreReportCanBeFinalized(Integer storeId) {
-		Employee loggedInEmployee = employeeService.getLoggedInEmployee();		
-//		if (!loggedInEmployee.getRoles().contains("ROLE_USER")) {
-//			return false;
-//		}
+	public Boolean canDailyStoreReportBeFinalized(Integer storeId, Boolean scheduled) {
+		if (!scheduled) {
+			Employee loggedInEmployee = employeeService.getLoggedInEmployee();
+			if (!loggedInEmployee.getRoles().contains("ROLE_USER")) {
+				return false;
+			}
+		}
 		
-		if (getDailyStoreReportByDay(loggedInEmployee.getStoreId(), dateService.getTodayInMillis(0)) != null) {
+		if (getDailyStoreReportByDay(storeId, dateService.getTodayInMillis(0)) != null) {
 			return false;
 		}
 		
@@ -146,7 +157,7 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 		List<Integer> storeIds = storeService.getStoreIdsByCompanyId(companyId);
 		
 		for (Integer storeId : storeIds) {
-			DailyStoreReport storeReport = calculateDailyStoreReport(storeId);
+			DailyStoreReport storeReport = calculateDailyStoreReport(storeId, false);
 			companyReport.setSoldItemsCount(companyReport.getSoldItemsCount() + storeReport.getSoldItemsCount());
 			companyReport.setRefundedItemsCount(companyReport.getRefundedItemsCount() + storeReport.getRefundedItemsCount());
 			companyReport.setIncome(companyReport.getIncome().add(storeReport.getIncome()));
@@ -158,6 +169,18 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 		}
 		
 		return Arrays.asList(companyReport);
+	}
+	
+	@Scheduled(cron = "0 0 22 * * *", zone = "EET")
+	public void scheduledFinalizeDailyStoreReports() {
+	    List<StoreDto> stores = storeService.getStores();
+	    for (StoreDto store : stores) {
+	    	Integer storeId = store.getId();
+	    	if (canDailyStoreReportBeFinalized(storeId, true)) {
+	    		DailyStoreReport report = calculateDailyStoreReport(storeId, true);
+				dailyStoreReportDao.insertDailyStoreReport(report);
+	    	}
+	    }
 	}
 
 }
