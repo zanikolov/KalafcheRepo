@@ -11,7 +11,7 @@ angular.module('kalafcheFrontendApp')
         }
     });
 
-    function DailyCompanyReportController($scope, $rootScope, $mdDialog, CompanyService, ApplicationService, DailyStoreReportService, AuthService) {
+    function DailyCompanyReportController($scope, $rootScope, $mdDialog, CompanyService, ApplicationService, DailyStoreReportService) {
         var vm = this;
         init();
 
@@ -21,10 +21,32 @@ angular.module('kalafcheFrontendApp')
             $scope.dailyCompanyReports = [];
             $scope.companies = [];
             $scope.selectedCompany = {};
+
+            $scope.dateFormat = 'dd-MMMM-yyyy';
+            $scope.startDate = {};
+            $scope.endDate = {};
             $scope.startDateMilliseconds = {};
             $scope.endDateMilliseconds = {};
-            getAllCompanies();
+            $scope.startDatePopup = {opened: false};
+            $scope.endDatePopup = {opened: false};
+
             getCurrentDate();
+            $scope.startDateOptions = {
+                formatYear: 'yy',
+                maxDate: new Date(),
+                minDate: new Date(2015, 5, 22),
+                startingDay: 1,
+                showWeeks: false
+            };
+            $scope.endDateOptions = {
+                formatYear: 'yy',
+                maxDate: new Date(2025, 5, 22),
+                minDate: $scope.startDate,
+                startingDay: 1,
+                showWeeks: false
+            };
+
+            getAllCompanies();
         }
 
         function getCurrentDate() {
@@ -37,6 +59,24 @@ angular.module('kalafcheFrontendApp')
             $scope.endDate.setMinutes(59);
             $scope.endDateMilliseconds = $scope.endDate.getTime();
 
+        };
+
+        $scope.clear = function() {
+            $scope.startDate = null;
+            $scope.endDate = null;
+        };
+
+        $scope.changeStartDate = function() {
+            $scope.endDateOptions.minDate = $scope.startDate;
+            $scope.startDate.setHours(0);
+            $scope.startDate.setMinutes(1);
+            $scope.startDateMilliseconds = $scope.startDate.getTime();
+        };
+
+        $scope.changeEndDate = function() {
+            $scope.endDate.setHours(23);
+            $scope.endDate.setMinutes(59);
+            $scope.endDateMilliseconds = $scope.endDate.getTime();
         };
 
         function getAllCompanies() {
@@ -52,16 +92,12 @@ angular.module('kalafcheFrontendApp')
             });    
         }
 
-        $scope.getTimestamp = function(timestamp) {
-            return ApplicationService.convertEpochToTimestamp(timestamp);
+        $scope.getDate = function(timestamp) {
+            return ApplicationService.convertEpochToDate(timestamp);
         };
 
-        $scope.expand = function(dailyStoreReport) {
-            dailyStoreReport.expanded = !dailyStoreReport.expanded;
-        };
-
-        $scope.isAdmin = function() {
-            return AuthService.isAdmin();
+        $scope.expand = function(dailyCompanyReport) {
+            dailyCompanyReport.expanded = !dailyCompanyReport.expanded;
         };
 
     };

@@ -4,10 +4,12 @@ angular.module('kalafcheFrontendApp')
 	.service('DailyStoreReportService', function($http, Environment) {
 		angular.extend(this, {
 			searchDailyStoreReports: searchDailyStoreReports,
+            searchDailyStoreReportsForCorrection: searchDailyStoreReportsForCorrection,
             searchDailyCompanyReports: searchDailyCompanyReports,
             calculateDailyStoreReport: calculateDailyStoreReport,
             finalizeDailyStoreReport: finalizeDailyStoreReport,
-            isDailyStoreReportCanBeFinalized: isDailyStoreReportCanBeFinalized
+            isDailyStoreReportCanBeFinalized: isDailyStoreReportCanBeFinalized,
+            updateDailyStoreReport: updateDailyStoreReport
 		});
 
         function searchDailyStoreReports(startDateMilliseconds, endDateMilliseconds, storeIds) { 
@@ -18,6 +20,16 @@ angular.module('kalafcheFrontendApp')
             console.log(params);
 
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/dailyStoreReport', params)
+                .then(
+                    function(response) {
+                        console.log(response.data);
+                        return response.data
+                    }
+                );
+        }
+
+        function searchDailyStoreReportsForCorrection() { 
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/dailyStoreReport/correction')
                 .then(
                     function(response) {
                         console.log(response.data);
@@ -67,6 +79,15 @@ angular.module('kalafcheFrontendApp')
                             return response.data;
                         }
                     )
+        }
+
+        function updateDailyStoreReport(dailyStoreReport) { 
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/dailyStoreReport', dailyStoreReport)
+                .then(
+                    function(response) {
+                        return response.data;
+                    }
+                )
         }
 
 	});

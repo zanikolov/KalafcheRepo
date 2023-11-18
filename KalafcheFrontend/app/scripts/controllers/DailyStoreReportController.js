@@ -85,10 +85,6 @@ angular.module('kalafcheFrontendApp')
             $scope.endDateMilliseconds = $scope.endDate.getTime();
         };
 
-        $scope.changeStore = function() {
-            $scope.searchSales();
-        };
-
         function getAllStores() {
             StoreService.getAllStoresForSaleReport().then(function(response) {
                 $scope.stores = response;

@@ -2,18 +2,27 @@
     <div flex>
         <form>    
             <div layout="row" layout-xs="column" class="md-inline-form">
-                <div layout-xs="row" flex="20" flex-xs="100">
-                    <md-input-container style="width:95%" ng-if="isAdmin() || isManager()">
+                <div layout-xs="row" flex="40" flex-xs="100">
+                    <md-input-container ng-if="isAdmin() || isManager()">
                         <label>Магазин</label>
-                        <md-select name="selectStore" ng-model="selectedStore.id" ng-change="searchExpenses()">
+                        <md-select  style="width:100%" name="selectStore" ng-model="selectedStore.id" ng-change="searchExpenses()">
                             <md-option value="0">Всички магазини</md-option>
                             <md-option ng-repeat="store in stores" ng-value="store.id">
                                 {{store.city}}, {{store.name}}
                             </md-option>
                         </md-select>
                     </md-input-container>
+                    <md-input-container flex flex-offset="10">
+                        <label>Тип</label>
+                        <md-select style="width:100%" name="selectType" ng-model="selectedType.id">
+                            <md-option value="0" selected>Всички типове</md-option>
+                            <md-option ng-repeat="type in types" ng-value="type.id">
+                                {{type.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
                 </div>
-                <div layout-xs="row" flex-offset="5" flex="50" flex-xs="100">
+                <div layout-xs="row" flex-offset="2" flex="50" flex-xs="100">
                     <md-input-container>
                         <md-datepicker style="width:100%" ng-model="startDate" md-min-date="startMinDate" md-max-date="startMaxDate" ng-change="changeStartDate()"></md-datepicker>
                     </md-input-container>
@@ -21,7 +30,7 @@
                         <md-datepicker style="width:100%" ng-model="endDate" md-min-date="endMinDate" md-max-date="startMaxDate" ng-change="changeEndDate()"></md-datepicker>
                     </md-input-container>
                 </div>
-                <div layout-xs="row" flex-offset="5" flex="15" flex-xs="100">
+                <div layout-xs="row" flex-offset="3" flex="10" flex-xs="100">
                         <md-input-container>
                             <md-button ng-click="searchExpenses()" class="md-raised md-primary">Търси</md-button>
                         </md-input-container>

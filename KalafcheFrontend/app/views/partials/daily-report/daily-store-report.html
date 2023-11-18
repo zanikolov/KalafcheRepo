@@ -30,7 +30,7 @@
                 </div>
             </form>
         </div>
-        <div flex>
+        <div ng-if="dailyStoreReports.length > 0" flex>
             <table class="table table-hover table-condensed">
                 <thead>
                     <tr>
@@ -68,8 +68,17 @@
                             <div layout="row" layout-xs="column">
                                 <div flex="80"><span>Дата: {{getTimestamp(dailyStoreReport.createTimestamp)}}</span></div>
                             </div>
+                            <div ng-if="dailyStoreReport.updatedByEmployeeName" layout="row" layout-xs="column">
+                                <div flex="80"><span>Последно променил: {{dailyStoreReport.updatedByEmployeeName}}</span></div>
+                            </div>
+                            <div ng-if="dailyStoreReport.lastUpdateTimestamp" layout="row" layout-xs="column">
+                                <div flex="80"><span>Последна промяна: {{getTimestamp(dailyStoreReport.lastUpdateTimestamp)}}</strong></div>
+                            </div>
+                            <div ng-if="dailyStoreReport.description" layout="row" layout-xs="column">
+                                <div flex="80"><span>Причина за промяна: <strong>{{dailyStoreReport.description}}</strong></span></div>
+                            </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Старт каса: {{dailyStoreReport.initialBalance}}</span></div>
+                                <div flex="80"><span>Старт каса: {{dailyStoreReport.initialBalance}}лв</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80"><span>Продадени Артикули: {{dailyStoreReport.soldItemsCount}}</span></div>
@@ -78,20 +87,20 @@
                                 <div flex="80"><span>Върнати артикули: {{dailyStoreReport.refundedItemsCount}}</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Приход: {{dailyStoreReport.income}}</span></div>
+                                <div flex="80"><span>Приход: {{dailyStoreReport.income}}лв</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>С карта: {{dailyStoreReport.cardPayment}}</span></div>
+                                <div flex="80"><span>ПОС: {{dailyStoreReport.cardPayment}}лв</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Инкасо: {{dailyStoreReport.collected}}</span></div>
+                                <div flex="80"><span>Инкасо: {{dailyStoreReport.collected}}лв</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Разходи: {{dailyStoreReport.expense}}</span></div>
+                                <div flex="80"><span>Разходи: {{dailyStoreReport.expense}}лв</span></div>
                             </div>
                             <hr/>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span><strong>Каса: {{dailyStoreReport.finalBalance}}</strong></span></div>
+                                <div flex="80"><span><strong>Каса: {{dailyStoreReport.finalBalance}}лв</strong></span></div>
                             </div>
                         </td>
                     </tr>

@@ -1,0 +1,107 @@
+<div layout="column" ng-cloak>
+    <md-content layout-padding layout="column">
+        <div ng-if="dailyStoreReportsForCorrection.length > 0" flex>
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>
+                            <label>Магазин</label>
+                        </th>                   
+                        <th>
+                            <label>Служител</label>
+                        </th>
+                        <th>
+                            <label>Дата</label>
+                        </th>                      
+                        <th>
+                            <label>Каса</label>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-click="expand(report)" expand dir-paginate-start="report in dailyStoreReportsForCorrection | itemsPerPage:reportsPerPage" current-page="currentPage">
+                        <td>{{(currentPage - 1) * dailyStoreReportsPerPage + $index + 1}}</td>
+                        <td>{{report.storeName}}</td>
+                        <td>{{report.employeeName}}</td>
+                        <td>{{getTimestamp(report.createTimestamp)}}</td>
+                        <td>{{report.finalBalance}}лв</td>
+                    </tr>
+                    <tr dir-paginate-end ng-show="report.expanded">
+                        <td colspan="5" class="detailed-daily-store-report" style="padding-left:50px; border:#dbdfe5 solid">
+                            <form name="dailyStoreReportForm" server-validation novalidate>      
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Генериран от: {{report.employeeName}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Магазин: {{report.storeName}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80"><span>Дата: {{getTimestamp(report.createTimestamp)}}</span></div>
+                            </div>
+                            <div ng-if="report.updatedByEmployeeName" layout="row" layout-xs="column">
+                                <div flex="80"><span>Последно променил: {{report.updatedByEmployeeName}}</span></div>
+                            </div>
+                            <div ng-if="report.lastUpdateTimestamp" layout="row" layout-xs="column">
+                                <div flex="80"><span>Последна промяна: {{getTimestamp(report.lastUpdateTimestamp)}}</span></div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80">
+                                    Старт каса: <input type="number" min="0" name="initialBalance" ng-model="report.initialBalance" required>лв
+                                </div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80">
+                                    Продадени артикули: <input type="number" min="0" name="soldItemsCount" ng-model="report.soldItemsCount" required>лв
+                                </div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80">
+                                    Върнати артикули: <input type="number" min="0" name="refundedItemsCount" ng-model="report.refundedItemsCount" required>лв
+                                </div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80">
+                                    Приход: <input type="number" min="0" name="income" ng-model="report.income" required>лв
+                                </div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80">
+                                    ПОС: <input type="number" min="0" name="cardPayment" ng-model="report.cardPayment" required>лв
+                                </div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80">
+                                    Инкасо: <input type="number" min="0" name="collected" ng-model="report.collected" required>лв
+                                </div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80">
+                                    Разходи: <input type="number" min="0" name="expense" ng-model="report.expense" required>лв
+                                </div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80">
+                                    <strong>Каса: </strong><input type="number" min="0" name="finalBalance" ng-model="report.finalBalance" required>лв
+                                </div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <div flex="80">
+                                    Причина: <textarea id="textarea1" cols="30" rows="3" ng-model="report.description" required></textarea>
+                                </div>
+                            </div>
+                            <div layout="row" layout-xs="column">
+                                <md-button ng-disabled="dailyStoreReportForm.$invalid" ng-click="updateDailyStoreReport(report)" class="md-raised md-primary">Запази</md-button>
+                            </div>
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+
+    </md-content>
+</div>

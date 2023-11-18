@@ -26,11 +26,12 @@ angular.module('kalafcheFrontendApp')
             })
         }
 
-        function searchExpenses(startDateMilliseconds, endDateMilliseconds, storeIds) { 
+        function searchExpenses(startDateMilliseconds, endDateMilliseconds, storeIds, typeId) { 
             var params = {"params" : 
             	{"startDateMilliseconds": startDateMilliseconds, 
             	"endDateMilliseconds": endDateMilliseconds, 
-                "storeIds": storeIds}};
+                "storeIds": storeIds,
+                "typeId": typeId}};
             console.log(params);
 
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/expense', params)

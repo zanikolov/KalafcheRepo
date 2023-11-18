@@ -19,7 +19,9 @@ angular.module('kalafcheFrontendApp')
             $scope.expensesPerPage = 15;
             $scope.expenses = []; 
             $scope.stores = [];
+            $scope.types = [];
             $scope.selectedStore = {};
+            $scope.selectedType = {};
             
             $scope.dateFormat = 'dd-MMMM-yyyy';
             $scope.startDate = {};
@@ -46,6 +48,7 @@ angular.module('kalafcheFrontendApp')
             };
 
             getAllStores(); 
+            getExpenseTypes();
         }
 
         function getCurrentDate() {
@@ -61,7 +64,8 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.searchExpenses = function() {
-            ExpenseService.searchExpenses($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id).then(function(response) {
+            console.log("--------- " + $scope.selectedStore.id);
+            ExpenseService.searchExpenses($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id, $scope.selectedType.id).then(function(response) {
                 $scope.expenses = response.expenses;
             });    
         }
@@ -95,6 +99,12 @@ angular.module('kalafcheFrontendApp')
                 $scope.searchExpenses();
             });
 
+        };
+
+        function getExpenseTypes() {
+            ExpenseService.getExpenseTypes().then(function(response) {
+                $scope.types = response;
+            });
         };
 
         $scope.getTimestamp = function(timestamp) {
@@ -137,7 +147,6 @@ angular.module('kalafcheFrontendApp')
         };
 
         $rootScope.$on("ExpenseCreated", function () {
-            console.log("<><><><>");
             $scope.searchExpenses();
         })
 

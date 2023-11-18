@@ -4,7 +4,7 @@
             <form>    
                 <div layout="row" layout-xs="column" class="md-inline-form">
                     <div layout-xs="row" flex="20" flex-xs="100">
-                        <md-input-container style="width:95%" ng-if="isAdmin() || isManager()">
+                        <md-input-container style="width:95%">
                             <label>Фирма</label>
                             <md-select name="selectCompany" ng-model="selectedCompany.id" ng-change="searchDailyCompanyReports()">
                                 <md-option ng-repeat="company in companies" ng-value="company.id">
@@ -13,6 +13,19 @@
                             </md-select>
                         </md-input-container>
                     </div>
+                    <div layout-xs="row" flex-offset="5" flex="50" flex-xs="100">
+                        <md-input-container>
+                            <md-datepicker style="width:100%" ng-model="startDate" md-min-date="startMinDate" md-max-date="startMaxDate" ng-change="changeStartDate()"></md-datepicker>
+                        </md-input-container>
+                        <md-input-container flex-offset="5">
+                            <md-datepicker style="width:100%" ng-model="endDate" md-min-date="endMinDate" md-max-date="startMaxDate" ng-change="changeEndDate()"></md-datepicker>
+                        </md-input-container>
+                    </div>
+                    <div layout-xs="row" flex-offset="5" flex="15" flex-xs="100">
+                            <md-input-container>
+                                <md-button ng-disabled="selectedCompany.id==undefined" ng-click="searchDailyCompanyReports()" class="md-raised md-primary">Търси</md-button>
+                            </md-input-container>
+                    </div>
                 </div>
             </form>
         </div>
@@ -20,27 +33,46 @@
             <table class="table table-hover table-condensed">
                 <thead>
                     <tr>
+                        <th></th>
+                        <th>
+                            <label>Фирма</label>
+                        </th>                   
+                        <th>
+                            <label>Дата</label>
+                        </th>                      
+                        <th>
+                            <label>ПОС</label>
+                        </th>
+                        <th>
+                            <label >Каса</label>
+                        </th>
+                        <th>
+                            <label>Статус</label>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr ng-click="expand(dailyCompanyReport)" expand dir-paginate-start="dailyCompanyReport in dailyCompanyReports | itemsPerPage:dailyCompanyReportsPerPage" current-page="currentPage">
                         <td></td>
-                        <td><strong>{{dailyCompanyReport.companyName}}</strong></td>
-                        <td><strong>{{getTimestamp(dailyCompanyReport.createTimestamp)}}</strong></td>
+                        <td>{{dailyCompanyReport.companyName}}</td>
+                        <td>{{getDate(dailyCompanyReport.createDate)}}</td>
+                        <td>{{dailyCompanyReport.cardPayment}}лв</td>
+                        <td>{{dailyCompanyReport.finalBalance}}</td>
+                        <td>
+                            <span ng-if="dailyCompanyReport.isFinalized">Приключен</span>
+                            <span ng-if="!dailyCompanyReport.isFinalized">Нериключен</span>
+                        </td>
                     </tr>
-                    <tr dir-paginate-end ng-show="true">
-                        <td colspan="5" class="detailed-daily-store-report" style="padding-left:50px; border:#dbdfe5 solid">
-                            <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Генериран от: {{dailyCompanyReport.employeeName}}</span></div>
-                            </div>
+                    <tr dir-paginate-end ng-show="dailyCompanyReport.expanded">
+                        <td colspan="6" class="detailed-daily-store-report" style="padding-left:50px; border:#dbdfe5 solid">
                             <div layout="row" layout-xs="column">
                                 <div flex="80"><span>Фирма: {{dailyCompanyReport.companyName}}</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Дата: {{getTimestamp(dailyCompanyReport.createTimestamp)}}</span></div>
+                                <div flex="80"><span>Дата: {{getDate(dailyCompanyReport.createDate)}}</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Старт каса: {{dailyCompanyReport.initialBalance}}</span></div>
+                                <div flex="80"><span>Старт каса: {{dailyCompanyReport.initialBalance}}лв</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80"><span>Продадени Артикули: {{dailyCompanyReport.soldItemsCount}}</span></div>
@@ -49,20 +81,17 @@
                                 <div flex="80"><span>Върнати артикули: {{dailyCompanyReport.refundedItemsCount}}</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Приход: {{dailyCompanyReport.income}}</span></div>
+                                <div flex="80"><span>ПОС: {{dailyCompanyReport.cardPayment}}лв</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>С карта: {{dailyCompanyReport.cardPayment}}</span></div>
+                                <div flex="80"><span>Инкасо: {{dailyCompanyReport.collected}}лв</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Инкасо: {{dailyCompanyReport.collected}}</span></div>
-                            </div>
-                            <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Разходи: {{dailyCompanyReport.expense}}</span></div>
+                                <div flex="80"><span>Разходи: {{dailyCompanyReport.expense}}лв</span></div>
                             </div>
                             <hr/>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span><strong>Каса: {{dailyCompanyReport.finalBalance}}</strong></span></div>
+                                <div flex="80"><span><strong>Каса: {{dailyCompanyReport.finalBalance}}лв</strong></span></div>
                             </div>
                         </td>
                     </tr>

@@ -64,7 +64,7 @@ angular.module('kalafcheFrontendApp')
           } else {
               return '';
           }
-      };
+        };
 
       function convertEpochToDate(epochTime) {
 

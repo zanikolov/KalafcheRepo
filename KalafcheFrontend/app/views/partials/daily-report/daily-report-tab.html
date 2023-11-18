@@ -6,5 +6,8 @@
   		<md-tab  ng-if="isAdmin()" label="Фирми">
   			<daily-company-report></daily-company-report>
   		</md-tab>
+  		<md-tab  ng-if="isSuperAdmin()" label="Корекции">
+  			<daily-store-report-correction></daily-store-report-correction>
+  		</md-tab>
   	</md-tabs>
 </md-content>
