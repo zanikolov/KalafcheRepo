@@ -74,10 +74,11 @@ public class ExpenseServiceImpl implements ExpenseService {
 	}
 
 	@Override
-	public ExpenseReport searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds) {
-		ExpenseReport report = new ExpenseReport();
+	public ExpenseReport searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds, Integer typeId) {
+		Boolean isAdmin = employeeService.isLoggedInEmployeeAdmin();
 		
-		List<Expense> expenses = expenseDao.searchExpenses(startDateMilliseconds, endDateMilliseconds, entityService.getConcatenatedStoreIdsForFiltering(storeIds));
+		ExpenseReport report = new ExpenseReport();	
+		List<Expense> expenses = expenseDao.searchExpenses(startDateMilliseconds, endDateMilliseconds, entityService.getConcatenatedStoreIdsForFiltering(storeIds), typeId, isAdmin);
 		calculateTotalAmountAndCount(expenses, report);
 		report.setExpenses(expenses);
 		

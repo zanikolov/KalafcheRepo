@@ -17,7 +17,6 @@ angular.module('kalafcheFrontendApp')
                 {"startDateMilliseconds": startDateMilliseconds, 
                 "endDateMilliseconds": endDateMilliseconds, 
                 "storeIds": storeIds}};
-            console.log(params);
 
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/dailyStoreReport', params)
                 .then(
@@ -28,8 +27,12 @@ angular.module('kalafcheFrontendApp')
                 );
         }
 
-        function searchDailyStoreReportsForCorrection() { 
-            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/dailyStoreReport/correction')
+        function searchDailyStoreReportsForCorrection(startDateMilliseconds, endDateMilliseconds, storeIds) { 
+            var params = {"params" : 
+                {"startDateMilliseconds": startDateMilliseconds, 
+                "endDateMilliseconds": endDateMilliseconds, 
+                "storeIds": storeIds}};
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/dailyStoreReport/correction', params)
                 .then(
                     function(response) {
                         console.log(response.data);

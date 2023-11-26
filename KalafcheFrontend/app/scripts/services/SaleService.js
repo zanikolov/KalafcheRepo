@@ -28,8 +28,6 @@ angular.module('kalafcheFrontendApp')
                 selectedSaleItems.push(selectedSaleItem);
             })
 
-console.log(selectedSaleItems);
-
             return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/totalSum', selectedSaleItems)
                 .then(
                     function(response) {
@@ -59,12 +57,10 @@ console.log(selectedSaleItems);
         function searchSales(startDateMilliseconds, endDateMilliseconds, storeIds, selectedBrandId, selectedModelId, productCode) { 
             var params = {"params" : {"startDateMilliseconds": startDateMilliseconds, "endDateMilliseconds": endDateMilliseconds, 
                 "storeIds": storeIds, "deviceBrandId": selectedBrandId, "deviceModelId": selectedModelId, "productCode": productCode}};
-            console.log(params);
 
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale', params)
                 .then(
                     function(response) {
-                        console.log(response.data);
                         return response.data
                     }
                 );
@@ -74,7 +70,6 @@ console.log(selectedSaleItems);
             var params = {"params" : {"startDateMilliseconds": startDateMilliseconds, "endDateMilliseconds": endDateMilliseconds, 
                 "storeIds": storeIds, "deviceBrandId": selectedBrandId, "deviceModelId": selectedModelId, "productCode": productCode, "productTypeId": productTypeId, "masterProductTypeId": masterProductTypeId,
                 "priceFrom": priceFrom, "priceTo": priceTo, "discountCampaignCode": discountCampaignCode}};
-            console.log(params);
 
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/saleItem', params)
                 .then(

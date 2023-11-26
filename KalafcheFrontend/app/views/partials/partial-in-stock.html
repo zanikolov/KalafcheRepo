@@ -60,13 +60,20 @@
                         </md-input-container>
                     </div>
                 </div>
+                <div layout="row" flex-xs="100">
+                    <md-input-container flex="40">
+                        <md-checkbox ng-model="showZeroInStocks" class="md-primary">
+                            Покажи нулеви наличностни
+                        </md-checkbox>
+                     </md-input-container>
+                </div>
             </form>
         </div>
         <div flex>
             <md-button ng-click="openSaleModal()" ng-if="currentSale.selectedStocks.length > 0" class="md-raised md-primary">Текуща продажба</md-button>
         </div>
         <div flex>
-            <table class="table table-hover table-condensed">
+            <table class="table table-hover table-condensed" ng-if="inStockList.length > 0">
                 <thead>
                     <tr>
                         <th></th>
@@ -131,7 +138,7 @@
             </div>
         </div>
 
-        <div flex ng-if="selectedStore.id != 0">
+        <div flex ng-if="selectedStore.id != 0 && inStockList.length > 0">
             <md-button type="submit" class="md-raised md-primary" ng-click="printStickersStocks()">Принтирай</md-button>
         </div>
 

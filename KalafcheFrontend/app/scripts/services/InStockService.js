@@ -9,15 +9,16 @@ angular.module('kalafcheFrontendApp')
 
 		});
 
-    function getInStock(userStoreId, selectedStoreId, deviceBrandId, deviceModelId, productCode, barcode) {
+    function getInStock(userStoreId, selectedStoreId, deviceBrandId, deviceModelId, productCode, barcode, showZeroInStocks) {
         return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock', 
-          {"params" : {
-            "userStoreId" : userStoreId, 
-            "selectedStoreId" : selectedStoreId,
-            "deviceBrandId" : deviceBrandId,
-            "deviceModelId" : deviceModelId,
-            "productCodes" : productCode,
-            "barcode" : barcode}})
+          {"params": {
+            "userStoreId": userStoreId, 
+            "selectedStoreId": selectedStoreId,
+            "deviceBrandId": deviceBrandId,
+            "deviceModelId": deviceModelId,
+            "productCodes": productCode,
+            "barcode": barcode,
+            "showZeroInStocks": showZeroInStocks}})
             .then(
                 function(response) {
                     return response.data

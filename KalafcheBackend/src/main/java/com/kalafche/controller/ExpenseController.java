@@ -28,9 +28,10 @@ public class ExpenseController {
 	private ExpenseService expenseService;
 
 	@GetMapping
-	public ExpenseReport searchExpenses(@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds, 
-			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds, @RequestParam(value = "storeIds") String storeIds) {
-		return expenseService.searchExpenses(startDateMilliseconds, endDateMilliseconds, storeIds);
+	public ExpenseReport searchExpenses(@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds,
+			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds,
+			@RequestParam(value = "storeIds") String storeIds, @RequestParam(value = "typeId") Integer typeId) {
+		return expenseService.searchExpenses(startDateMilliseconds, endDateMilliseconds, storeIds, typeId);
 	}
 
 	@PostMapping

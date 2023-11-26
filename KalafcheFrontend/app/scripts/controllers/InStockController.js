@@ -15,6 +15,7 @@ angular.module('kalafcheFrontendApp')
             $scope.stores = [];
             $scope.productCode = "";
             $scope.selectedStore = null;
+            $scope.showZeroInStocks = false;
 
             $scope.currentSale = {};
             $scope.currentSale.selectedStocks = [];
@@ -46,7 +47,7 @@ angular.module('kalafcheFrontendApp')
 
         $scope.getInStock = function() {
             var userStoreId = SessionService.currentUser.employeeStoreId ? SessionService.currentUser.employeeStoreId : 0;
-            InStockService.getInStock(userStoreId, $scope.selectedStore.id, $scope.selectedBrand.id, $scope.selectedModel.id, $scope.productCode, $scope.selectedBarcode).then(function(response) {
+            InStockService.getInStock(userStoreId, $scope.selectedStore.id, $scope.selectedBrand.id, $scope.selectedModel.id, $scope.productCode, $scope.selectedBarcode, $scope.showZeroInStocks).then(function(response) {
                 $scope.inStockList = response;
                 $scope.resetCurrentPage();
             });
@@ -56,15 +57,12 @@ angular.module('kalafcheFrontendApp')
             StoreService.getAllEntities().then(function(response) {
                 $scope.stores = response;
                 $scope.selectedStore = {"id": SessionService.currentUser.employeeStoreId};
-                console.log(">>>> ");
-                console.log($scope.selectedStore);
             });
 
         };
 
         $scope.barcodeScanned = function(barcode) {                             
-            $scope.selectedBarcode = barcode;  
-            //findByBarcode();      
+            $scope.selectedBarcode = barcode;      
         }
 
         $scope.filterByProductCode = function() {

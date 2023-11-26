@@ -28,6 +28,7 @@ public class ExpenseDaoImpl extends JdbcDaoSupport implements ExpenseDao {
 
 	private static final String SELECT_EXPENSE_TYPES = "select * from expense_type ";
 	private static final String EXPENSE_TYPES_IS_ADMIN_CLAUSE = " where is_admin = false ";
+	private static final String AND_EXPENSE_TYPES_IS_ADMIN_CLAUSE = " and et.is_admin = false ";
 	
 	private static final String GET_EXPENSES_QUERY = "select " +
 			"e.id, " +
@@ -47,6 +48,7 @@ public class ExpenseDaoImpl extends JdbcDaoSupport implements ExpenseDao {
 			"join employee em on em.id = e.employee_id ";
 	
 	private static final String PERIOD_CRITERIA_QUERY = " where create_timestamp between ? and ?";
+	private static final String TYPE_CRITERIA_QUERY = " and type_id = ?";
 	private static final String STORE_CRITERIA_QUERY = " and ks.id in (%s)";
 	private static final String ORDER_BY = " order by create_timestamp";
 	
@@ -129,14 +131,24 @@ public class ExpenseDaoImpl extends JdbcDaoSupport implements ExpenseDao {
 	}
 
 	@Override
-	public List<Expense> searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds) {
-		String searchQuery = GET_EXPENSES_QUERY + PERIOD_CRITERIA_QUERY + String.format(STORE_CRITERIA_QUERY, storeIds)
-				+ ORDER_BY;
+	public List<Expense> searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds, Integer typeId, Boolean isAdmin) {
 		List<Object> argsList = new ArrayList<Object>();
+		String searchQuery = GET_EXPENSES_QUERY + PERIOD_CRITERIA_QUERY + String.format(STORE_CRITERIA_QUERY, storeIds); 
 		argsList.add(startDateMilliseconds);
 		argsList.add(endDateMilliseconds);
-
-		return getJdbcTemplate().query(searchQuery, getRowMapper(), startDateMilliseconds, endDateMilliseconds);
+		if (typeId != 0) {
+			searchQuery += TYPE_CRITERIA_QUERY;
+			argsList.add(typeId);
+		}
+		if (!isAdmin) {
+			searchQuery += AND_EXPENSE_TYPES_IS_ADMIN_CLAUSE;
+		}
+		searchQuery += ORDER_BY;		
+		
+		Object[] argsArr = new Object[argsList.size()];
+		argsArr = argsList.toArray(argsArr);
+		
+		return getJdbcTemplate().query(searchQuery, argsArr, getRowMapper());
 	}
 
 	@Override

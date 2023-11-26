@@ -58,7 +58,6 @@ angular.module('kalafcheFrontendApp')
             $scope.endDate.setHours(23);
             $scope.endDate.setMinutes(59);
             $scope.endDateMilliseconds = $scope.endDate.getTime();
-
         };
 
         $scope.searchDailyStoreReports = function() {

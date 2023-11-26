@@ -168,6 +168,13 @@ angular
                     authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
                     title: "Дневен отчет"
                 }      
+            }).state('schedule', {
+                url: '/schedule',
+                templateUrl: 'views/partials/schedule/schedule-tab.html',
+                data: {
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
+                    title: "Графици"
+                }
             }).state('rawItem', {
                 url: '/rawItem',
                 templateUrl: 'views/partials/partial-import-barcodes.html',

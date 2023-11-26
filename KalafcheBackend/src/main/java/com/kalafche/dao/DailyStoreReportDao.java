@@ -14,4 +14,9 @@ public interface DailyStoreReportDao {
 	List<DailyStoreReport> searchDailyStoreReports(Long startDateMilliseconds, Long endDateMilliseconds,
 			String storeIds);
 
+	List<DailyStoreReport> searchDailyCompanyReports(Long startDateMilliseconds, Long endDateMilliseconds,
+			Integer companyId);
+
+	void updateDailyStoreReport(DailyStoreReport dailyStoreReport);
+
 }

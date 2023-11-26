@@ -252,6 +252,14 @@ angular.module('kalafcheFrontendApp')
           user: true
         },
         {
+          link : 'schedule',
+          title: 'Графици',
+          icon: 'dashboard',
+          admin: true,
+          manager: true,
+          user: true
+        },
+        {
           link : 'revision',
           title: 'Ревизии',
           icon: 'dashboard',

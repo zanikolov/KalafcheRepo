@@ -13,7 +13,7 @@ public interface ExpenseDao {
 	
 	public List<ExpenseType> selectExpenseTypes(Boolean isAdmin);
 
-	public List<Expense> searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds);
+	public List<Expense> searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds, Integer typeId, Boolean isAdmin);
 
 	public Integer insertExpenseType(ExpenseType expenseType) throws SQLException;
 

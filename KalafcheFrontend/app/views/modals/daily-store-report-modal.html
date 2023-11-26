@@ -52,7 +52,7 @@
     </md-dialog-content>
 
     <md-dialog-actions style="padding-left:0px !important" layout="row">
-      <md-button ng-if="isFinalizeButtonVisible" class="md-raised md-primary" ng-click="finalizeDailyStoreReport()">Приключи</md-button>
+      <md-button ng-if="isFinalizeButtonVisible" ng-disabled="loading" class="md-raised md-primary" ng-click="finalizeDailyStoreReport()">Приключи</md-button>
       <span flex></span>
       <md-button ng-disabled="loading" class="md-raised md-primary" ng-click="closeModal()">Затвори</md-button>
     </md-dialog-actions>

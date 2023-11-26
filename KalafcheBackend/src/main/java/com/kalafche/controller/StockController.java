@@ -32,9 +32,10 @@ public class StockController {
 			@RequestParam(value = "deviceBrandId", required = false) Integer deviceBrandId,
 			@RequestParam(value = "deviceModelId", required = false) Integer deviceModelId,
 			@RequestParam(value = "productCodes", required = false) String productCodes,
-			@RequestParam(value = "barcode", required = false) String barcode
+			@RequestParam(value = "barcode", required = false) String barcode,
+			@RequestParam(value = "showZeroInStocks", required = false) Boolean showZeroInStocks
 			) {
-		return stockService.getAllApprovedStocks(userStoreId, selectedStoreId, deviceBrandId, deviceModelId, productCodes, barcode);
+		return stockService.getAllApprovedStocks(userStoreId, selectedStoreId, deviceBrandId, deviceModelId, productCodes, barcode, showZeroInStocks);
 	}
 	
 	@GetMapping("/getAllStocksForReport")

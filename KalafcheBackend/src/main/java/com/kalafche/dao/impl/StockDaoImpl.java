@@ -192,6 +192,8 @@ public class StockDaoImpl extends JdbcDaoSupport {
 	private static final String PRODUCT_CODES_CLAUSE = "and iv.product_code in (%s) ";
 
 	private static final String BARCODE_CLAUSE = "and iv.barcode = ? ";
+	
+	private static final String ZERO_QUANTITIES_CLAUSE = "and s.QUANTITY <> 0 ";
 
 	private BeanPropertyRowMapper<Stock> rowMapper;
 
@@ -214,14 +216,14 @@ public class StockDaoImpl extends JdbcDaoSupport {
 		getJdbcTemplate().update(UPSERT_APPROVED_IN_STOCK, itemId, storeId, quantity, quantity);
 	}
 
-	public List<Stock> getAllApprovedStocks(int userStoreId, int selectedStoreId, Integer deviceBrandId, Integer deviceModelId, String productCodes, String barcode) {
+	public List<Stock> getAllApprovedStocks(int userStoreId, int selectedStoreId, Integer deviceBrandId, Integer deviceModelId, String productCodes, String barcode, Boolean showZeroInStocks) {
 		
 		List<Object> storeArgsList;
 		List<Object> searchArgsList = Lists.newArrayList();
 		String searchCriteria;
 		if (selectedStoreId == 0) {
 			storeArgsList = Lists.newArrayList(userStoreId, userStoreId);
-			searchCriteria = generateSearchCriteria(deviceBrandId, deviceModelId, productCodes, barcode, searchArgsList);
+			searchCriteria = generateSearchCriteria(deviceBrandId, deviceModelId, productCodes, barcode, showZeroInStocks, searchArgsList);
 
 			storeArgsList.addAll(searchArgsList);		
 			
@@ -237,7 +239,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 
 		} else if (selectedStoreId == 4) {
 			storeArgsList = Lists.newArrayList(userStoreId, userStoreId);
-			searchCriteria = generateSearchCriteria(deviceBrandId, deviceModelId, productCodes, barcode, searchArgsList);
+			searchCriteria = generateSearchCriteria(deviceBrandId, deviceModelId, productCodes, barcode, showZeroInStocks, searchArgsList);
 
 			storeArgsList.addAll(searchArgsList);		
 			
@@ -247,7 +249,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 					storeArgsArr, getRowMapper());
 		} else {
 			storeArgsList = Lists.newArrayList(selectedStoreId);
-			searchCriteria = generateSearchCriteria(deviceBrandId, deviceModelId, productCodes, barcode, searchArgsList);
+			searchCriteria = generateSearchCriteria(deviceBrandId, deviceModelId, productCodes, barcode, showZeroInStocks, searchArgsList);
 
 			storeArgsList.addAll(searchArgsList);		
 			
@@ -267,7 +269,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 	}
 
 	private String generateSearchCriteria(Integer deviceBrandId, Integer deviceModelId, String productCodes,
-			String barcode, List<Object> argsList) {
+			String barcode, Boolean showZeroInStocks, List<Object> argsList) {
 
 		String searchCriteria = "";
 		
@@ -288,6 +290,15 @@ public class StockDaoImpl extends JdbcDaoSupport {
 		if (Strings.isNotBlank(barcode)) {
 			searchCriteria += BARCODE_CLAUSE;
 			argsList.add(barcode);
+		}
+		
+		if (Strings.isNotBlank(barcode)) {
+			searchCriteria += BARCODE_CLAUSE;
+			argsList.add(barcode);
+		}
+		
+		if (!showZeroInStocks) {
+			searchCriteria += ZERO_QUANTITIES_CLAUSE;
 		}
 		
 		return searchCriteria;

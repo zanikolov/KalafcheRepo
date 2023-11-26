@@ -2,7 +2,7 @@ package com.kalafche.service.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DailyStoreReportDao;
+import com.kalafche.exceptions.CommonException;
 import com.kalafche.model.DailyReportData;
 import com.kalafche.model.DailyStoreReport;
 import com.kalafche.model.DayInMillis;
@@ -46,6 +47,8 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 	
 	@Autowired
 	DailyStoreReportDao dailyStoreReportDao;
+	
+	private static final String KEYSOO_SYSTEM = "keysoo.system";
 	
 	@Override
 	public DailyStoreReport finalizeDailyStoreReport(Integer storeId) {
@@ -97,9 +100,9 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 		report.setInitialBalance(yesterdayReport != null && yesterdayReport.getFinalBalance() != null ? yesterdayReport.getFinalBalance() : BigDecimal.ZERO);
 		report.setStoreId(storeId);
 		report.setCreateTimestamp(dateService.getCurrentMillisBGTimezone());
-		report.setLastUpdateTimestamp(dateService.getCurrentMillisBGTimezone());
 		if (scheduled) {
-			report.setEmployeeName("System generated");
+			Employee keysooSystemUser = employeeService.getEmployeeByUsername(KEYSOO_SYSTEM);
+			report.setEmployeeId(keysooSystemUser.getId());
 		} else {
 			report.setEmployeeId(loggedInEmployee.getId());
 			report.setUpdatedByEmployeeId(loggedInEmployee.getId());
@@ -149,26 +152,32 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 
 	@Override
 	public List<DailyStoreReport> searchDailyCompanyReports(Long startDateMilliseconds, Long endDateMilliseconds, Integer companyId) {
-		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
-		DailyStoreReport companyReport = new DailyStoreReport();
-		companyReport.setCreateTimestamp(dateService.getCurrentMillisBGTimezone());
-		companyReport.setEmployeeName(loggedInEmployee.getName());
-		companyReport.setCompanyName(companyService.getCompanyById(companyId).getName());
+		List<DailyStoreReport> companyReports = new ArrayList<>();
+		companyReports.add(calculateCurrentCompanyReport(companyId));
+		companyReports.addAll(dailyStoreReportDao.searchDailyCompanyReports(startDateMilliseconds, endDateMilliseconds, companyId));	
+		
+		return companyReports;
+	}
+
+	private DailyStoreReport calculateCurrentCompanyReport(Integer companyId) {
+		DailyStoreReport currentCompanyReport = new DailyStoreReport();
+		currentCompanyReport.setCreateDate(dateService.getCurrentMillisBGTimezone());
+		currentCompanyReport.setCompanyName(companyService.getCompanyById(companyId).getName());
+		currentCompanyReport.setIsFinalized(false);
 		List<Integer> storeIds = storeService.getStoreIdsByCompanyId(companyId);
 		
 		for (Integer storeId : storeIds) {
 			DailyStoreReport storeReport = calculateDailyStoreReport(storeId, false);
-			companyReport.setSoldItemsCount(companyReport.getSoldItemsCount() + storeReport.getSoldItemsCount());
-			companyReport.setRefundedItemsCount(companyReport.getRefundedItemsCount() + storeReport.getRefundedItemsCount());
-			companyReport.setIncome(companyReport.getIncome().add(storeReport.getIncome()));
-			companyReport.setCollected(companyReport.getCollected().add(storeReport.getCollected()));
-			companyReport.setCardPayment(companyReport.getCardPayment().add(storeReport.getCardPayment()));
-			companyReport.setExpense(companyReport.getExpense().add(storeReport.getExpense()));
-			companyReport.setInitialBalance(companyReport.getInitialBalance().add(storeReport.getInitialBalance()));
-			companyReport.setFinalBalance(companyReport.getFinalBalance().add(storeReport.getFinalBalance()));
+			currentCompanyReport.setSoldItemsCount(currentCompanyReport.getSoldItemsCount() + storeReport.getSoldItemsCount());
+			currentCompanyReport.setRefundedItemsCount(currentCompanyReport.getRefundedItemsCount() + storeReport.getRefundedItemsCount());
+			currentCompanyReport.setIncome(currentCompanyReport.getIncome().add(storeReport.getIncome()));
+			currentCompanyReport.setCollected(currentCompanyReport.getCollected().add(storeReport.getCollected()));
+			currentCompanyReport.setCardPayment(currentCompanyReport.getCardPayment().add(storeReport.getCardPayment()));
+			currentCompanyReport.setExpense(currentCompanyReport.getExpense().add(storeReport.getExpense()));
+			currentCompanyReport.setInitialBalance(currentCompanyReport.getInitialBalance().add(storeReport.getInitialBalance()));
+			currentCompanyReport.setFinalBalance(currentCompanyReport.getFinalBalance().add(storeReport.getFinalBalance()));
 		}
-		
-		return Arrays.asList(companyReport);
+		return currentCompanyReport;
 	}
 	
 	@Scheduled(cron = "0 0 22 * * *", zone = "EET")
@@ -181,6 +190,37 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 				dailyStoreReportDao.insertDailyStoreReport(report);
 	    	}
 	    }
+	}
+
+	@Override
+	public void updateDailyStoreReport(DailyStoreReport dailyStoreReport) throws CommonException {
+		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
+		if (!loggedInEmployee.getRoles().contains("ROLE_SUPERADMIN")) {
+			throw new CommonException("Daily store reports could be editted only by super admins.");
+		}
+
+		if (dailyStoreReport.getDescription() == null || dailyStoreReport.getDescription().isEmpty()) {
+			throw new CommonException("Daily store report update reason should be described in the description field.");
+		}
+
+		dailyStoreReport.setLastUpdateTimestamp(dateService.getCurrentMillisBGTimezone());
+		dailyStoreReport.setUpdatedByEmployeeId(loggedInEmployee.getId());
+		
+		dailyStoreReportDao.updateDailyStoreReport(dailyStoreReport);
+	}
+
+	@Override
+	public List<DailyStoreReport> searchDailyStoreReportsForCorrection(Long startDateMilliseconds,
+			Long endDateMilliseconds, String storeIds) throws CommonException {
+		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
+		if (!loggedInEmployee.getRoles().contains("ROLE_SUPERADMIN")) {
+			throw new CommonException("Daily store reports could be editted only by super admins.");
+		}
+
+		List<DailyStoreReport> reports = dailyStoreReportDao.searchDailyStoreReports(startDateMilliseconds,
+				endDateMilliseconds, storeIds);
+
+		return reports;
 	}
 
 }

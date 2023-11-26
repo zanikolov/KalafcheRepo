@@ -10,6 +10,7 @@ public class DailyStoreReport {
 	private Integer companyId;
 	private String companyName;
 	private Long createTimestamp;
+	private Long createDate;
 	private Long lastUpdateTimestamp;
 	private Integer employeeId;
 	private String employeeName;
@@ -23,6 +24,8 @@ public class DailyStoreReport {
 	private BigDecimal expense;
 	private BigDecimal initialBalance;
 	private BigDecimal finalBalance;
+	private Boolean isFinalized;
+	private String description;
 	
 	public DailyStoreReport() {
 		this.soldItemsCount = 0;
@@ -81,6 +84,14 @@ public class DailyStoreReport {
 
 	public void setCreateTimestamp(Long createTimestamp) {
 		this.createTimestamp = createTimestamp;
+	}
+
+	public Long getCreateDate() {
+		return createDate;
+	}
+
+	public void setCreateDate(Long createDate) {
+		this.createDate = createDate;
 	}
 
 	public Long getLastUpdateTimestamp() {
@@ -185,6 +196,22 @@ public class DailyStoreReport {
 
 	public void setFinalBalance(BigDecimal finalBalance) {
 		this.finalBalance = finalBalance;
+	}
+
+	public Boolean getIsFinalized() {
+		return isFinalized;
+	}
+
+	public void setIsFinalized(Boolean isFinalized) {
+		this.isFinalized = isFinalized;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 }

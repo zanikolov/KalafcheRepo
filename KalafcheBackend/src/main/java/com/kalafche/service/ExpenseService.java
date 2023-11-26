@@ -17,7 +17,7 @@ public interface ExpenseService {
 
 	public List<ExpenseType> getExpenseTypes();
 
-	public ExpenseReport searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds);
+	public ExpenseReport searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds, Integer typeId);
 
 	public ExpenseType createExpenseType(ExpenseType expenseType) throws SQLException;
 	
