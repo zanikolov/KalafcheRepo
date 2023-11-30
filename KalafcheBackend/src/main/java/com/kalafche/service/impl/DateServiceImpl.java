@@ -1,20 +1,12 @@
 package com.kalafche.service.impl;
 
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.YearMonth;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
 import java.util.TimeZone;
 
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.kalafche.model.DayDto;
 import com.kalafche.model.DayInMillis;
 import com.kalafche.service.DateService;
 
