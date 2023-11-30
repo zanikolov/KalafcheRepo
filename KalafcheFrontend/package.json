@@ -1,46 +1,43 @@
 {
-  "name": "kalafchefrontend",
-  "version": "0.0.0",
+  "name": "CRA App",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
-    "angular-ui-bootstrap": "^1.2.5",
-    "grunt-google-cdn2": "^0.6.0"
-  },
-  "repository": {},
-  "devDependencies": {
-    "grunt": "^0.4.5",
-    "grunt-autoprefixer": "^2.0.0",
-    "grunt-bower-task": "^0.6.2",
-    "grunt-cli": "^1.4.3",
-    "grunt-concurrent": "^1.0.0",
-    "grunt-contrib-clean": "^0.6.0",
-    "grunt-contrib-concat": "^0.5.0",
-    "grunt-contrib-connect": "^0.9.0",
-    "grunt-contrib-copy": "^0.7.0",
-    "grunt-contrib-cssmin": "^0.12.0",
-    "grunt-contrib-htmlmin": "^0.4.0",
-    "grunt-contrib-imagemin": "^1.0.0",
-    "grunt-contrib-jshint": "^0.11.0",
-    "grunt-contrib-uglify": "^4.0.0",
-    "grunt-contrib-watch": "^0.6.1",
-    "grunt-filerev": "^2.1.2",
-    "grunt-google-cdn": "0.4.3",
-    "grunt-karma": "*",
-    "grunt-newer": "^1.1.0",
-    "grunt-ng-annotate": "^0.9.2",
-    "grunt-ng-constant": "^2.0.1",
-    "grunt-svgmin": "^2.0.0",
-    "grunt-usemin": "^3.0.0",
-    "grunt-wiredep": "^2.0.0",
-    "jshint-stylish": "^1.0.0",
-    "karma-jasmine": "*",
-    "karma-phantomjs-launcher": "*",
-    "load-grunt-tasks": "^3.1.0",
-    "time-grunt": "^1.0.0"
-  },
-  "engines": {
-    "node": ">=0.10.0"
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "@types/jest": "^27.5.2",
+    "@types/node": "^16.18.31",
+    "@types/react": "^18.2.6",
+    "@types/react-dom": "^18.2.4",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "typescript": "*",
+    "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "test": "grunt test"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
