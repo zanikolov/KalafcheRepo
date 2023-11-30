@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
  * 
  */
 public class CustomUserData implements UserDetails {
+	private static final long serialVersionUID = 1L;
 	Collection<? extends GrantedAuthority> list = null;
 	String userName = null;
 	String password = null;

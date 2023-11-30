@@ -6,7 +6,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,11 +20,11 @@ import org.springframework.util.StringUtils;
 import com.kalafche.dao.SaleDao;
 import com.kalafche.model.DailyReportData;
 import com.kalafche.model.Sale;
+import com.kalafche.model.SaleItem;
 import com.kalafche.model.SalesByStore;
 import com.kalafche.model.SalesByStoreByDayByProductType;
 import com.kalafche.model.TransactionsByStoreByDay;
 import com.kalafche.service.DateService;
-import com.kalafche.model.SaleItem;
 
 @Service
 public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {

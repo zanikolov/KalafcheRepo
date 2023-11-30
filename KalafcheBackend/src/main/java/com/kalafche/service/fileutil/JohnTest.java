@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -116,7 +115,7 @@ public class JohnTest {
 		return "";
 	}
 	
-	private static void printCellValue(Cell cell) {
+	public static void printCellValue(Cell cell) {
 	    switch (cell.getCellTypeEnum()) {
 	        case STRING:
 	            System.out.print(cell.getStringCellValue() + "    ");

@@ -29,4 +29,6 @@ public interface EmployeeService {
 
 	String getLoggedInEmployeeUsername();
 
+	List<Employee> getEmployeesByStoreId(Integer storeId);
+
 }

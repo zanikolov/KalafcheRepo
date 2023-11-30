@@ -44,7 +44,6 @@ import com.kalafche.model.StoreDto;
 import com.kalafche.model.TotalSumReport;
 import com.kalafche.model.TotalSumRequest;
 import com.kalafche.model.TransactionsByStoreByDay;
-import com.kalafche.model.comparator.SaleItemByItemPriceComparator;
 import com.kalafche.model.comparator.SalesByStoreByStoreIdComparator;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
@@ -108,70 +107,70 @@ public class SaleServiceImpl implements SaleService {
 		
 	}
 
-	private void saveSaleItems(Sale sale, Employee loggedInEmployee, DiscountCode discountCode, Integer saleId) {
-		if (discountCode == null) {
-			for (SaleItem saleItem : sale.getSaleItems()) {
-				saleItem.setSaleId(saleId);
-				BigDecimal itemPrice = itemDao.getItemPriceByStoreId(saleItem.getItemId(), sale.getStoreId());
-				saleItem.setItemPrice(itemPrice);
-				saleItem.setSalePrice(itemPrice);
-
-				saleDao.insertSaleItem(saleItem);
-				stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), loggedInEmployee.getStoreId());
-			}
-		} else if ("PERCENTAGE".equals(discountCode.getDiscountTypeCode())
-				|| "AMOUNT".equals(discountCode.getDiscountTypeCode())) {
-			BigDecimal discountValueAmount = new BigDecimal(discountCode.getDiscountValue());
-			for (SaleItem saleItem : sale.getSaleItems()) {
-				saleItem.setSaleId(saleId);
-				BigDecimal itemPrice = itemDao.getItemPriceByStoreId(saleItem.getItemId(), sale.getStoreId());
-				saleItem.setItemPrice(itemPrice);
-
-				String discountTypeCode = discountCode.getDiscountTypeCode();
-				if ("PERCENTAGE".equals(discountTypeCode)) {
-					BigDecimal salePrice = calculcatePercentageDiscountValuePrice(itemPrice, discountValueAmount);
-					saleItem.setSalePrice(salePrice);
-				} else if ("AMOUNT".equals(discountTypeCode)) {
-					BigDecimal salePrice = calculcateAmountDiscountValuePrice(itemPrice, discountValueAmount);
-					discountValueAmount = discountValueAmount.subtract(itemPrice);
-					if (discountValueAmount.compareTo(BigDecimal.ZERO) < 0) {
-						discountValueAmount = BigDecimal.ZERO;
-					}
-					saleItem.setSalePrice(salePrice);
-				}
-				saleDao.insertSaleItem(saleItem);
-				stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), loggedInEmployee.getStoreId());
-			}
-		} else if ("BUNDLE".equals(discountCode.getDiscountTypeCode())) {
-			for (SaleItem saleItem : sale.getSaleItems()) {
-				saleItem.setSaleId(saleId);
-				BigDecimal itemPrice = itemDao.getItemPriceByStoreId(saleItem.getItemId(), sale.getStoreId());
-				saleItem.setItemPrice(itemPrice);
-			}
-			
-			String discountValueAmount = discountCode.getDiscountValue();
-			List<String> bundleDiscount = Arrays.asList(discountValueAmount.split(";"));
-			
-			List<SaleItem> sortedSaleItems = sale.getSaleItems();
-			sortedSaleItems.sort(new SaleItemByItemPriceComparator());
-
-			int bundleDiscountCounter = 0;
-
-			for (int i = 0; i < sortedSaleItems.size(); i++) {
-				SaleItem saleItem = sortedSaleItems.get(i);
-				if (sortedSaleItems.size() - (i + 1) < bundleDiscount.size()) {
-					BigDecimal discountValue = new BigDecimal(bundleDiscount.get(bundleDiscountCounter++));
-					BigDecimal salePrice = calculcatePercentageDiscountValuePrice(saleItem.getItemPrice(), discountValue);
-					saleItem.setSalePrice(salePrice);
-				} else {
-					saleItem.setSalePrice(saleItem.getItemPrice());
-				}
-				
-				saleDao.insertSaleItem(saleItem);
-				stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), loggedInEmployee.getStoreId());
-			}
-		}
-	}
+//	private void saveSaleItems(Sale sale, Employee loggedInEmployee, DiscountCode discountCode, Integer saleId) {
+//		if (discountCode == null) {
+//			for (SaleItem saleItem : sale.getSaleItems()) {
+//				saleItem.setSaleId(saleId);
+//				BigDecimal itemPrice = itemDao.getItemPriceByStoreId(saleItem.getItemId(), sale.getStoreId());
+//				saleItem.setItemPrice(itemPrice);
+//				saleItem.setSalePrice(itemPrice);
+//
+//				saleDao.insertSaleItem(saleItem);
+//				stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), loggedInEmployee.getStoreId());
+//			}
+//		} else if ("PERCENTAGE".equals(discountCode.getDiscountTypeCode())
+//				|| "AMOUNT".equals(discountCode.getDiscountTypeCode())) {
+//			BigDecimal discountValueAmount = new BigDecimal(discountCode.getDiscountValue());
+//			for (SaleItem saleItem : sale.getSaleItems()) {
+//				saleItem.setSaleId(saleId);
+//				BigDecimal itemPrice = itemDao.getItemPriceByStoreId(saleItem.getItemId(), sale.getStoreId());
+//				saleItem.setItemPrice(itemPrice);
+//
+//				String discountTypeCode = discountCode.getDiscountTypeCode();
+//				if ("PERCENTAGE".equals(discountTypeCode)) {
+//					BigDecimal salePrice = calculcatePercentageDiscountValuePrice(itemPrice, discountValueAmount);
+//					saleItem.setSalePrice(salePrice);
+//				} else if ("AMOUNT".equals(discountTypeCode)) {
+//					BigDecimal salePrice = calculcateAmountDiscountValuePrice(itemPrice, discountValueAmount);
+//					discountValueAmount = discountValueAmount.subtract(itemPrice);
+//					if (discountValueAmount.compareTo(BigDecimal.ZERO) < 0) {
+//						discountValueAmount = BigDecimal.ZERO;
+//					}
+//					saleItem.setSalePrice(salePrice);
+//				}
+//				saleDao.insertSaleItem(saleItem);
+//				stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), loggedInEmployee.getStoreId());
+//			}
+//		} else if ("BUNDLE".equals(discountCode.getDiscountTypeCode())) {
+//			for (SaleItem saleItem : sale.getSaleItems()) {
+//				saleItem.setSaleId(saleId);
+//				BigDecimal itemPrice = itemDao.getItemPriceByStoreId(saleItem.getItemId(), sale.getStoreId());
+//				saleItem.setItemPrice(itemPrice);
+//			}
+//			
+//			String discountValueAmount = discountCode.getDiscountValue();
+//			List<String> bundleDiscount = Arrays.asList(discountValueAmount.split(";"));
+//			
+//			List<SaleItem> sortedSaleItems = sale.getSaleItems();
+//			sortedSaleItems.sort(new SaleItemByItemPriceComparator());
+//
+//			int bundleDiscountCounter = 0;
+//
+//			for (int i = 0; i < sortedSaleItems.size(); i++) {
+//				SaleItem saleItem = sortedSaleItems.get(i);
+//				if (sortedSaleItems.size() - (i + 1) < bundleDiscount.size()) {
+//					BigDecimal discountValue = new BigDecimal(bundleDiscount.get(bundleDiscountCounter++));
+//					BigDecimal salePrice = calculcatePercentageDiscountValuePrice(saleItem.getItemPrice(), discountValue);
+//					saleItem.setSalePrice(salePrice);
+//				} else {
+//					saleItem.setSalePrice(saleItem.getItemPrice());
+//				}
+//				
+//				saleDao.insertSaleItem(saleItem);
+//				stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), loggedInEmployee.getStoreId());
+//			}
+//		}
+//	}
 
 	private void saveSaleItems(Sale sale, Employee loggedInEmployee, Integer saleId) {
 		List<SaleItem> saleItems = sale.getSaleItems();

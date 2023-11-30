@@ -37,6 +37,7 @@ public class EmployeeDaoImpl extends JdbcDaoSupport implements EmployeeDao {
 			+ "join store ks on e.store_id = ks.id "
 			+ "join job_responsibility jr on e.job_responsibility_id = jr.id ";
 	private static final String ENABLED_CLAUSE = "where e.enabled is true ";
+	private static final String STORE_ID_CLAUSE = "e.store_id = ? ";
 	private static final String IN_CLAUSE = "and e.id in (%s) ";
 	private static final String ORDER_BY_ID_CLAUSE = "order by e.id ";
 	private static final String ORDER_BY_ENABLED_CLAUSE = "order by enabled desc ";
@@ -199,6 +200,11 @@ public class EmployeeDaoImpl extends JdbcDaoSupport implements EmployeeDao {
 	    Integer result = getJdbcTemplate().queryForObject(IS_EMPLOYEE_MANAGER, Integer.class, username);
 
 	    return result != null && result > 0;
+	}
+
+	@Override
+	public List<Employee> getAllActiveEmployeesByStore(Integer storeId) {
+		return getJdbcTemplate().query(GET_ALL_EMPLOYEE + ENABLED_CLAUSE + STORE_ID_CLAUSE + ORDER_BY_ENABLED_CLAUSE, getEmployeeRowMapper(), storeId);
 	}
 
 }

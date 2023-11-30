@@ -39,11 +39,15 @@ public class EmployeeController {
 		
 		return employee;
 	}
+	
 	@GetMapping
-	public List<Employee> getAllEmployee() {
-		List<Employee> employeeList = employeeService.getAllEmployees();
+	public List<Employee> getAllEmployees() {
+		return employeeService.getAllEmployees();
+	}
 		
-		return employeeList;
+	@GetMapping("/store")
+	public List<Employee> getEmployeesByStoreId(@RequestParam(value = "storeId") Integer storeId) {
+		return employeeService.getEmployeesByStoreId(storeId);
 	}
 	
 	@GetMapping("/enabled")
@@ -52,7 +56,7 @@ public class EmployeeController {
 	}
 	
 	@GetMapping("/firstLoginForDate")
-	public List<LoginHistory> getFirstLoginForDate(@RequestParam(value = "dateMillis")  long dateMillis) {
+	public List<LoginHistory> getFirstLoginForDate(@RequestParam(value = "dateMillis") Long dateMillis) {
 		return loginHistoryService.getLoginHistoryRecords(dateMillis);
 	}
 	

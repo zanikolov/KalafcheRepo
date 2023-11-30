@@ -5,8 +5,6 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -28,9 +26,6 @@ import com.kalafche.security.entity.CustomerDetails;
 @RequestMapping(value = "/customer")
 @Secured("ROLE_ADMIN")
 public class CustomerDetailService {
-
-	@Autowired
-	private ApplicationEventPublisher eventPublisher;
 
 	public CustomerDetailService() {
 		super();

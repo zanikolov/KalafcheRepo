@@ -30,4 +30,6 @@ public interface EmployeeDao {
 
 	public abstract Boolean getIsEmployeeManager(String username);
 
+	public abstract List<Employee> getAllActiveEmployeesByStore(Integer storeId);
+
 }

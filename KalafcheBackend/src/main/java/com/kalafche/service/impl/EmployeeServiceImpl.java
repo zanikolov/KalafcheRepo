@@ -110,5 +110,10 @@ public class EmployeeServiceImpl implements EmployeeService {
 			throw new DuplicationException("username", "Username duplication.");
 		}
 	}
+
+	@Override
+	public List<Employee> getEmployeesByStoreId(Integer storeId) {
+		return employeeDao.getAllActiveEmployeesByStore(storeId);
+	}
 	
 }

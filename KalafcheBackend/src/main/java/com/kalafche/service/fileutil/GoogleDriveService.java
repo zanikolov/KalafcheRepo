@@ -55,7 +55,7 @@ public class GoogleDriveService implements ImageUploadService {
         return service;
     }
 
-	private static void getAllFiles(Drive service) throws IOException {
+	public static void getAllFiles(Drive service) throws IOException {
 		FileList result = service.files().list()
                 .setPageSize(10)
                 .setFields("nextPageToken, files(id, name)")

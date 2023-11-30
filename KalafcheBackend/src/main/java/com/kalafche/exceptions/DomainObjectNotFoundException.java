@@ -5,6 +5,7 @@ package com.kalafche.exceptions;
  */
 public class DomainObjectNotFoundException extends RuntimeException {
 
+	private static final long serialVersionUID = 1L;
 	private String field;
 	private String message;
 	
