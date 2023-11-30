@@ -47,6 +47,10 @@ md-item-content:hover {
   color: white;
 }
 
+.md-active {
+  color: #9c27b0 !important;
+}
+
 .disabled-page
 {
   pointer-events: none;

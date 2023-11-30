@@ -19,7 +19,8 @@ angular.module('kalafcheFrontendApp')
             $scope.currentPage = 1;
             $scope.workingShifts = [];
             $scope.workingShift = null;
-            //getAllWorkingShifts();
+            $scope.now = new Date();
+            getAllWorkingShifts();
         }
 
         function getAllWorkingShifts() {
@@ -29,14 +30,21 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.editWorkingShift = function(workingShift) {
-            $scope.workingShift = angular.copy(workingShift);
-            var startTime = new Date();
-            startTime.setHours($scope.workingShift.startTimeMinutes / 60);
-            startTime.setMinutes($scope.workingShift.startTimeMinutes % 60);
-            $scope.workingShift.startTime = startTime;
-
-            console.log($scope.workingShift.startTime);
+            $scope.workingShift = angular.copy(workingShift);   
+            $scope.workingShift.startTime = $scope.convertMinutesToTime($scope.workingShift.startTimeMinutes);
+            $scope.workingShift.endTime = $scope.convertMinutesToTime($scope.workingShift.endTimeMinutes);
+            $scope.workingShift.duration = $scope.convertMinutesToTime($scope.workingShift.durationMinutes);
         };
+
+        $scope.convertMinutesToTime = function(minutes) {
+            var time = angular.copy($scope.now);
+            time.setHours(minutes / 60);
+            time.setMinutes(minutes % 60);
+            time.setSeconds(0);
+            time.setMilliseconds(0);
+
+            return time;
+        }
 
         $scope.resetWorkingShift = function() {
             $scope.workingShift = null;
@@ -50,18 +58,30 @@ angular.module('kalafcheFrontendApp')
 
         $scope.submitWorkingShift = function() {
             console.log($scope.workingShift);
-            // WorkingShiftService.submitWorkingShift($scope.workingShift).then(function(response) {
-            //     $scope.resetWorkingShiftForm();
-            //     getAllWorkingShifts();
-            // });
+            WorkingShiftService.submitWorkingShift($scope.workingShift).then(function(response) {
+                $scope.resetWorkingShiftForm();
+                getAllWorkingShifts();
+            });
         };
 
         $scope.changeStartTime = function() {
             $scope.workingShift.startTimeMinutes = getTimeInMinutes($scope.workingShift.startTime);
         }
 
+        $scope.changeEndTime = function() {
+            $scope.workingShift.endTimeMinutes = getTimeInMinutes($scope.workingShift.endTime);
+        }
+
+        $scope.changeDuration = function() {
+            $scope.workingShift.durationMinutes = getTimeInMinutes($scope.workingShift.duration);
+        }
+
         function getTimeInMinutes(dateTime) {
-            return dateTime.getHours()*60 + dateTime.getMinutes();
+            if (dateTime != null && dateTime.getHours() != null && dateTime.getMinutes() != null) {
+                return dateTime.getHours()*60 + dateTime.getMinutes();
+            }
+
+            return null;
         }
 
     };

@@ -1,0 +1,55 @@
+<div layout="column" ng-cloak>
+    <md-content layout-padding layout="column">
+        <div flex>
+            <form>    
+                <div layout="row" layout-xs="column" class="md-inline-form">
+                    <div layout-xs="row" flex-offset="5" flex="25" flex-xs="100">
+                        <md-input-container style="width:95%">
+                            <label>Магазин</label>
+                            <md-select name="selectStore" ng-model="selectedStore.id" ng-change="searchSchedule(selectedStore.id)">
+                                <md-option ng-repeat="store in stores" ng-value="store.id">
+                                    {{store.city}}, {{store.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <div layout-xs="row" flex="20" flex-xs="100">
+                        <md-input-container>
+                            <md-button layout-align="right" ng-click="generateMonthlySchedule(selectedStore.id)" class="md-raised md-primary">Генерирай</md-button>
+                        </md-input-container>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div flex ng-if="report">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th ng-repeat="employee in employees">
+                            <label>{{employee.name}}</label>
+                        </th>                      
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr dir-paginate="turnoverByStore in report.pastPeriodTurnovers | itemsPerPage:turnoverByStorePerPage" current-page="currentPage" pagination-id="store">
+                        <td>{{(currentPage - 1) * turnoverByStorePerPage + $index + 1}}</td>
+                        <td>{{turnoverByStore.storeName}}</td>
+                        <td>{{turnoverByStore.selectedMonthTurnover}}лв</td>
+                        <td>{{turnoverByStore.prevMonthTurnover}} 
+                            <span ng-if="turnoverByStore.prevMonthDelta < 0" style="color: red">{{turnoverByStore.prevMonthDelta}}%</span>
+                            <span ng-if="turnoverByStore.prevMonthDelta > 0" style="color: green">{{turnoverByStore.prevMonthDelta}}%</span>
+                        </td>
+                        <td>{{turnoverByStore.prevYearTurnover}} 
+                            <span ng-if="turnoverByStore.prevYearDelta < 0" style="color: red">{{turnoverByStore.prevYearDelta}}%</span>
+                            <span ng-if="turnoverByStore.prevYearDelta > 0" style="color: green">{{turnoverByStore.prevYearDelta}}%</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div layout="row" layout-align="center center">
+                <dir-pagination-controls pagination-id="store" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+    </md-content>
+</div>
