@@ -5,7 +5,8 @@ angular.module('kalafcheFrontendApp')
 		angular.extend(this, {
 			getAllEmployees: getAllEmployees,
             submitEmployee: submitEmployee,
-            getAllActiveEmployees: getAllActiveEmployees
+            getAllActiveEmployees: getAllActiveEmployees,
+            getAllActiveEmployeesGroupedByStore: getAllActiveEmployeesGroupedByStore
 		});
 
         function submitEmployee(employee) { 
@@ -37,6 +38,15 @@ angular.module('kalafcheFrontendApp')
 
         function getAllActiveEmployees() {  
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/employee/enabled')
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                );
+        }
+
+        function getAllActiveEmployeesGroupedByStore() {  
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/employee/groupedByStore')
                 .then(
                     function(response) {
                         return response.data

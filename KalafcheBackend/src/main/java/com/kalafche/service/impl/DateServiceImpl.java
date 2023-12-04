@@ -1,8 +1,11 @@
 package com.kalafche.service.impl;
 
 import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.format.TextStyle;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import org.springframework.stereotype.Service;
@@ -61,6 +64,22 @@ public class DateServiceImpl implements DateService {
 		dayInMillis.setEndDateTime(day.getTimeInMillis());
 		
 		return dayInMillis;
+	}
+	
+	@Override
+	public String generateDisplayDate(Integer day, Integer month, Integer year, Integer dayOfTheWeek) {
+		StringBuilder dateString = new StringBuilder()
+				.append(String.format("%02d", day)).append('/')
+				.append(String.format("%02d", month)).append('/')
+				.append(year).append(' ')
+				.append(DayOfWeek.of(dayOfTheWeek).getDisplayName(TextStyle.SHORT_STANDALONE, Locale.of("bg", "BG")));
+
+		return dateString.toString();
+	}
+	
+	@Override
+	public String convertMinutesToTime(Integer minutes) {
+		return new StringBuilder().append(String.format("%02d", minutes / 60)).append(':').append(String.format("%02d", minutes % 60)).toString();
 	}
 	
 }

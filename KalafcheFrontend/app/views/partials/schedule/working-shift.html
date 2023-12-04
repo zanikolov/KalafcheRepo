@@ -60,9 +60,9 @@
                         <td>{{(currentPage - 1) * workingShiftsPerPage + $index + 1}}</td>
                         <td>{{workingShift.name}}</td>
                         <td>{{workingShift.code}}</td>
-                        <td>{{convertMinutesToTime(workingShift.startTimeMinutes).toLocaleTimeString('bg-BG', {hour12: false, hour: '2-digit', minute:'2-digit'})}}</td>
-                        <td>{{convertMinutesToTime(workingShift.endTimeMinutes).toLocaleTimeString('bg-BG', {hour12: false, hour: '2-digit', minute:'2-digit'})}}</td>
-                        <td>{{convertMinutesToTime(workingShift.durationMinutes).toLocaleTimeString('bg-BG', {hour12: false, hour: 'numeric', minute:'2-digit'})}}</td>
+                        <td>{{workingShift.startTime}}</td>
+                        <td>{{workingShift.endTime}}</td>
+                        <td>{{workingShift.duration}}</td>
                         <td>
                             <a href="" ng-click="editWorkingShift(workingShift)">
                                 <md-icon  class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>

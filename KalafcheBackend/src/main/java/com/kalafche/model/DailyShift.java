@@ -1,13 +1,11 @@
 package com.kalafche.model;
 
-import java.time.LocalDate;
-
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class DailyShift {
+public class DailyShift implements Comparable<DailyShift> {
 
 	private Integer id;
 	private Long createTimestamp;
@@ -19,11 +17,17 @@ public class DailyShift {
 	private Integer employeeId;
 	private String employeeName;
 	private Integer calendarId;
-	private LocalDate date;
+	private String calendarDate;
+	private Integer monthlyScheduleId;
 	private Integer workingShiftId;
 	private String workingShiftName;
 	private Integer workingShiftDurationMinutes;
-	private Integer workingShiftStartTimeMinutes;
-	private Integer workingShiftEndTimeMinutes;
+	private String workingShiftStartTime;
+	private String workingShiftEndTime;
+	
+	@Override
+	public int compareTo(DailyShift o) {
+		return this.employeeId.compareTo(o.getEmployeeId());
+	}
 	
 }

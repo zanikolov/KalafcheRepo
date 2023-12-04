@@ -1,6 +1,7 @@
 package com.kalafche.model;
 
 import java.util.List;
+import java.util.TreeMap;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -23,7 +24,8 @@ public class MonthlySchedule {
 	private Integer month;
 	private Integer year;
 	private Boolean isFinalized;
-	List<DailyShift> dailyShifts;
-	List<Employee> employees;
+	private Boolean isPresentForm;
+	private TreeMap<String, List<DailyShift>> dailyShiftsGroupedByDay;
+	private List<EmployeeHours> employeesHours;
 	
 }

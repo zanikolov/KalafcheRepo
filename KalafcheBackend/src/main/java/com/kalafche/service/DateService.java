@@ -13,4 +13,8 @@ public interface DateService {
 	DayInMillis getTodayInMillis(Integer dayShift);
 
 	Date getCurrentTimeBGTimezone();
+
+	String generateDisplayDate(Integer day, Integer month, Integer year, Integer dayOfTheWeekNumber);
+
+	String convertMinutesToTime(Integer minutes);
 }

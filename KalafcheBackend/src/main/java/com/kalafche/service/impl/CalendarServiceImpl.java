@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import com.kalafche.dao.CalendarDao;
 import com.kalafche.model.DayDto;
 import com.kalafche.service.CalendarService;
+import com.kalafche.service.DateService;
 
 @Service
 public class CalendarServiceImpl implements CalendarService {
@@ -21,12 +22,15 @@ public class CalendarServiceImpl implements CalendarService {
 	@Autowired
 	CalendarDao calendarDao;
 
+	@Autowired
+	DateService dateService;
+
 	@Scheduled(cron = "0 30 22 25 * *", zone = "EET")
-	public void insertCalendarDays() {
+	private void insertCalendarDays() {
 		calendarDao.insertDays(generateDaysForDBCalendar(13, 1));
 	}	
 
-	public List<DayDto> generateDaysForDBCalendar(Integer offsetInMonths, Integer periodInMonths) {
+	private List<DayDto> generateDaysForDBCalendar(Integer offsetInMonths, Integer periodInMonths) {
 		ZoneId zoneId = ZoneId.of("Europe/Sofia");
 		ZonedDateTime now = ZonedDateTime.of(LocalDateTime.now(), zoneId);
 		ZonedDateTime dateOfFirstDayOfMonth;
@@ -38,13 +42,26 @@ public class CalendarServiceImpl implements CalendarService {
 			int daysInMonth = yearMonth.lengthOfMonth();
 
 			for (int day = 1; day <= daysInMonth; day++) {
+				Integer dayOfTheWeek = dateOfFirstDayOfMonth.withDayOfMonth(day).getDayOfWeek().getValue();
+				String displayDate = dateService.generateDisplayDate(day, dateOfFirstDayOfMonth.getMonthValue(),
+						dateOfFirstDayOfMonth.getYear(), dayOfTheWeek);
 				DayDto dayDto = new DayDto(day, dateOfFirstDayOfMonth.getMonthValue(), dateOfFirstDayOfMonth.getYear(),
-						dateOfFirstDayOfMonth.withDayOfMonth(day).getDayOfWeek().getValue(), null, false);
+						dayOfTheWeek, displayDate, false);
 				days.add(dayDto);
 			}
 		}
-		
+
 		return days;
+	}
+	
+	@Override
+	public List<Integer> getDayIdsByMonthAndYear(Integer month, Integer year) {
+		return calendarDao.getDayIdsByMonthAndYear(month, year);
+	}
+
+	@Override
+	public List<DayDto> getDaysByMonthAndYear(Integer month, Integer year) {
+		return calendarDao.getDaysByMonthAndYear(month, year);
 	}
 	
 }

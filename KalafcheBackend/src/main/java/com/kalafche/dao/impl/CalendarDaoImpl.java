@@ -20,6 +20,10 @@ public class CalendarDaoImpl extends JdbcDaoSupport implements CalendarDao {
 
 	private static final String INSERT_DAY = "insert into calendar (day, month, year, day_of_the_week, date, is_holiday) values (?, ?, ?, ?, ?, ?)";
 
+	private static final String SELECT_DAY_IDS_BY_MONTH_AND_YEAR = "select id from calendar where month = ? and year = ?";
+	
+	private static final String SELECT_DAYS_BY_MONTH_AND_YEAR = "select * from calendar where month = ? and year = ? order by day asc";
+
 	private BeanPropertyRowMapper<DayDto> rowMapper;
 	
 	@Autowired
@@ -48,7 +52,7 @@ public class CalendarDaoImpl extends JdbcDaoSupport implements CalendarDao {
 				statement.setInt(2, day.getMonth());
 				statement.setInt(3, day.getYear());
 				statement.setInt(4, day.getDayOfWeek());
-				statement.setDate(5, day.getDate());
+				statement.setString(5, day.getDate());
 				statement.setBoolean(6, day.getIsHoliday());
 				statement.addBatch();
 			}
@@ -58,6 +62,16 @@ public class CalendarDaoImpl extends JdbcDaoSupport implements CalendarDao {
 		catch(SQLException e) {
 			e.printStackTrace();
 		} 
+	}
+
+	@Override
+	public List<Integer> getDayIdsByMonthAndYear(Integer month, Integer year) {
+		return getJdbcTemplate().queryForList(SELECT_DAY_IDS_BY_MONTH_AND_YEAR, Integer.class, month, year);
+	}
+
+	@Override
+	public List<DayDto> getDaysByMonthAndYear(Integer month, Integer year) {
+		return getJdbcTemplate().query(SELECT_DAYS_BY_MONTH_AND_YEAR, getRowMapper(), month, year);
 	}
 
 }

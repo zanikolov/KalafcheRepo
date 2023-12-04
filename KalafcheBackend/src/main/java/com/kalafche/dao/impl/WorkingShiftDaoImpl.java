@@ -14,16 +14,16 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
+import com.kalafche.dao.WorkingShiftDao;
 import com.kalafche.model.WorkingShift;
-import com.kalafche.service.impl.WorkingShiftDao;
 
 @Service
 public class WorkingShiftDaoImpl extends JdbcDaoSupport implements WorkingShiftDao {
 	
-	private static final String INSERT_WORKING_SHIFT = "INSERT INTO working_shift (CREATE_TIMESTAMP, CREATED_BY, NAME, CODE, START_TIME_MINUTES, END_TIME_MINUTES, DURATION_MINUTES) " +
-			"VALUES (?, ?, ?, ?, ?, ?, ?); ";
+	private static final String INSERT_WORKING_SHIFT = "INSERT INTO working_shift (CREATE_TIMESTAMP, CREATED_BY, NAME, CODE, START_TIME_MINUTES, START_TIME, END_TIME_MINUTES, END_TIME, DURATION_MINUTES, DURATION) " +
+			"VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?); ";
 	
-	private static final String UPDATE_WORKING_SHIFT = "update working_shift set name = ?, updated_by = ?, last_update_timestamp = ?, start_time_minutes = ?, end_time_minutes = ?, duration_minutes = ? where id = ?";
+	private static final String UPDATE_WORKING_SHIFT = "update working_shift set name = ?, updated_by = ?, last_update_timestamp = ?, start_time_minutes = ?, start_time = ?, end_time_minutes = ?, end_time = ?, duration_minutes = ?, duration = ? where id = ?";
 	
 	private static final String SELECT_WORKING_SHIFTS = "select * from working_shift;";
 
@@ -54,8 +54,11 @@ public class WorkingShiftDaoImpl extends JdbcDaoSupport implements WorkingShiftD
 			statement.setString(3, workingShift.getName());
 			statement.setString(4, workingShift.getCode());
 			statement.setInt(5, workingShift.getStartTimeMinutes());
-			statement.setInt(6, workingShift.getEndTimeMinutes());
-			statement.setInt(7, workingShift.getDurationMinutes());
+			statement.setString(6, workingShift.getStartTime());
+			statement.setInt(7, workingShift.getEndTimeMinutes());
+			statement.setString(8, workingShift.getEndTime());
+			statement.setInt(9, workingShift.getDurationMinutes());
+			statement.setString(10, workingShift.getDuration());
 
 			int affectedRows = statement.executeUpdate();
 
@@ -82,10 +85,10 @@ public class WorkingShiftDaoImpl extends JdbcDaoSupport implements WorkingShiftD
 
 	@Override
 	public void updateWorkingShift(WorkingShift workingShift) {
-		getJdbcTemplate().update(UPDATE_WORKING_SHIFT, workingShift.getName(),
-				workingShift.getUpdatedByEmployeeId(), workingShift.getLastUpdateTimestamp(),
-				workingShift.getStartTimeMinutes(), workingShift.getEndTimeMinutes(), workingShift.getDurationMinutes(),
-				workingShift.getId());
+		getJdbcTemplate().update(UPDATE_WORKING_SHIFT, workingShift.getName(), workingShift.getUpdatedByEmployeeId(),
+				workingShift.getLastUpdateTimestamp(), workingShift.getStartTimeMinutes(), workingShift.getStartTime(),
+				workingShift.getEndTimeMinutes(), workingShift.getEndTime(), workingShift.getDurationMinutes(),
+				workingShift.getDuration(), workingShift.getId());
 	}
 
 }

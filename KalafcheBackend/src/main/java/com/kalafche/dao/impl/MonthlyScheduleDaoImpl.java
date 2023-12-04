@@ -11,37 +11,40 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.MonthlyScheduleDao;
+import com.kalafche.model.Employee;
+import com.kalafche.model.EmployeeHours;
 import com.kalafche.model.MonthlySchedule;
 
 @Service
 public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlyScheduleDao {
 
 	private static final String INSERT_MONTHLY_SCHEDULE = "insert into monthly_schedule " +
-			"(create_timestamp,created_by,last_update_timestamp,updated_by,store_id,is_finalized,month,year) VALUES " +
-			"(?               ,?         ,?                    ,?         ,?       ,?           ,?     ,?) ";
-	private static final String SELECT_MONTHLY_SCHEDULE = "select * from monthly_schedule where store_id = ? and month = ? and year = ?";
-//	
-//	private static final String PERIOD_CRITERIA_QUERY = " where create_timestamp between ? and ?";
-//	private static final String STORE_CRITERIA_QUERY = " and ks.id in (%s)";
-//	private static final String ORDER_BY = " order by create_timestamp, ks.id";
-//	
-//	private static final String UPDATE_DAILY_STORE_REPORT = "update daily_store_report " +
-//			"set INCOME = ?, " +
-//			"COLLECTED = ?, " +
-//			"EXPENSE = ?, " +
-//			"CARD_PAYMENT = ?, " +
-//			"INITIAL_BALANCE = ?, " +
-//			"FINAL_BALANCE = ?, " +
-//			"SOLD_ITEMS_COUNT = ?, " +
-//			"REFUNDED_ITEMS_COUNT = ?, " +
-//			"DESCRIPTION = ?, " +
-//			"LAST_UPDATE_TIMESTAMP = ?, " +
-//			"UPDATED_BY = ? " +
-//			"where id = ? ";
+			"(create_timestamp,created_by,store_id,is_finalized,is_present_form,month,year) VALUES " +
+			"(?               ,?         ,?       ,?           ,?              ,?    ,?) ";
+	private static final String SELECT_MONTHLY_SCHEDULE = "select * from monthly_schedule ";
+	
+	private static final String IS_PRESENT_CLAUSE = "where is_present_form = ? "; 
+	
+	private static final String STORE_MONTH_YEAR_CLAUSE = "and store_id = ? and month = ? and year = ?";
+	
+	private static final String ID_CLAUSE = "where id = ?";
+	
+	private static final String SELECT_EMPLOYEE_HOURS = "select ds.employee_id, " +
+			"e.name, " +
+			"sum(ws.duration_minutes) " +
+			"from daily_shift ds " +
+			"join employee e on ds.EMPLOYEE_ID = e.id " +
+			"left join working_shift ws on ds.WORKING_SHIFT_ID = ws.id " +
+			"where MONTHLY_SCHEDULE_ID = ? " +
+			"group by ds.employee_id, e.name " +
+			"order by ds.employee_id ";
+
+	private static final String UPDATE_MONTHLY_SCHEDULE = "update monthly_schedule set last_update_timestamp = ?, updated_by = ?, is_finalized = ? where id = ?";
 	
 	private BeanPropertyRowMapper<MonthlySchedule> rowMapper;
 	
@@ -67,12 +70,11 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 						INSERT_MONTHLY_SCHEDULE, Statement.RETURN_GENERATED_KEYS);) {
 			statement.setLong(1, monthlySchedule.getCreateTimestamp());
 			statement.setInt(2, monthlySchedule.getCreatedByEmployeeId());
-			statement.setLong(3, monthlySchedule.getLastUpdateTimestamp());
-			statement.setInt(4, monthlySchedule.getUpdatedByEmployeeId());
-			statement.setInt(5, monthlySchedule.getStoreId());
-			statement.setBoolean(6, monthlySchedule.getIsFinalized());
-			statement.setInt(7, monthlySchedule.getMonth());
-			statement.setInt(8, monthlySchedule.getYear());
+			statement.setInt(3, monthlySchedule.getStoreId());
+			statement.setBoolean(4, monthlySchedule.getIsFinalized());
+			statement.setBoolean(5, monthlySchedule.getIsPresentForm());
+			statement.setInt(6, monthlySchedule.getMonth());
+			statement.setInt(7, monthlySchedule.getYear());
 
 			int affectedRows = statement.executeUpdate();
 
@@ -94,26 +96,39 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 	}
 
 	@Override
-	public MonthlySchedule getMonthlySchedule(Integer storeId, Integer month, Integer year) {
-		List<MonthlySchedule> monthlySchedule = getJdbcTemplate().query(SELECT_MONTHLY_SCHEDULE, new Object[] {storeId, month, year}, getRowMapper());
+	public MonthlySchedule getMonthlySchedule(Integer storeId, Integer month, Integer year, Boolean isPresentForm) {
+		List<MonthlySchedule> monthlySchedule = getJdbcTemplate().query(
+				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + STORE_MONTH_YEAR_CLAUSE, new Object[] { isPresentForm, storeId, month, year },
+				getRowMapper());
 		return monthlySchedule != null && !monthlySchedule.isEmpty() ? monthlySchedule.get(0) : null;
 	}
 
 	@Override
-	public void updateDailyStoreReport(MonthlySchedule monthlySchedule) {
-		// TODO Auto-generated method stub
-		
+	public MonthlySchedule getMonthlyScheduleById(Integer monthlyScheduleId) {
+		List<MonthlySchedule> monthlySchedule = getJdbcTemplate().query(SELECT_MONTHLY_SCHEDULE + ID_CLAUSE, getRowMapper(), monthlyScheduleId);
+		return monthlySchedule != null && !monthlySchedule.isEmpty() ? monthlySchedule.get(0) : null;
 	}
 	
+	@Override
+	public void updateMonthlySchedule(MonthlySchedule monthlySchedule) {
+		getJdbcTemplate().update(UPDATE_MONTHLY_SCHEDULE, monthlySchedule.getLastUpdateTimestamp(),
+				monthlySchedule.getUpdatedByEmployeeId(), monthlySchedule.getIsFinalized(), monthlySchedule.getId());
+	}	
+	
+	@Override
+	public List<EmployeeHours> getEmployeeHoursByMonthlyScheduleId(Integer monthlyScheduleId) {
+		return getJdbcTemplate().query(SELECT_EMPLOYEE_HOURS, new RowMapper<EmployeeHours>() {
+		    @Override
+		    public EmployeeHours mapRow(ResultSet rs, int rowNum) throws SQLException {
+		    	Employee employee = new Employee();
+		    	employee.setId(rs.getInt(1));
+		    	employee.setName(rs.getString(2));
+		    	EmployeeHours employeeHours = new EmployeeHours();
+		    	employeeHours.setEmployee(employee);
+		    	employeeHours.setMinutes(rs.getInt(3));
+		        return employeeHours;
+		    }
+		}, monthlyScheduleId);
+	}
 
-//
-//	@Override
-//	public void updateDailyStoreReport(DailyStoreReport dailyStoreReport) {
-//		getJdbcTemplate().update(UPDATE_DAILY_STORE_REPORT, dailyStoreReport.getIncome(),
-//				dailyStoreReport.getCollected(), dailyStoreReport.getExpense(), dailyStoreReport.getCardPayment(),
-//				dailyStoreReport.getInitialBalance(), dailyStoreReport.getFinalBalance(),
-//				dailyStoreReport.getSoldItemsCount(), dailyStoreReport.getRefundedItemsCount(),
-//				dailyStoreReport.getDescription(), dailyStoreReport.getLastUpdateTimestamp(),
-//				dailyStoreReport.getUpdatedByEmployeeId(), dailyStoreReport.getId());
-//	}
 }

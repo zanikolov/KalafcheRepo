@@ -172,7 +172,7 @@ angular
                 url: '/schedule',
                 templateUrl: 'views/partials/schedule/schedule-tab.html',
                 data: {
-                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin],
                     title: "Графици"
                 }
             }).state('rawItem', {

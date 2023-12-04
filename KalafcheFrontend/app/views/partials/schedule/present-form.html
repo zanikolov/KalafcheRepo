@@ -6,7 +6,7 @@
                     <div layout-xs="row" flex="25" flex-xs="100">
                         <md-input-container style="width: 100%">
                             <label>Магазин</label>
-                            <md-select name="selectStore" ng-model="selectedStore.id" ng-change="searchMonthlySchedule()">
+                            <md-select name="selectStore" ng-model="selectedStore.id" ng-change="searchPresentForm()">
                                 <md-option ng-repeat="store in stores" ng-value="store.id">
                                     {{store.city}}, {{store.name}}
                                 </md-option>
@@ -15,10 +15,10 @@
                     </div>
                     <div layout-xs="row" flex-offset="5" flex-offset-xs="0" flex="25" flex-xs="100">
                         <md-input-container style="width: 100%">
-                            <md-datepicker ng-model="selectedMonth" md-placeholder="Месец" md-mode="month" md-max-date="maxMonth" ng-change="searchMonthlySchedule()"></md-datepicker>
+                            <md-datepicker ng-model="selectedMonth" md-placeholder="Месец" md-mode="month" md-max-date="maxMonth" ng-change="searchPresentForm()"></md-datepicker>
                         </md-input-container>
                     </div>
-                    <div layout-xs="row" flex="30" flex-xs="100">
+<!--                     <div layout-xs="row" flex="30" flex-xs="100">
                         <md-input-container  style="width:100%" ng-show="selectedMonth != undefined && selectedMonth != null && selectedStore != undefined && selectedStore != null && (monthlySchedule == null || monthlySchedule == undefined || monthlySchedule == '')">
                             <label>Търговци</label>
                             <md-select ng-model="selectedEmployees" ng-change="selectEmployee()" multiple>
@@ -29,27 +29,27 @@
                                 </md-optgroup>
                             </md-select>
                         </md-input-container>    
-                    </div>
+                    </div> -->
                 </div>
-                <div layout="row"  ng-if="(monthlySchedule == '' || monthlySchedule == null) && selectedMonth != null && selectedStore != null && selectedEmployees != null && selectedEmployees.length > 0">
+<!--                 <div layout="row"  ng-if="(monthlySchedule == '' || monthlySchedule == null) && selectedMonth != null && selectedStore != null && selectedEmployees != null && selectedEmployees.length > 0">
                     <md-input-container>
                         <md-button layout-align="right" ng-click="generateMonthlySchedule()" class="md-raised md-primary">Генерирай</md-button>
                     </md-input-container>
-                </div>
+                </div> -->
             </form>
         </div>
-        <div flex ng-if="monthlySchedule != null && monthlySchedule != undefined && monthlySchedule != '' && !monthlySchedule.isFinalized">
+        <div flex ng-if="presentForm != null && presentForm != undefined && presentForm != '' && !presentForm.isFinalized">
             <table class="table table-hover table-condensed">
                 <thead>
                     <tr>
                         <th>Дата</th>
-                        <th ng-repeat="employeeHours in monthlySchedule.employeesHours">
+                        <th ng-repeat="employeeHours in presentForm.employeesHours">
                             <label>{{employeeHours.employee.name}} {{employeeHours.hours}}</label>
                         </th>                      
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="(day, dailyShifts) in monthlySchedule.dailyShiftsGroupedByDay">
+                    <tr ng-repeat="(day, dailyShifts) in presentForm.dailyShiftsGroupedByDay">
                         <td>{{day}}</td>
                         <td ng-repeat="dailyShift in dailyShifts">
                             <md-select name="selectWorkingShift" ng-model="dailyShift.workingShiftId" style="margin:0" ng-change="updateDailyShift(dailyShift)">
@@ -63,18 +63,18 @@
                 </tbody>
             </table>
         </div>
-        <div flex ng-if="monthlySchedule != null && monthlySchedule != undefined && monthlySchedule != '' && monthlySchedule.isFinalized">
+        <div flex ng-if="presentForm != null && presentForm != undefined && presentForm != '' && presentForm.isFinalized">
             <table class="table table-hover table-condensed">
                 <thead>
                     <tr>
                         <th>Дата</th>
-                        <th ng-repeat="employeeHours in monthlySchedule.employeesHours">
+                        <th ng-repeat="employeeHours in presentForm.employeesHours">
                             <label>{{employeeHours.employee.name}} {{employeeHours.hours}}</label>
                         </th>                      
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-repeat="(day, dailyShifts) in monthlySchedule.dailyShiftsGroupedByDay">
+                    <tr ng-repeat="(day, dailyShifts) in presentForm.dailyShiftsGroupedByDay">
                         <td>{{day}}</td>
                         <td ng-repeat="dailyShift in dailyShifts">
                             {{generateWorkingShiftDisplayName(dailyShift.workingShiftId, dailyShift.workingShiftName, dailyShift.workingShiftStartTime, dailyShift.workingShiftEndTime)}} 
@@ -85,7 +85,7 @@
         </div>
         <div flex>
             <md-input-container>
-                <md-button ng-if="monthlySchedule != '' && monthlySchedule != null && !monthlySchedule.isFinalized" layout-align="right" ng-click="finalizeMonthlySchedule()" class="md-raised md-primary">Финализирай</md-button>
+                <md-button ng-if="presentForm != '' && presentForm != null && !presentForm.isFinalized" layout-align="right" ng-click="finalizePresentForm()" class="md-raised md-primary">Финализирай</md-button>
             </md-input-container>
         </div>
     </md-content>

@@ -1,6 +1,7 @@
 package com.kalafche.service;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 
 import com.kalafche.model.Employee;
@@ -30,5 +31,9 @@ public interface EmployeeService {
 	String getLoggedInEmployeeUsername();
 
 	List<Employee> getEmployeesByStoreId(Integer storeId);
+
+	HashMap<String, List<Employee>> getAllActiveEmployeesGroupedByStore();
+
+	Employee getEmployeesById(Integer employeeId);
 
 }

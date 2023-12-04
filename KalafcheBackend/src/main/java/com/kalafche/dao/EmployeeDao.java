@@ -32,4 +32,6 @@ public interface EmployeeDao {
 
 	public abstract List<Employee> getAllActiveEmployeesByStore(Integer storeId);
 
+	public abstract Employee getEmployeesById(Integer employeeId);
+
 }

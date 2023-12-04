@@ -10,102 +10,90 @@ angular.module('kalafcheFrontendApp')
         }
     });
 
-    function MonthlyScheduleController($scope, $rootScope, $mdDialog, ApplicationService, MonthlyScheduleService, AuthService, StoreService, SessionService) {
+    function MonthlyScheduleController($scope, $rootScope, MonthlyScheduleService, StoreService, EmployeeService, WorkingShiftService) {
 
         init();
 
         function init() {
-            $scope.currentPage = 1;  
-            $scope.expensesPerPage = 15;
-            $scope.monthlySchedule = {}; 
             $scope.stores = [];
+            $scope.employees = [];
+            $scope.workingShifts = [];
             $scope.selectedStore = null;   
-            $scope.selectedMonth = null;   
+            $scope.selectedMonth = null; 
+            $scope.selectedEmployees = [];  
             $scope.monthlySchedule = null;        
 
-            getAllStores(); 
+            getAllStores();
+            getAllWorkingShifts();
+            getAllActiveEmployeesGroupedByStore();
         }
 
         $scope.searchMonthlySchedule = function() {
-           
+            if ($scope.selectedMonth != null && $scope.selectedStore != null) {
+                MonthlyScheduleService.searchMonthlySchedule($scope.selectedStore.id, $scope.selectedMonth.getMonth() + 1, $scope.selectedMonth.getFullYear()).then(function(response) {
+                    $scope.monthlySchedule = response;
+                }); 
+            }
         }
 
         $scope.generateMonthlySchedule = function() {
-            console.log($scope.selectedStore);
-            console.log($scope.selectedStore);
+            var employeesHours = [];
+            angular.forEach($scope.selectedEmployees, function(employee, key) {
+                employeesHours.push({"employee": employee, "hours": "00:00"});
+            });
+            var body = {"storeId": $scope.selectedStore.id, 
+                "month": $scope.selectedMonth.getMonth() + 1, 
+                "year": $scope.selectedMonth.getFullYear(),
+                "employeesHours": employeesHours}
+            MonthlyScheduleService.generateMonthlySchedule(body).then(function(response) {
+                $scope.monthlySchedule = response;
+            }); 
         }
-
-        $scope.searchExpenses = function() {
-            console.log("--------- " + $scope.selectedStore.id);
-            ExpenseService.searchExpenses($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id, $scope.selectedType.id).then(function(response) {
-                $scope.expenses = response.expenses;
-            });    
-        }
-
-        $scope.clear = function() {
-            $scope.startDate = null;
-            $scope.endDate = null;
-        };
-
-        $scope.changeStore = function() {
-            $scope.searchSales();
-        };
 
         function getAllStores() {
             StoreService.getAllStoresForSaleReport().then(function(response) {
                 $scope.stores = response;
             });
-
         };
 
-        function getExpenseTypes() {
-            ExpenseService.getExpenseTypes().then(function(response) {
-                $scope.types = response;
+        function getAllWorkingShifts() {
+            WorkingShiftService.getAllWorkingShifts().then(function(response) {
+                for (var i = 0; i < response.length; i++) {
+                    response[i].displaynName = $scope.generateWorkingShiftDisplayName(response[i].id, response[i].name, response[i].startTime, response[i].endTime);
+                }
+                $scope.workingShifts = response;
             });
         };
 
-        $scope.getTimestamp = function(timestamp) {
-            return ApplicationService.convertEpochToTimestamp(timestamp);
-        };
+        $scope.generateWorkingShiftDisplayName = function(id, name, startTime, endTime) {
+            if (id == null) {
+                return "";
+            }
 
-        $scope.resetCurrentPage = function() {
-            $scope.currentPage = 1;
-        };
-
-        $scope.expand = function(expense) {
-            expense.expanded = !expense.expanded;
-        };
-
-        $scope.isAdmin = function() {
-            return AuthService.isAdmin();
-        };
-        
-        $scope.isManager = function() {
-            return AuthService.isManager();
+            return name 
+                + '  (' + startTime
+                + '-' + endTime + ')';
         }
 
-        $scope.isUser = function() {
-            return AuthService.isUser();
-        }
-
-        $scope.showImage = function(expense){
-            $mdDialog.show({
-                locals:{imgSrc:"https://drive.google.com/uc?export=view&id=" + expense.fileId},
-                controller: function($scope, imgSrc) { $scope.imgSrc = imgSrc; },
-                templateUrl: 'views/modals/image-modal.html',
-                clickOutsideToClose:true,
-                parent: angular.element(document.body)
-            })
-            .then(function(answer) {
-                $scope.status = 'You said the information was "".';
-            }, function() {
-                $scope.status = 'You cancelled the dialog.';
+        function getAllActiveEmployeesGroupedByStore() {
+            EmployeeService.getAllActiveEmployeesGroupedByStore().then(function(response) {
+                $scope.employees = response;
             });
+
         };
 
-        $rootScope.$on("ExpenseCreated", function () {
-            $scope.searchExpenses();
-        })
+        $scope.updateDailyShift = function(dailyShift) {
+            MonthlyScheduleService.updateDailyShift(dailyShift).then(function(response) {
+                $scope.monthlySchedule.employeesHours = response;
+            }); 
+        }
+
+        $scope.finalizeMonthlySchedule = function() {
+            var body = {"id": $scope.monthlySchedule.id}
+            MonthlyScheduleService.finalizeMonthlySchedule(body).then(function() {    
+                $scope.searchMonthlySchedule();              
+            });
+        }
 
     };
 
