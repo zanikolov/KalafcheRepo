@@ -64,7 +64,6 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.searchExpenses = function() {
-            console.log("--------- " + $scope.selectedStore.id);
             ExpenseService.searchExpenses($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id, $scope.selectedType.id).then(function(response) {
                 $scope.expenses = response.expenses;
             });    

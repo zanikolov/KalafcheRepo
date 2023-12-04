@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.exceptions.CommonException;
 import com.kalafche.model.DailyStoreReport;
-import com.kalafche.model.ExpenseType;
 import com.kalafche.service.DailyStoreReportService;
 
 @CrossOrigin

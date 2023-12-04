@@ -256,8 +256,8 @@ angular.module('kalafcheFrontendApp')
           title: 'Графици',
           icon: 'dashboard',
           admin: true,
-          manager: true,
-          user: true
+          manager: false,
+          user: false
         },
         {
           link : 'revision',

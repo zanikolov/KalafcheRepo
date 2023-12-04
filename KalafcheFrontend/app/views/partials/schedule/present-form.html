@@ -1,0 +1,92 @@
+<div layout="column" ng-cloak>
+    <md-content layout-padding layout="column">
+        <div flex>
+            <form>    
+                <div layout="row" layout-xs="column">
+                    <div layout-xs="row" flex="25" flex-xs="100">
+                        <md-input-container style="width: 100%">
+                            <label>Магазин</label>
+                            <md-select name="selectStore" ng-model="selectedStore.id" ng-change="searchPresentForm()">
+                                <md-option ng-repeat="store in stores" ng-value="store.id">
+                                    {{store.city}}, {{store.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <div layout-xs="row" flex-offset="5" flex-offset-xs="0" flex="25" flex-xs="100">
+                        <md-input-container style="width: 100%">
+                            <md-datepicker ng-model="selectedMonth" md-placeholder="Месец" md-mode="month" md-max-date="maxMonth" ng-change="searchPresentForm()"></md-datepicker>
+                        </md-input-container>
+                    </div>
+<!--                     <div layout-xs="row" flex="30" flex-xs="100">
+                        <md-input-container  style="width:100%" ng-show="selectedMonth != undefined && selectedMonth != null && selectedStore != undefined && selectedStore != null && (monthlySchedule == null || monthlySchedule == undefined || monthlySchedule == '')">
+                            <label>Търговци</label>
+                            <md-select ng-model="selectedEmployees" ng-change="selectEmployee()" multiple>
+                                <md-optgroup ng-repeat="(store, employees) in employees" label="{{store}}">
+                                    <md-option ng-value="employee" ng-repeat="employee in employees">
+                                        {{employee.name}}
+                                    </md-option>
+                                </md-optgroup>
+                            </md-select>
+                        </md-input-container>    
+                    </div> -->
+                </div>
+<!--                 <div layout="row"  ng-if="(monthlySchedule == '' || monthlySchedule == null) && selectedMonth != null && selectedStore != null && selectedEmployees != null && selectedEmployees.length > 0">
+                    <md-input-container>
+                        <md-button layout-align="right" ng-click="generateMonthlySchedule()" class="md-raised md-primary">Генерирай</md-button>
+                    </md-input-container>
+                </div> -->
+            </form>
+        </div>
+        <div flex ng-if="presentForm != null && presentForm != undefined && presentForm != '' && !presentForm.isFinalized">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th ng-repeat="employeeHours in presentForm.employeesHours">
+                            <label>{{employeeHours.employee.name}} {{employeeHours.hours}}</label>
+                        </th>                      
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(day, dailyShifts) in presentForm.dailyShiftsGroupedByDay">
+                        <td>{{day}}</td>
+                        <td ng-repeat="dailyShift in dailyShifts">
+                            <md-select name="selectWorkingShift" ng-model="dailyShift.workingShiftId" style="margin:0" ng-change="updateDailyShift(dailyShift)">
+                                <md-option value=""></md-option>
+                                <md-option ng-repeat="workingShift in workingShifts" ng-value="workingShift.id">
+                                    {{workingShift.displaynName}}
+                                </md-option>
+                            </md-select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div flex ng-if="presentForm != null && presentForm != undefined && presentForm != '' && presentForm.isFinalized">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th>Дата</th>
+                        <th ng-repeat="employeeHours in presentForm.employeesHours">
+                            <label>{{employeeHours.employee.name}} {{employeeHours.hours}}</label>
+                        </th>                      
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(day, dailyShifts) in presentForm.dailyShiftsGroupedByDay">
+                        <td>{{day}}</td>
+                        <td ng-repeat="dailyShift in dailyShifts">
+                            {{generateWorkingShiftDisplayName(dailyShift.workingShiftId, dailyShift.workingShiftName, dailyShift.workingShiftStartTime, dailyShift.workingShiftEndTime)}} 
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div flex>
+            <md-input-container>
+                <md-button ng-if="presentForm != '' && presentForm != null && !presentForm.isFinalized" layout-align="right" ng-click="finalizePresentForm()" class="md-raised md-primary">Финализирай</md-button>
+            </md-input-container>
+        </div>
+    </md-content>
+</div>

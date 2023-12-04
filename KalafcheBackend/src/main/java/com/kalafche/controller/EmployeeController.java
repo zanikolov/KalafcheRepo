@@ -1,6 +1,7 @@
 package com.kalafche.controller;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,11 +40,21 @@ public class EmployeeController {
 		
 		return employee;
 	}
+	
 	@GetMapping
-	public List<Employee> getAllEmployee() {
-		List<Employee> employeeList = employeeService.getAllEmployees();
+	public List<Employee> getAllEmployees() {
+		return employeeService.getAllEmployees();
+	}
 		
-		return employeeList;
+	@GetMapping("/store")
+	public List<Employee> getEmployeesByStoreId(@RequestParam(value = "storeId") Integer storeId) {
+		return employeeService.getEmployeesByStoreId(storeId);
+	}
+	
+	
+	@GetMapping("/groupedByStore")
+	public HashMap<String, List<Employee>> getAllActiveEmployeesGroupedByStore() {
+		return employeeService.getAllActiveEmployeesGroupedByStore();
 	}
 	
 	@GetMapping("/enabled")
@@ -52,7 +63,7 @@ public class EmployeeController {
 	}
 	
 	@GetMapping("/firstLoginForDate")
-	public List<LoginHistory> getFirstLoginForDate(@RequestParam(value = "dateMillis")  long dateMillis) {
+	public List<LoginHistory> getFirstLoginForDate(@RequestParam(value = "dateMillis") Long dateMillis) {
 		return loginHistoryService.getLoginHistoryRecords(dateMillis);
 	}
 	

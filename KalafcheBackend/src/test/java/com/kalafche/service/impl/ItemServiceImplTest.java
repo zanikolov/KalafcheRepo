@@ -12,7 +12,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import com.kalafche.dao.ItemDao;
 import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.model.Item;
-import com.kalafche.service.impl.ItemServiceImpl;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ItemServiceImplTest {

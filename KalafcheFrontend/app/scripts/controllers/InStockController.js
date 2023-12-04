@@ -162,10 +162,6 @@ angular.module('kalafcheFrontendApp')
             $scope.modelSearchTerm = "";
         }
 
-        $element.find('#modelSearchTerm').on('keydown', function(ev) {
-            ev.stopPropagation();
-        });
-
         $scope.isTotalSumRowVisible = function() {
             if ($scope.isAdmin() && $scope.inStockPerPage * $scope.currentPage >= $scope.inStockList.length) {
                 return true;

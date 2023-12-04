@@ -17,15 +17,20 @@
                         <input ng-model="campaign.description" name="description">
                     </md-input-container>
                     <div layout="row">
-                        <md-input-container flex="20">
-                            <label>Стойност</label>
+                        <md-input-container flex="25">
+                            <label>От</label>
                             <input type="time" name="startTime" ng-change="changeStartTime()" ng-model="workingShift.startTime" required>
-                            <!-- <input type="time" name="endTime" ng-model="workingShift.endTime" required> -->
                         </md-input-container>
-<!--                         <md-input-container flex="30">
-                            <label>Продължителност</label>
-                            <input type="time" name="duration" ng-model="workingShift.duration" required>
-                        </md-input-container> -->
+                        <md-input-container flex="25">
+                            <label>До</label>
+                            <input type="time" name="endTime" ng-change="changeEndTime()" ng-model="workingShift.endTime" required>
+                        </md-input-container>
+                    </div>
+                    <div layout="row">
+                        <md-input-container flex="25">
+                            <label>Продълж.</label>
+                            <input type="time" name="duration" ng-change="changeDuration()" ng-model="workingShift.duration" required>
+                        </md-input-container>
                     </div>
                 </div>
             </form>
@@ -43,8 +48,10 @@
                     <tr>
                         <th></th>
                     	<th><label>Име</label></th>
-                    	<th><label>Отстъпка</label></th>
-                        <th><label>Започната на</label></th>
+                    	<th><label>Код</label></th>
+                        <th><label>От</label></th>
+                        <th><label>До</label></th>
+                        <th><label>Продължителност</label></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -52,7 +59,10 @@
                 <tr dir-paginate="workingShift in workingShifts | itemsPerPage: workingShiftsPerPage track by $index" current-page="currentPage" pagination-id="workingShift" class="item-row">
                         <td>{{(currentPage - 1) * workingShiftsPerPage + $index + 1}}</td>
                         <td>{{workingShift.name}}</td>
-                        <td>-{{workingShift.discountValue}}{{workingShift.discountTypeSign}}</td>
+                        <td>{{workingShift.code}}</td>
+                        <td>{{workingShift.startTime}}</td>
+                        <td>{{workingShift.endTime}}</td>
+                        <td>{{workingShift.duration}}</td>
                         <td>
                             <a href="" ng-click="editWorkingShift(workingShift)">
                                 <md-icon  class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>

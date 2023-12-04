@@ -1,6 +1,7 @@
 package com.kalafche.service.impl;
 
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,9 @@ import com.kalafche.dao.AuthRoleDao;
 import com.kalafche.dao.EmployeeDao;
 import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.model.Employee;
+import com.kalafche.model.StoreDto;
 import com.kalafche.service.EmployeeService;
+import com.kalafche.service.EntityService;
 import com.kalafche.service.LoginHistoryService;
 
 @Service
@@ -24,6 +27,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 	
 	@Autowired
 	AuthRoleDao authRoleDao;
+	
+	@Autowired
+	EntityService entityService;
 	
 	@Autowired
 	LoginHistoryService loginHistoryService;
@@ -101,6 +107,11 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 	
 	@Override
+	public Employee getEmployeesById(Integer employeeId) {
+		return employeeDao.getEmployeesById(employeeId);
+	}
+	
+	@Override
 	public Employee getEmployeeByUsername(String username) {
 		return employeeDao.getEmployee(username);
 	}
@@ -109,6 +120,22 @@ public class EmployeeServiceImpl implements EmployeeService {
 		if (employeeDao.checkIfEmployeeUsernameExists(employee)) {
 			throw new DuplicationException("username", "Username duplication.");
 		}
+	}
+
+	@Override
+	public List<Employee> getEmployeesByStoreId(Integer storeId) {
+		return employeeDao.getAllActiveEmployeesByStore(storeId);
+	}
+
+	@Override
+	public HashMap<String, List<Employee>> getAllActiveEmployeesGroupedByStore() {
+		HashMap<String, List<Employee>> employeesGroupedByStore = new HashMap<String, List<Employee>>();
+		List<StoreDto> stores = entityService.getStores();
+		for (StoreDto store : stores) {
+			 employeesGroupedByStore.put(store.getCity() + ", " + store.getName(), getEmployeesByStoreId(store.getId()));
+		}
+		
+		return employeesGroupedByStore;
 	}
 	
 }

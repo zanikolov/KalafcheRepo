@@ -2,6 +2,7 @@ package com.kalafche.exceptions;
 
 public class ImageUploadException extends RuntimeException{
 
+	private static final long serialVersionUID = 1L;
 	private String field;
 	private String message;
 
