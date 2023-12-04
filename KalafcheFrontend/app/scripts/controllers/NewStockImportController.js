@@ -194,8 +194,5 @@ angular.module('kalafcheFrontendApp')
         $scope.clearModelSearchTerm= function() {
             $scope.modelSearchTerm = "";
         }
-
-        $element.find('#modelSearchTerm').on('keydown', function(ev) {
-            ev.stopPropagation();
-        });
+        
   };

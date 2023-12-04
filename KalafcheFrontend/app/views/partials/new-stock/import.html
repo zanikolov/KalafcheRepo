@@ -76,7 +76,7 @@
                                     <input id="modelSearchTerm" ng-model="modelSearchTerm"
                                            type="search"
                                            placeholder="Търси модел.."
-                                           class="header-searchbox md-text">
+                                           class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
                                   </md-select-header>
                                     <md-option ng-repeat="model in models | filter: {deviceBrandId : newNewStock.deviceBrandId} : true |
                                       filter:modelSearchTerm" ng-value="model.id">

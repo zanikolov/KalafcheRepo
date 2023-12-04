@@ -76,10 +76,6 @@ angular.module('kalafcheFrontendApp')
             $scope.modelSearchTerm = "";
         }
 
-        $element.find('#modelSearchTerm').on('keydown', function(ev) {
-            ev.stopPropagation();
-        });
-
         $scope.resetServerErrorMessages = function() {
             $scope.serverErrorMessages = {};
         };

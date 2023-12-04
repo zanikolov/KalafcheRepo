@@ -72,10 +72,6 @@ angular.module('kalafcheFrontendApp')
             $scope.modelSearchTerm = "";
         }
 
-        $element.find('#modelSearchTerm').on('keydown', function(ev) {
-            ev.stopPropagation();
-        });
-
         $scope.$on('cancelEdit', function (event, data) {
             $scope.selectedItem = {};
         });
