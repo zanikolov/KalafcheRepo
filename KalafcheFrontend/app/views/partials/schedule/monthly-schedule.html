@@ -52,9 +52,16 @@
                     <tr ng-repeat="(day, dailyShifts) in monthlySchedule.dailyShiftsGroupedByDay">
                         <td>{{day}}</td>
                         <td ng-repeat="dailyShift in dailyShifts">
-                            <md-select name="selectWorkingShift" ng-model="dailyShift.workingShiftId" style="margin:0" ng-change="updateDailyShift(dailyShift)">
+                            <md-select name="selectWorkingShift" ng-model="dailyShift.workingShiftId" style="margin:0" ng-change="updateDailyShift(dailyShift)" data-md-container-class="selectSearchTermHeader" md-on-close="clearWorkingShiftSearchTerm()">
+                                <md-select-header class="select-header">
+                                    <input id="workingShiftSearchTerm" ng-model="workingShiftSearchTerm"
+                                       type="search"
+                                       placeholder="Търси смяна.."
+                                       class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+                                </md-select-header>
                                 <md-option value=""></md-option>
-                                <md-option ng-repeat="workingShift in workingShifts" ng-value="workingShift.id">
+                                <md-option ng-repeat="workingShift in workingShifts |
+                                  filter:workingShiftSearchTerm" ng-value="workingShift.id">
                                     {{workingShift.displaynName}}
                                 </md-option>
                             </md-select>

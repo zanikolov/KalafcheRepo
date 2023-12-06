@@ -71,5 +71,9 @@ angular.module('kalafcheFrontendApp')
             });
         }
 
+        $scope.clearWorkingShiftSearchTerm= function() {
+            $scope.workingShiftSearchTerm = "";
+        }
+
     };
 

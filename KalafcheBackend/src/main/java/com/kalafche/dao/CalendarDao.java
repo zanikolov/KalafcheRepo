@@ -12,4 +12,8 @@ public interface CalendarDao {
 
 	public abstract List<DayDto> getDaysByMonthAndYear(Integer month, Integer year);
 
+	public abstract void updateHoliday(DayDto dayDto);
+
+	public abstract List<DayDto> getPublicHolidays(Integer currentYear);
+
 }

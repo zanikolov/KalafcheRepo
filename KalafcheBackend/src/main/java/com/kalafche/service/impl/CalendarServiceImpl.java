@@ -13,8 +13,13 @@ import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.CalendarDao;
 import com.kalafche.model.DayDto;
+import com.kalafche.rest.NagerDateRestClient;
+import com.kalafche.rest.model.NagerDateResponse;
 import com.kalafche.service.CalendarService;
 import com.kalafche.service.DateService;
+
+import feign.Feign;
+import feign.jackson.JacksonDecoder;
 
 @Service
 public class CalendarServiceImpl implements CalendarService {
@@ -46,7 +51,7 @@ public class CalendarServiceImpl implements CalendarService {
 				String displayDate = dateService.generateDisplayDate(day, dateOfFirstDayOfMonth.getMonthValue(),
 						dateOfFirstDayOfMonth.getYear(), dayOfTheWeek);
 				DayDto dayDto = new DayDto(day, dateOfFirstDayOfMonth.getMonthValue(), dateOfFirstDayOfMonth.getYear(),
-						dayOfTheWeek, displayDate, false);
+						dayOfTheWeek, displayDate, false, null);
 				days.add(dayDto);
 			}
 		}
@@ -62,6 +67,25 @@ public class CalendarServiceImpl implements CalendarService {
 	@Override
 	public List<DayDto> getDaysByMonthAndYear(Integer month, Integer year) {
 		return calendarDao.getDaysByMonthAndYear(month, year);
+	}
+
+	@Scheduled(cron = "0 20 11 5 12 *", zone = "EET")
+	private void updatePublicHolidays() {
+		NagerDateRestClient nagerDateRestClient = Feign.builder().decoder(new JacksonDecoder())
+				.target(NagerDateRestClient.class, "https://date.nager.at");
+
+		List<NagerDateResponse> holidays = nagerDateRestClient.getPublicHolidays(dateService.getNextYear(), "BG");
+		for (NagerDateResponse holiday : holidays) {
+			String[] dateArr = holiday.getDate().split("-");
+			DayDto day = new DayDto(Integer.valueOf(dateArr[2]), Integer.valueOf(dateArr[1]),
+					Integer.valueOf(dateArr[0]), null, null, true, holiday.getLocalName());
+			calendarDao.updateHoliday(day);
+		}
+	}
+
+	@Override
+	public List<DayDto> getPublicHolidays() {
+		return calendarDao.getPublicHolidays(dateService.getCurrentYear());
 	}
 	
 }
