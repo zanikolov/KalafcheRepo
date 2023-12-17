@@ -6,7 +6,7 @@
   		<md-tab label="Присъствена форма">
   			<present-form></present-form>
   		</md-tab>
-  		<md-tab label="Смени">
+  		<md-tab ng-if="isAdmin()" label="Смени">
   			<working-shift></working-shift>
   		</md-tab>
       <md-tab label="Официални празници">

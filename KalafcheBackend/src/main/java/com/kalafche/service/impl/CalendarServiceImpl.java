@@ -88,4 +88,9 @@ public class CalendarServiceImpl implements CalendarService {
 		return calendarDao.getPublicHolidays(dateService.getCurrentYear());
 	}
 	
+	@Override
+	public Integer getWorkingHoursInMinutesForMonth(Integer month, Integer year) {
+		return calendarDao.getWorkingHoursForMonthInMinutes(month, year);
+	}
+	
 }

@@ -24,6 +24,7 @@ public class DailyShift implements Comparable<DailyShift> {
 	private Integer workingShiftDurationMinutes;
 	private String workingShiftStartTime;
 	private String workingShiftEndTime;
+	private String workingShiftDuration;
 	
 	@Override
 	public int compareTo(DailyShift o) {

@@ -27,6 +27,8 @@ public class CalendarDaoImpl extends JdbcDaoSupport implements CalendarDao {
 	private static final String SELECT_HOLIDAYS_BY_YEAR = "select * from calendar where year >= ? and is_holiday = true order by year, month, day asc";
 	
 	private static final String UPDATE_HOLIDAY = "update calendar set is_holiday = ?, description = ? where day = ? and month = ? and year = ?";
+	
+	private static final String GET_WORKING_HOURS_IN_MINUTES = "select count(day) *8 * 60 from keysoo.calendar where month = ? and year = ? and is_holiday = false and day_of_the_week not in (6, 7) group by month, year";
 
 	private BeanPropertyRowMapper<DayDto> rowMapper;
 	
@@ -86,6 +88,11 @@ public class CalendarDaoImpl extends JdbcDaoSupport implements CalendarDao {
 	@Override
 	public List<DayDto> getPublicHolidays(Integer currentYear) {
 		return getJdbcTemplate().query(SELECT_HOLIDAYS_BY_YEAR, getRowMapper(), currentYear);
+	}
+
+	@Override
+	public Integer getWorkingHoursForMonthInMinutes(Integer month, Integer year) {
+		return getJdbcTemplate().queryForObject(GET_WORKING_HOURS_IN_MINUTES, Integer.class, month, year);
 	}
 
 }

@@ -49,7 +49,7 @@ public class DailyShiftServiceImpl implements DailyShiftService {
 			dailyShiftDao.updateDailyShift(dailyShift);
 		}
 		
-		return monthlyScheduleService.getEmployeeHours(dailyShift.getMonthlyScheduleId());
+		return monthlyScheduleService.getEmployeeHours(dailyShift.getMonthlyScheduleId(), monthlySchedule.getWorkingHoursInMinutes());
 	}
 
 	@Override

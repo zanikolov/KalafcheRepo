@@ -33,7 +33,6 @@ angular.module('kalafcheFrontendApp')
         function checkFinalizeButtonVisibility() {
             return DailyStoreReportService.isDailyStoreReportCanBeFinalized($scope.dailyStoreReport.storeId).then(
                 function(response) {
-                    console.log("##### " + response);
                     $scope.isFinalizeButtonVisible = response;
                 }                
             );

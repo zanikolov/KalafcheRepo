@@ -24,8 +24,8 @@ import com.kalafche.model.MonthlySchedule;
 public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlyScheduleDao {
 
 	private static final String INSERT_MONTHLY_SCHEDULE = "insert into monthly_schedule " +
-			"(create_timestamp,created_by,store_id,is_finalized,is_present_form,month,year) VALUES " +
-			"(?               ,?         ,?       ,?           ,?              ,?    ,?) ";
+			"(create_timestamp,created_by,store_id,is_finalized,is_present_form,month,year,working_hours_in_minutes,WORKING_HOURS) VALUES " +
+			"(?               ,?         ,?       ,?           ,?              ,?    ,?   ,?                       ,?) ";
 	private static final String SELECT_MONTHLY_SCHEDULE = "select * from monthly_schedule ";
 	
 	private static final String IS_PRESENT_CLAUSE = "where is_present_form = ? "; 
@@ -75,6 +75,8 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 			statement.setBoolean(5, monthlySchedule.getIsPresentForm());
 			statement.setInt(6, monthlySchedule.getMonth());
 			statement.setInt(7, monthlySchedule.getYear());
+			statement.setInt(8, monthlySchedule.getWorkingHoursInMinutes());
+			statement.setString(9, monthlySchedule.getWorkingHours());
 
 			int affectedRows = statement.executeUpdate();
 

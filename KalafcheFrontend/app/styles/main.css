@@ -362,7 +362,7 @@
     }*/
 
     .label-error {
-        color: red;
+        color: red !important;
     }
 
     .sale-details:hover {

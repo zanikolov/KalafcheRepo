@@ -10,6 +10,8 @@ public class EmployeeHours implements Comparable<EmployeeHours> {
 	private Employee employee;
 	private String hours;
 	private Integer minutes;
+	private String overtime;
+	private Integer overtimeInMinutes;
 	
 	@Override
 	public int compareTo(EmployeeHours o) {

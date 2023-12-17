@@ -16,4 +16,6 @@ public interface CalendarDao {
 
 	public abstract List<DayDto> getPublicHolidays(Integer currentYear);
 
+	public abstract Integer getWorkingHoursForMonthInMinutes(Integer month, Integer year);
+
 }
