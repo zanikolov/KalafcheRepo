@@ -557,7 +557,8 @@ public class SaleServiceImpl implements SaleService {
 			Integer deviceBrandId, Integer deviceModelId, Integer productTypeId) {
 		SaleReport saleReport = generateReport(null, startDateMilliseconds, endDateMilliseconds, productCode, deviceBrandId, deviceModelId);
 		
-		List<SalesByStore> salesByStores = saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds);
+		String storeIds = entityService.getConcatenatedStoreIdsForFiltering("0");
+		List<SalesByStore> salesByStores = saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds, storeIds);
 		
 		if (deviceModelId != null && productCode != null && productCode != "") {
 			saleReport.setWarehouseQuantity(stockService.getQuantitiyOfStockInWH(productCode, deviceModelId));
@@ -729,7 +730,7 @@ public class SaleServiceImpl implements SaleService {
 			endDateCal.set(Calendar.MILLISECOND, 999);
 			long endDateMilliseconds = endDateCal.getTimeInMillis();
 
-			return saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds);
+			return saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds, null);
 		}
 
 	}

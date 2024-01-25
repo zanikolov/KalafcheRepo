@@ -513,7 +513,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	}
 
 	@Override
-	public List<SalesByStore> searchSaleByStore(Long startDateMilliseconds, Long endDateMilliseconds) {
+	public List<SalesByStore> searchSaleByStore(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds) {
 		String searchQuery = GET_SALES_BY_STORE_QUERY;
 		List<Object> argsList = new ArrayList<Object>();
 		argsList.add(startDateMilliseconds);
@@ -521,6 +521,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		
 		//searchQuery += addDetailedSearch(productCode, deviceBrandId, deviceModelId, productTypeId, argsList);
 		
+		searchQuery += String.format(STORE_CRITERIA_QUERY, storeIds);
 		searchQuery += GROUP_BY_STORE;
 		searchQuery += ORDER_BY_STORE;
 		
