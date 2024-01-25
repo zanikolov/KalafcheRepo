@@ -9,7 +9,8 @@ angular.module('kalafcheFrontendApp')
             updateMonthlySchedule: updateMonthlySchedule,
             updateDailyShift: updateDailyShift,
             finalizeMonthlySchedule: finalizeMonthlySchedule,
-            finalizePresentForm: finalizePresentForm
+            finalizePresentForm: finalizePresentForm,
+            getPresentFormsForFinalizing: getPresentFormsForFinalizing
 		});
 
         function searchMonthlySchedule(storeId, month, year) {
@@ -81,6 +82,18 @@ angular.module('kalafcheFrontendApp')
                         return response.data;
                     }
                 )
+        }
+
+        function getPresentFormsForFinalizing(month, year) {
+            var params = {"params" : 
+                {"month": month, 
+                "year": year}};
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/monthlySchedule/presentFormsForFinalizing', params)
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                );
         }
 
 	});

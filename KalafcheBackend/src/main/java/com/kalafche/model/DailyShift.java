@@ -18,6 +18,8 @@ public class DailyShift implements Comparable<DailyShift> {
 	private String employeeName;
 	private Integer calendarId;
 	private String calendarDate;
+	private Integer calendarDayOfTheWeek;
+	private Boolean calendarIsHoliday;
 	private Integer monthlyScheduleId;
 	private Integer workingShiftId;
 	private String workingShiftName;

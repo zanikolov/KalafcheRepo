@@ -57,7 +57,7 @@ public class CalendarDaoImpl extends JdbcDaoSupport implements CalendarDao {
 				statement.setInt(1, day.getDay());
 				statement.setInt(2, day.getMonth());
 				statement.setInt(3, day.getYear());
-				statement.setInt(4, day.getDayOfWeek());
+				statement.setInt(4, day.getDayOfTheWeek());
 				statement.setString(5, day.getDate());
 				statement.setBoolean(6, day.getIsHoliday());
 				statement.addBatch();

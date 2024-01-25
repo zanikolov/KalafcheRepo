@@ -1,5 +1,6 @@
 package com.kalafche.service.impl;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +22,7 @@ import com.kalafche.service.DailyShiftService;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.MonthlyScheduleService;
+import com.kalafche.service.fileutil.MonthlyScheduleExcelReportService;
 
 @Service
 public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
@@ -39,6 +41,9 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 
 	@Autowired
 	DailyShiftService dailyShiftService;
+	
+	@Autowired
+	MonthlyScheduleExcelReportService monthlyScheduleExcelReportService;
 
 	@Override
 	public MonthlySchedule generateMonthlySchedule(MonthlySchedule monthlySchedule) throws SQLException {
@@ -212,6 +217,16 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 	@Override
 	public MonthlySchedule getMonthlyScheduleById(Integer monthlyScheduleId) {
 		return monthlyScheduleDao.getMonthlyScheduleById(monthlyScheduleId);
+	}
+
+	@Override
+	public byte[] getPresentFormReport(Integer month, Integer year) {
+		List<MonthlySchedule> presentForms = monthlyScheduleDao.getMonthlySchedules(month, year, true, true);
+		List<DayDto> days = calendarService.getDaysByMonthAndYear(month, year);
+		for (MonthlySchedule presentForm : presentForms) {
+			addDataToMonthlySchedule(presentForm);
+		}
+		return monthlyScheduleExcelReportService.createPresentFormReportExcel(presentForms, days, month, year);
 	}
 
 }

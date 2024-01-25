@@ -26,11 +26,15 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 	private static final String INSERT_MONTHLY_SCHEDULE = "insert into monthly_schedule " +
 			"(create_timestamp,created_by,store_id,is_finalized,is_present_form,month,year,working_hours_in_minutes,WORKING_HOURS) VALUES " +
 			"(?               ,?         ,?       ,?           ,?              ,?    ,?   ,?                       ,?) ";
-	private static final String SELECT_MONTHLY_SCHEDULE = "select * from monthly_schedule ";
+	private static final String SELECT_MONTHLY_SCHEDULE = "select ms.*, CONCAT(s.city, ', ', s.name) as store_name from monthly_schedule ms join store s on ms.store_id = s.id ";
 	
 	private static final String IS_PRESENT_CLAUSE = "where is_present_form = ? "; 
 	
-	private static final String STORE_MONTH_YEAR_CLAUSE = "and store_id = ? and month = ? and year = ?";
+	private static final String IS_FINALIZED_CLAUSE = "and is_finalized = ? ";
+	
+	private static final String STORE_CLAUSE = "and store_id = ? ";
+	
+	private static final String  MONTH_YEAR_CLAUSE = "and month = ? and year = ?";
 	
 	private static final String ID_CLAUSE = "where id = ?";
 	
@@ -100,7 +104,7 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 	@Override
 	public MonthlySchedule getMonthlySchedule(Integer storeId, Integer month, Integer year, Boolean isPresentForm) {
 		List<MonthlySchedule> monthlySchedule = getJdbcTemplate().query(
-				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + STORE_MONTH_YEAR_CLAUSE, new Object[] { isPresentForm, storeId, month, year },
+				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + STORE_CLAUSE + MONTH_YEAR_CLAUSE, new Object[] { isPresentForm, storeId, month, year },
 				getRowMapper());
 		return monthlySchedule != null && !monthlySchedule.isEmpty() ? monthlySchedule.get(0) : null;
 	}
@@ -131,6 +135,14 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 		        return employeeHours;
 		    }
 		}, monthlyScheduleId);
+	}
+
+	@Override
+	public List<MonthlySchedule> getMonthlySchedules(Integer month, Integer year, boolean isPresentForm,
+			boolean isFinalized) {
+		return getJdbcTemplate().query(
+				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + IS_FINALIZED_CLAUSE + MONTH_YEAR_CLAUSE, new Object[] { isPresentForm, isFinalized, month, year },
+				getRowMapper());
 	}
 
 }

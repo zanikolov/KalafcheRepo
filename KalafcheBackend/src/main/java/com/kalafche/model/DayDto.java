@@ -13,7 +13,7 @@ public class DayDto {
 	private Integer day;
 	private Integer month;
 	private Integer year;
-	private Integer dayOfWeek;
+	private Integer dayOfTheWeek;
 	private String date;
 	private Boolean isHoliday;
 	private String description;
@@ -25,7 +25,7 @@ public class DayDto {
 		this.day = day;
 		this.month = month;
 		this.year = year;
-		this.dayOfWeek = dayOfWeek;
+		this.dayOfTheWeek = dayOfWeek;
 		this.date = date;
 		this.isHoliday = isHoliday;
 		this.description = description;

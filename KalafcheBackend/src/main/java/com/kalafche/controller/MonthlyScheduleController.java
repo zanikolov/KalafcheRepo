@@ -4,8 +4,13 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kalafche.model.DailyShift;
 import com.kalafche.model.EmployeeHours;
 import com.kalafche.model.MonthlySchedule;
+import com.kalafche.model.SaleSplitReportRequest;
 import com.kalafche.service.DailyShiftService;
 import com.kalafche.service.MonthlyScheduleService;
 
@@ -63,4 +69,20 @@ public class MonthlyScheduleController {
 		return dailyShiftService.updateDailyShift(dailyShift);
 	}
 
+	@GetMapping("/presentFormReport/{month}/{year}")
+	public ResponseEntity<byte[]> printPresentFormReport(@PathVariable(value = "month") Integer month, @PathVariable(value = "year") Integer year) {
+		
+		byte[] excelBytes = monthlyScheduleService.getPresentFormReport(month, year);
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
+		String filename = "present-form-report_" + month + "-" + year + ".xlsx";
+		headers.setContentDispositionFormData(filename, filename);
+		headers.set("Content-Transfer-Encoding", "binary");
+		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+		
+		ResponseEntity<byte[]> response = new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);	    
+		
+		return response;
+	}
 }
