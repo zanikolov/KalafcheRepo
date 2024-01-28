@@ -148,6 +148,7 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 				.getEmployeeHoursByMonthlyScheduleId(monthlyScheduleId);
 		for (EmployeeHours employeeHours : employeeHoursList) {
 			employeeHours.setHours(dateService.convertMinutesToTime(employeeHours.getMinutes()));
+			employeeHours.setWorkDuringHolidays(dateService.convertMinutesToTime(employeeHours.getWorkDuringHolidaysInMinutes()));
 			if (employeeHours.getMinutes() > monthlyScheduleWorkingHoursInMinutes) {
 				employeeHours.setOvertimeInMinutes(employeeHours.getMinutes() - monthlyScheduleWorkingHoursInMinutes);
 				employeeHours.setOvertime(dateService

@@ -521,7 +521,9 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		
 		//searchQuery += addDetailedSearch(productCode, deviceBrandId, deviceModelId, productTypeId, argsList);
 		
-		searchQuery += String.format(STORE_CRITERIA_QUERY, storeIds);
+		if (storeIds != null) {
+			searchQuery += String.format(STORE_CRITERIA_QUERY, storeIds);
+		}
 		searchQuery += GROUP_BY_STORE;
 		searchQuery += ORDER_BY_STORE;
 		

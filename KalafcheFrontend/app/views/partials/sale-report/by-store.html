@@ -59,7 +59,7 @@
                 </div>
             </form>
         </div>
-        <div class="report-summary" flex ng-if="isAdmin()">
+        <div class="report-summary" flex ng-if="isAdmin() || isManager()">
             <div layout="column">
                 <div layout="row" ng-if="report.endDate - report.startDate > 86340000">
                     от {{getReportDate(report.startDate)}} до {{getReportDate(report.endDate)}}

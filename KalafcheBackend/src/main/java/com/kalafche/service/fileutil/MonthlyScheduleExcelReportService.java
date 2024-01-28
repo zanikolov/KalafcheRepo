@@ -100,8 +100,17 @@ public class MonthlyScheduleExcelReportService {
 		Cell workingHoursCell = calendarRow.createCell(colNum++);
 		workingHoursCell.setCellValue("Общо");
 		
-		Cell overtimeCell = calendarRow.createCell(colNum++);
-		overtimeCell.setCellValue("Overtime");
+		Cell paidLeavesCell = calendarRow.createCell(colNum++);
+		paidLeavesCell.setCellValue("ПО");
+		
+		Cell sickLeavesCell = calendarRow.createCell(colNum++);
+		sickLeavesCell.setCellValue("ОБ");
+		
+		Cell unpaidLeavesCell = calendarRow.createCell(colNum++);
+		unpaidLeavesCell.setCellValue("НО");
+		
+		Cell workDuringHolidaysCell = calendarRow.createCell(colNum++);
+		workDuringHolidaysCell.setCellValue("ПТ");
 	}
 
 	private void setDayCellStyle(Cell dayCell, int dayOfTheWeek, boolean isHoliday) {
@@ -147,12 +156,18 @@ public class MonthlyScheduleExcelReportService {
 				Cell workingHoursCell = employeeRow.createCell(colNum++);
 				workingHoursCell.setCellValue(employeeHours.getHours());
 				
-				Cell overtimeCell = employeeRow.createCell(colNum++);
-				overtimeCell.setCellValue(employeeHours.getOvertime());
+				Cell paidLeavesCell = employeeRow.createCell(colNum++);
+				paidLeavesCell.setCellValue(employeeHours.getPaidLeaves());
 				
+				Cell sickLeavesCell = employeeRow.createCell(colNum++);
+				sickLeavesCell.setCellValue(employeeHours.getSickLeaves());
+				
+				Cell unpaidLeavesCell = employeeRow.createCell(colNum++);
+				unpaidLeavesCell.setCellValue(employeeHours.getUnpaidLeaves());
+				
+				Cell workDuringHolidaysCell = employeeRow.createCell(colNum++);
+				workDuringHolidaysCell.setCellValue(employeeHours.getWorkDuringHolidays());
 			}
-
-			// int colNum = 2;
 
 			sheet.createRow(rowNum++);
 		}

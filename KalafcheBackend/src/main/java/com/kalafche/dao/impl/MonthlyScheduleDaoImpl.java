@@ -38,10 +38,25 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 	
 	private static final String ID_CLAUSE = "where id = ?";
 	
+//	private static final String SELECT_EMPLOYEE_HOURS = "select ds.employee_id, " +
+//			"e.name, " +
+//			"sum(ws.duration_minutes) " +
+//			"from daily_shift ds " +
+//			"join employee e on ds.EMPLOYEE_ID = e.id " +
+//			"left join working_shift ws on ds.WORKING_SHIFT_ID = ws.id " +
+//			"where MONTHLY_SCHEDULE_ID = ? " +
+//			"group by ds.employee_id, e.name " +
+//			"order by ds.employee_id ";
+	
 	private static final String SELECT_EMPLOYEE_HOURS = "select ds.employee_id, " +
 			"e.name, " +
-			"sum(ws.duration_minutes) " +
+			"sum(ws.duration_minutes), " +
+			"sum(if(ws.code = 'PL', 1, 0)) as paid_leaves, " +
+			"sum(if(ws.code = 'UL', 1, 0)) as unpaid_leaves, " +
+			"sum(if(ws.code = 'SL', 1, 0)) as sick_leaves, " +
+			"sum(if(cal.is_holiday = true and ws.code not in ('', 'PL', 'UL', 'SL'), ws.duration_minutes, 0)) as work_during_holidays " +
 			"from daily_shift ds " +
+			"join calendar cal on ds.calendar_id = cal.id " +
 			"join employee e on ds.EMPLOYEE_ID = e.id " +
 			"left join working_shift ws on ds.WORKING_SHIFT_ID = ws.id " +
 			"where MONTHLY_SCHEDULE_ID = ? " +
@@ -132,6 +147,10 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 		    	EmployeeHours employeeHours = new EmployeeHours();
 		    	employeeHours.setEmployee(employee);
 		    	employeeHours.setMinutes(rs.getInt(3));
+		    	employeeHours.setPaidLeaves(rs.getInt(4));
+		    	employeeHours.setUnpaidLeaves(rs.getInt(5));
+		    	employeeHours.setSickLeaves(rs.getInt(6));
+		    	employeeHours.setWorkDuringHolidaysInMinutes(rs.getInt(7));
 		        return employeeHours;
 		    }
 		}, monthlyScheduleId);
