@@ -55,7 +55,7 @@
     }
 
     .menu-panel-header {
-        font-size: 15px;
+        font-size: 15px !important;
         color: #5c531c !important;
     }
 

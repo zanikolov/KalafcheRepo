@@ -264,7 +264,7 @@ angular.module('kalafcheFrontendApp')
           title: 'Ревизии',
           icon: 'dashboard',
           admin: true,
-          manager: false,
+          manager: true,
           user: true
         },
         {

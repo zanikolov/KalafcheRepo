@@ -74,7 +74,7 @@ public class DateServiceImpl implements DateService {
 				.append(String.format("%02d", day)).append('/')
 				.append(String.format("%02d", month)).append('/')
 				.append(year).append(' ')
-				.append(DayOfWeek.of(dayOfTheWeek).getDisplayName(TextStyle.SHORT_STANDALONE, Locale.of("bg", "BG")));
+				.append(DayOfWeek.of(dayOfTheWeek).getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("bg", "BG")));
 
 		return dateString.toString();
 	}

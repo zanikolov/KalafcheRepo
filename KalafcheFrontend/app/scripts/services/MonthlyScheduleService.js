@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-	.service('MonthlyScheduleService', function($http, Environment) {
+	.service('MonthlyScheduleService', function($http, Environment, FileSaver) {
 		angular.extend(this, {
 			searchMonthlySchedule: searchMonthlySchedule,
             searchPresentForm: searchPresentForm,
@@ -10,7 +10,9 @@ angular.module('kalafcheFrontendApp')
             updateDailyShift: updateDailyShift,
             finalizeMonthlySchedule: finalizeMonthlySchedule,
             finalizePresentForm: finalizePresentForm,
-            getPresentFormsForFinalizing: getPresentFormsForFinalizing
+            getPresentFormsForFinalizing: getPresentFormsForFinalizing,
+            printPresentForm: printPresentForm,
+            printMonthlySchedule: printMonthlySchedule
 		});
 
         function searchMonthlySchedule(storeId, month, year) {
@@ -92,6 +94,36 @@ angular.module('kalafcheFrontendApp')
                 .then(
                     function(response) {
                         return response.data
+                    }
+                );
+        }
+
+        function printPresentForm(selectedMonth) { 
+            var request = {};
+            request.month = selectedMonth.value;
+            request.year = selectedMonth.year;
+
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/monthlySchedule/presentFormReport', request, {responseType: "arraybuffer"})
+                .then(
+                    function(response) {
+                        var blob = new Blob([response.data], {type: "application/vnd.openxmlformat-officedocument.spreadsheetml.sheet;"});
+                        FileSaver.saveAs(blob, 'Присъствена форма ' + selectedMonth.value + '-' + selectedMonth.year + '.xlsx')
+                    }
+                );
+        }
+
+
+        function printMonthlySchedule(storeId, selectedMonth) { 
+            var request = {};
+            request.storeId = 10;
+            request.month = selectedMonth.value;
+            request.year = selectedMonth.year;
+
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/monthlySchedule/print', request, {responseType: "arraybuffer"})
+                .then(
+                    function(response) {
+                        var blob = new Blob([response.data], {type: "application/vnd.openxmlformat-officedocument.spreadsheetml.sheet;"});
+                        FileSaver.saveAs(blob, 'График_' + selectedMonth.value + '-' + selectedMonth.year + '.xlsx')
                     }
                 );
         }

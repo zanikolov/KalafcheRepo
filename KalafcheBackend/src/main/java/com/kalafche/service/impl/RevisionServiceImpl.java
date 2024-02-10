@@ -2,7 +2,10 @@ package com.kalafche.service.impl;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -10,13 +13,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.kalafche.dao.RevisionDao;
+import com.kalafche.exceptions.CommonException;
 import com.kalafche.exceptions.DomainObjectNotFoundException;
+import com.kalafche.exceptions.NegativeItemQuantityException;
 import com.kalafche.model.DeviceModel;
 import com.kalafche.model.Employee;
+import com.kalafche.model.MissingRevisionItem;
 import com.kalafche.model.Item;
 import com.kalafche.model.ProductSpecificPrice;
 import com.kalafche.model.Revision;
 import com.kalafche.model.RevisionItem;
+import com.kalafche.model.RevisionReport;
 import com.kalafche.model.RevisionType;
 import com.kalafche.service.DateService;
 import com.kalafche.service.DeviceModelService;
@@ -53,23 +60,26 @@ public class RevisionServiceImpl implements RevisionService {
 	
 	@Transactional
 	@Override
-	public Revision initiateRevision(Revision revision) throws SQLException {
+	public Revision initiateRevision(Revision revision) throws SQLException, CommonException {
 		Employee currentEmployee = employeeService.getLoggedInEmployee();
-		if (!employeeService.isLoggedInEmployeeAdmin()) {
+		if (!employeeService.isLoggedInEmployeeAdmin() && !employeeService.isLoggedInEmployeeManager()) {
 			revision.setStoreId(currentEmployee.getStoreId());
 		}
+		RevisionType revisionType = revisionDao.selectRevisionTypeByCode(revision.getTypeCode());
+		revision.setTypeId(revisionType.getId());
 		revision.setCreateTimestamp(dateService.getCurrentMillisBGTimezone());
 		revision.setCreatedByEmployeeId(currentEmployee.getId());
-		
+		revision.setActualSynced(false);
+		revision.setIsFinalized(false);	
 		Integer revisionId = revisionDao.insertRevision(revision);
+		revision.setId(revisionId);
+		
 		
 		revisionDao.insertRevisers(revisionId, revision.getRevisers());
-		List<DeviceModel> deviceModels = createRevisionDeviceModels(revisionId, revision.getTypeId(), revision.getStoreId());
+		List<DeviceModel> deviceModels = createRevisionDeviceModels(revision, revisionType.getStrategy(), revision.getStoreId());
 		List<RevisionItem> revisionItems = createRevisionItems(revisionId, revision.getStoreId(), deviceModels);
-		String revisionTypeCode = revisionDao.selectRevisionTypeCode(revision.getTypeId());
-		
-		revision.setId(revisionId);
-		revision.setTypeCode(revisionTypeCode);
+			
+		revision.setTypeCode(revisionType.getCode());
 		revision.setDeviceModels(deviceModels);
 		revision.setRevisionItems(revisionItems);
 		
@@ -80,27 +90,64 @@ public class RevisionServiceImpl implements RevisionService {
 		List<RevisionItem> revisionItems = revisionDao.getItemsForRevision(storeId, deviceModels);
 		revisionDao.insertRevisionItems(revisionId, revisionItems);
 		
-		return revisionDao.getRevisionItemByRevisionId(revisionId, false);
+		return revisionDao.getRevisionItemsByRevisionId(revisionId, false);
 	}
 
-	private List<DeviceModel> createRevisionDeviceModels(Integer revisionId, Integer revisionTypeId, Integer storeId) {
+	private List<DeviceModel> createRevisionDeviceModels(Revision revision, String revisionTypeStrategy,
+			Integer storeId) throws CommonException {
 		List<Integer> deviceModelIds = Lists.newArrayList();
-		
-		if ("DAILY".equals(revisionDao.selectRevisionTypeCode(revisionTypeId))) {
-			Integer lastRevisedDeviceModelId = revisionDao.getLastDeviceIdFromLastRevisionByStoreId(storeId);
-			deviceModelIds = deviceModelService.getDeviceModelIdsForDailyRevision(lastRevisedDeviceModelId, 10);
-			
-			//in case we reach the end of the device models' table, we start from the beginning
-			if (deviceModelIds.size() < 10) {
-				deviceModelIds.addAll(deviceModelService.getDeviceModelIdsForDailyRevision(0, 10 - deviceModelIds.size()));
-			}
-		} else {
-			deviceModelIds = deviceModelService.getDeviceModelIdsForFullRevision();
+
+		switch (revisionTypeStrategy) {
+		case "CONSECUTIVE":
+			deviceModelIds = chooseConsecutiveDeviceModelIds(storeId);
+			break;
+		case "ALL":
+			deviceModelIds = deviceModelService.getAllDeviceModelIds();
+			break;
+		case "RANDOM":
+			deviceModelIds = chooseRandomDeviceModelIds(revision.getStoreId());
+			break;
+		case "SELECTED":
+			deviceModelIds = revision.getDeviceModels().stream().map(deviceModel -> deviceModel.getId())
+					.collect(Collectors.toList());
+			break;
+		default:
+			throw new CommonException(String.format("Revision Strategy %s is not supported", revisionTypeStrategy));
 		}
-		
-		revisionDao.insertRevisionDeviceModels(revisionId, deviceModelIds);
-		
+
+		revisionDao.insertRevisionDeviceModels(revision.getId(), deviceModelIds);
+
 		return deviceModelService.getDeviceModelsByIds(deviceModelIds);
+	}
+
+	private List<Integer> chooseRandomDeviceModelIds(Integer storeId) {
+		List<Integer> deviceModelIds = deviceModelService.getAllDeviceModelIds();
+		List<Integer> deviceModelIdsFromLastRevisions = revisionDao.getDeviceModelIdsFromLastRevisionByStore(storeId, 30);
+
+		deviceModelIds.removeAll(deviceModelIdsFromLastRevisions);
+
+		Random rand = new Random();
+		List<Integer> randomChoosedDeviceModelIds = new ArrayList<Integer>();
+		int randomIndex;
+		for (int i = 0; i < 10; i++) {
+			randomIndex = rand.nextInt(deviceModelIds.size());
+			randomChoosedDeviceModelIds.add(deviceModelIds.get(randomIndex));
+			deviceModelIds.remove(randomIndex);
+		}
+
+		return randomChoosedDeviceModelIds;
+	}
+
+	private List<Integer> chooseConsecutiveDeviceModelIds(Integer storeId) {
+		List<Integer> deviceModelIds;
+		Integer lastRevisedDeviceModelId = revisionDao.getLastDeviceIdFromLastRevisionByStoreId(storeId);
+		deviceModelIds = deviceModelService.getDeviceModelIdsForDailyRevision(lastRevisedDeviceModelId, 10);
+		
+		//in case we reach the end of the device models' table, we start from the beginning
+		if (deviceModelIds.size() < 10) {
+			deviceModelIds.addAll(deviceModelService.getDeviceModelIdsForDailyRevision(0, 10 - deviceModelIds.size()));
+		}
+		return deviceModelIds;
 	}
 
 	@Override
@@ -113,34 +160,45 @@ public class RevisionServiceImpl implements RevisionService {
 
 	@Override
 	public Revision getCurrentRevision(Integer storeId) {
-		Revision currentRevision = null;
-		if (employeeService.isLoggedInEmployeeAdmin()) {
-			currentRevision = revisionDao.getCurrentRevision(storeId);
-		} else {
+		if (!employeeService.isLoggedInEmployeeAdmin() && !employeeService.isLoggedInEmployeeManager()) {
 			Employee currentEmployee = employeeService.getLoggedInEmployee();
-			currentRevision = revisionDao.getCurrentRevision(currentEmployee.getStoreId());
+			storeId = currentEmployee.getStoreId();
 		}
+		Revision currentRevision = revisionDao.getCurrentRevision(storeId);
 		
-		if (currentRevision == null) {
-			return null;
+		if (currentRevision != null) {
+			populateRevisionDataInfo(currentRevision, false);
 		}
-		
-		populateRevisionDataInfo(currentRevision, false);
-		
+				
 		return currentRevision;
 	}
 
 	private void populateRevisionDataInfo(Revision revision, Boolean onlyMismatches) {
 		Integer revisionId = revision.getId();
 		
-		List<RevisionItem> revisionItems = revisionDao.getRevisionItemByRevisionId(revisionId, onlyMismatches);
-		revision.setRevisionItems(revisionItems);
-		
 		List<Employee> revisers = getRevisers(revisionId);
 		revision.setRevisers(revisers);
 		
 		List<DeviceModel> deviceModels = getRevisionDeviceModels(revisionId);	
 		revision.setDeviceModels(deviceModels);
+		
+		List<RevisionItem> revisionItems = revisionDao.getRevisionItemsByRevisionId(revisionId, onlyMismatches);
+		revision.setRevisionItems(revisionItems);
+
+		if (onlyMismatches) {
+			for (RevisionItem item : revisionItems) {
+				if (item.getActual() > item.getExpected()) {
+					List<MissingRevisionItem> missingRevisionItems = revisionDao
+							.findLastRevisionTheItemIsMissing(item.getItemId(), revision.getStoreId(), dateService.getTodayInMillis(-30).getStartDateTime());
+					String shortageInfo = missingRevisionItems.stream().map(missingItem -> {
+						String date = dateService.convertMillisToDateTimeString(missingItem.getRevisionDate(), "dd-MM-yyyy", false);
+						return  date + ": " + missingItem.getMissingCount();
+					}).collect(Collectors.joining(", "));
+					
+					item.setShortageInfo(shortageInfo);
+				}
+			}
+		}
 	}
 
 	private List<DeviceModel> getRevisionDeviceModels(Integer revisionId) {
@@ -190,67 +248,109 @@ public class RevisionServiceImpl implements RevisionService {
 	}
 
 	@Override
-	public Integer findRevisionItem(RevisionItem revisionItem) throws SQLException {
+	public Integer updateRevisionItem(RevisionItem revisionItem, int actualChange) throws SQLException {
 		Integer revisionItemId = revisionItem.getId();
 		if (revisionItemId != null) {
-			revisionDao.updateRevisionItemActual(revisionItemId, 1);
+			if (revisionItem.getActual() + actualChange < 0) {
+				throw new NegativeItemQuantityException("actual", "The actual count of the revision item could not be less than zero.");
+			}
+			revisionDao.updateRevisionItemActual(revisionItemId, actualChange);
 		} else {
 			List<Integer> deviceModelIds = revisionDao.getDeviceModelIdByRevisionId(revisionItem.getRevisionId());
-			if (deviceModelIds.contains(revisionItem.getDeviceModelId())) {
-				revisionItem.setActual(1);
-				revisionItemId = revisionDao.insertNonExpectedRevisionItem(revisionItem);	
-			} else {
+			if (!deviceModelIds.contains(revisionItem.getDeviceModelId())) {
 				throw new DomainObjectNotFoundException("deviceModelId", "This item is not part of the revision.");
 			}
+			revisionItem.setActual(1);
+			revisionItemId = revisionDao.insertNonExpectedRevisionItem(revisionItem);
 		}
-		
+
 		return revisionItemId;
 	}
 
 	@Transactional
 	@Override
-	public Revision submitRevision(Revision revision) {
-		List<RevisionItem> revisionItems = revisionDao.getRevisionItemByRevisionId(revision.getId(), false);
+	public Revision finalizeRevision(Revision revision) {
+		List<RevisionItem> revisionItems = revisionDao.getRevisionItemsByRevisionId(revision.getId(), false);
 		
-		Integer totalActual = 0;
-		Integer totalExpected = 0;
-		BigDecimal totalActualAmount = BigDecimal.ZERO;
-		BigDecimal totalExpectedAmount = BigDecimal.ZERO;
+		BigDecimal shortageAmount = BigDecimal.ZERO;
+		Integer shortageCount = 0;
+		BigDecimal surplusAmount = BigDecimal.ZERO;
+		Integer surplusCount = 0;
 		for (RevisionItem revisionItem : revisionItems) {
-			totalActual += revisionItem.getActual();
-			totalExpected += revisionItem.getExpected();
+			int discrepancy = revisionItem.getActual() - revisionItem.getExpected();
 			
-			BigDecimal actualAmount = revisionItem.getProductPrice().multiply(new BigDecimal(revisionItem.getActual()));
-			totalActualAmount = totalActualAmount.add(actualAmount);
-			System.out.println(">>>> act: " + actualAmount);
+			if (discrepancy < 0) {
+				shortageCount += discrepancy;
+				shortageAmount = shortageAmount.add(revisionItem.getProductPrice().multiply(new BigDecimal(discrepancy)));
+			}
 			
-			BigDecimal expectedAmount = revisionItem.getProductPrice().multiply(new BigDecimal(revisionItem.getExpected()));
-			totalExpectedAmount = totalExpectedAmount.add(expectedAmount);
-			System.out.println(">>>> exp: " + expectedAmount);
-		}		
-		BigDecimal totalAmount = totalActualAmount.subtract(totalExpectedAmount);
+			if (discrepancy > 0) {
+				surplusCount += discrepancy;
+				surplusAmount = surplusAmount.add(revisionItem.getProductPrice().multiply(new BigDecimal(discrepancy)));
+			}
+		}
 		
-		revision.setSubmitTimestamp(dateService.getCurrentMillisBGTimezone());
+		revision.setShortageAmount(shortageAmount);
+		revision.setShortageCount(shortageCount);
+		revision.setSurplusAmount(surplusAmount);
+		revision.setSurplusCount(surplusCount);
+		revision.setAbsoluteAmountBalance(surplusAmount.add(shortageAmount.abs()));
+		revision.setAbsoluteCountBalance(surplusCount + Math.abs(shortageCount));
+		revision.setTotalAmount(surplusAmount.add(shortageAmount));
+		
+		Long currentMillis = dateService.getCurrentMillisBGTimezone();
+		revision.setLastUpdateTimestamp(currentMillis);
+		revision.setSubmitTimestamp(currentMillis);
 		revision.setUpdatedByEmployeeId(employeeService.getLoggedInEmployee().getId());
-		revision.setTotalActual(totalActual);
-		revision.setTotalExpected(totalExpected);
-		revision.setBalance(totalAmount);
-	
+		
 		syncRevisionItemsActualWithStockQuantities(revision);
+		revision.setIsFinalized(true);
 		revision.setActualSynced(true);
-		revisionDao.submitRevision(revision);
+		revisionDao.finalizeRevision(revision);
 		
 		return revision;
 	}
 
-	private void syncRevisionItemsActualWithStockQuantities(Revision revision) {
-		List<RevisionItem> mismatchedRevisionItems = revisionDao.getRevisionItemByRevisionId(revision.getId(), true);
-		revisionDao.syncRevisionItemsActualWithStockQuantities(revision.getStoreId(), mismatchedRevisionItems);
+	public void syncRevisionItemsActualWithStockQuantities(Revision revision) {
+		List<RevisionItem> mismatchedRevisionItems = revisionDao.getRevisionItemsByRevisionId(revision.getId(), true);
+		revisionDao.syncRevisionItemsActualWithStockQuantities(revision.getId(), revision.getStoreId(), mismatchedRevisionItems);
 	}
 
 	@Override
-	public List<Revision> searchRevisions(Long startDateMilliseconds, Long endDateMilliseconds, Integer storeId) {
-		return revisionDao.selectRevisions(startDateMilliseconds, endDateMilliseconds, storeId);
+	public RevisionReport searchRevisions(Long startDateMilliseconds, Long endDateMilliseconds, Integer storeId, Integer typeId) {
+		List<Revision> revisions = revisionDao.selectRevisions(startDateMilliseconds, endDateMilliseconds, storeId, typeId);
+		RevisionReport report = new RevisionReport();
+		
+		report.setRevisions(revisions);
+		report.setStartDate(startDateMilliseconds);
+		report.setEndDate(endDateMilliseconds);
+		
+		BigDecimal totalShortageAmount = BigDecimal.ZERO;
+		Integer totalShortageCount = 0;
+		BigDecimal totalSurplusAmount = BigDecimal.ZERO;
+		Integer totalSurplusCount = 0;
+		BigDecimal totalAbsoluteAmountBalance = BigDecimal.ZERO;
+		BigDecimal totalAmount = BigDecimal.ZERO;
+		Integer totalAbsoluteCountBalance = 0;
+		for (Revision revision : revisions) {
+			totalShortageAmount = totalShortageAmount.add(revision.getShortageAmount());
+			totalShortageCount += revision.getShortageCount();
+			totalSurplusAmount = totalSurplusAmount.add(revision.getSurplusAmount());
+			totalSurplusCount += revision.getSurplusCount();
+			totalAbsoluteAmountBalance = totalAbsoluteAmountBalance.add(revision.getAbsoluteAmountBalance());
+			totalAbsoluteCountBalance += revision.getAbsoluteCountBalance();
+			totalAmount = totalAmount.add(revision.getTotalAmount());
+		}
+		
+		report.setTotalShortageAmount(totalShortageAmount);
+		report.setTotalShortageCount(totalShortageCount);
+		report.setTotalSurplusAmount(totalSurplusAmount);
+		report.setTotalSurplusCount(totalSurplusCount);
+		report.setTotalAbsoluteAmountBalance(totalAbsoluteAmountBalance);
+		report.setTotalAbsoluteCountBalance(totalAbsoluteCountBalance);
+		report.setTotalAmount(totalAmount);
+		
+		return report;
 	}
 
 	@Override
@@ -261,6 +361,11 @@ public class RevisionServiceImpl implements RevisionService {
 			stockService.updateTheQuantitiyOfRevisedStock(revisionItem.getItemId(), revisionItem.getRevisionId(), difference);
 		}
 		return null;
+	}
+
+	@Override
+	public List<RevisionItem> getRevisionItemsByRevisionId(Integer revisionId) {
+		return revisionDao.getRevisionItemsByRevisionId(revisionId, false);
 	}
 
 }

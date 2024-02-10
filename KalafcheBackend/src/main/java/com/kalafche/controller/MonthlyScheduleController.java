@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.kalafche.model.DailyShift;
 import com.kalafche.model.EmployeeHours;
 import com.kalafche.model.MonthlySchedule;
-import com.kalafche.model.SaleSplitReportRequest;
+import com.kalafche.model.MonthlySchedulePrintRequest;
 import com.kalafche.service.DailyShiftService;
 import com.kalafche.service.MonthlyScheduleService;
 
@@ -69,14 +69,49 @@ public class MonthlyScheduleController {
 		return dailyShiftService.updateDailyShift(dailyShift);
 	}
 
+	//Only for test purposes till the schedules functionality is fully implemented and approved.
 	@GetMapping("/presentFormReport/{month}/{year}")
-	public ResponseEntity<byte[]> printPresentFormReport(@PathVariable(value = "month") Integer month, @PathVariable(value = "year") Integer year) {
+	public ResponseEntity<byte[]> printPresentFormTest(@PathVariable(value = "month") Integer month, @PathVariable(value = "year") Integer year) {
 		
-		byte[] excelBytes = monthlyScheduleService.getPresentFormReport(month, year);
+		byte[] excelBytes = monthlyScheduleService.getMonthlyScheduleReport(month, year, 10);
 		
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
 		String filename = "present-form-report_" + month + "-" + year + ".xlsx";
+		headers.setContentDispositionFormData(filename, filename);
+		headers.set("Content-Transfer-Encoding", "binary");
+		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+		
+		ResponseEntity<byte[]> response = new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);	    
+		
+		return response;
+	}	
+	
+	@PostMapping("/presentFormReport")
+	public ResponseEntity<byte[]> printPresentForm(@RequestBody MonthlySchedulePrintRequest presentFormPrintRequest) {
+		
+		byte[] excelBytes = monthlyScheduleService.getMonthlyScheduleReport(presentFormPrintRequest.getMonth(), presentFormPrintRequest.getYear(), null);
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
+		String filename = "present-form-report_" + presentFormPrintRequest.getMonth() + "-" + presentFormPrintRequest.getYear() + ".xlsx";
+		headers.setContentDispositionFormData(filename, filename);
+		headers.set("Content-Transfer-Encoding", "binary");
+		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+		
+		ResponseEntity<byte[]> response = new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);	    
+		
+		return response;
+	}
+	
+	@PostMapping("/print")
+	public ResponseEntity<byte[]> printMonthlySchedule(@RequestBody MonthlySchedulePrintRequest presentFormPrintRequest) {
+		
+		byte[] excelBytes = monthlyScheduleService.getMonthlyScheduleReport(presentFormPrintRequest.getMonth(), presentFormPrintRequest.getYear(), presentFormPrintRequest.getStoreId());
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
+		String filename = "monthly_schedule" + presentFormPrintRequest.getMonth() + "-" + presentFormPrintRequest.getYear() + ".xlsx";
 		headers.setContentDispositionFormData(filename, filename);
 		headers.set("Content-Transfer-Encoding", "binary");
 		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");

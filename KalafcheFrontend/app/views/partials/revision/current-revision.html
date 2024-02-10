@@ -9,26 +9,58 @@
                             {{store.city}}, {{store.name}}
                         </md-option>
                     </md-select>
-                </md-input-container>            
+                </md-input-container>  
+                <md-input-container class="md-block" ng-if="!revision.id">
+	        		<label>Ревизори</label>
+	        		<md-select ng-model="revision.revisers" multiple required>
+	            		<md-option ng-repeat="employee in employees | filter: {storeId : formData.storeId} : true" ng-value="employee">
+	            			{{employee.name}}
+	            		</md-option>
+	        		</md-select>
+	      		</md-input-container>          
                 <md-input-container class="md-block" ng-if="!revision.id">
                     <label>Тип</label>
-                    <md-select ng-model="revision.typeId" ng-selected="false" required>
-                        <md-option ng-repeat="type in types" ng-value="type.id">
+                    <md-select ng-model="revision.typeCode" ng-selected="false" required>
+                        <md-option ng-repeat="type in types" ng-value="type.code">
                             {{type.name}}
                         </md-option>
                     </md-select>
                 </md-input-container>
-              	<md-input-container class="md-block" ng-if="!revision.id">
-	        		<label>Ревизори</label>
-	        		<md-select ng-model="revision.revisers" multiple required>
-	            		<md-option ng-repeat="employee in employees" ng-value="employee">
-	            			{{employee.name}}
-	            		</md-option>
-	        		</md-select>
-	      		</md-input-container>
+                 <div layout-xs="row" flex-xs="100" ng-if="!revision.id && revision.typeCode == 'CHECK'">
+                    <md-input-container flex style="width:30%">
+                        <label>Марка</label>
+                        <md-select ng-model="selectedBrand.id">
+                            <md-option value="" selected></md-option>
+                            <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                                {{brand.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container flex style="width:69%">
+                        <label>Модел</label>
+                        <md-select ng-model="revision.deviceModels"
+                                   md-on-close="clearModelSearchTerm()"
+                                   data-md-container-class="selectSearchTermHeader"
+                                   ng-disabled="!selectedBrand.id" multiple>
+                          <md-select-header class="select-header">
+                            <input id="modelSearchTerm" ng-model="modelSearchTerm"
+                                   type="search"
+                                   placeholder="Търси модел.."
+                                   class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+                          </md-select-header>
+                            <md-option ng-repeat="model in models | filter: {deviceBrandId : selectedBrand.id} : true |
+                              filter:modelSearchTerm" ng-value="model">
+                                {{model.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                    <ul>
+					    <li ng-repeat="deviceModel in revision.deviceModels">{{deviceModel.name}}</li>
+					</ul>
+                </div>
             </form>
             <md-content layout="row"  ng-if="!revision.id">
-                <md-button ng-disabled="revisionForm.$invalid" ng-click="initiateRevision()" class="md-raised md-primary">Създай</md-button>
+                <md-button ng-disabled="revisionForm.$invalid || (revision.typeCode =='CHECK' && (revision.deviceModels == null || revision.deviceModels.length < 1))" ng-click="initiateRevision()" class="md-raised md-primary">Създай</md-button>
             </md-content>
         </div>
     </md-content>
@@ -43,7 +75,7 @@
 		                    </tr>
 		                </thead>
 		                <tbody>               
-		                    <tr ng-if="revision.typeCode == 'DAILY'" class="item-row" ng-repeat="deviceModel in revision.deviceModels">
+		                    <tr ng-if="revision.typeCode == 'DAILY' || revision.typeCode == 'CHECK'" class="item-row" ng-repeat="deviceModel in revision.deviceModels">
 		                        <td>{{deviceModel.name}}</td>
 		                    </tr>
 		                    <tr ng-if="revision.typeCode == 'FULL'" class="item-row">
@@ -88,7 +120,7 @@
 		        </div>
 		    </md-content>
             <md-content layout="row" layout-align="end end" ng-if="!revision.submitTimestamp">
-                <md-button ng-click="submitRevision()" class="md-raised md-primary">Приключи</md-button>
+                <md-button ng-click="finalizeRevision()" class="md-raised md-primary">Приключи</md-button>
             </md-content>
 		</md-content>
 	</md-content>
@@ -110,33 +142,36 @@
 		            </form>
 		        </div>
 		</md-content>
-		<md-content layout="column" ng-if="selectedRevisionItem">
-			    <div flex>
-			        <table class="table table-hover table-condensed">
-			            <thead>
-			                <tr>
-			                    <th>Устройство</th>
-			                    <th>Продукт</th>
-			                    <th>Система</th>
-			                    <th>Налични</th>
-			                    <th></th>
-			                </tr>
-			            </thead>
-			            <tbody>               
-			                <tr class="item-row">
-			                    <td>{{selectedRevisionItem.deviceModelName}}</td>
-			                    <td>{{selectedRevisionItem.productCode}} {{selectedRevisionItem.productName}}</td>
-			                    <td>{{selectedRevisionItem.expected}}</td>
-			                    <td>{{selectedRevisionItem.actual}}</td>
-			                    <td>
-	                                <a href="" ng-click="findRevisionItem(selectedRevisionItem)" ng-if="selectedRevisionItem.partOfTheCurrentRevision">
-	                                    <md-icon class="primary-icon" md-svg-src="images/icons/check.svg"></md-icon>
-	                                </a>
-			                    </td>
-			                </tr>
-			            </tbody>
-			        </table>
-			    </div>
+		<md-content layout="column" ng-show="selectedRevisionItem">
+		    <div flex>
+		        <table class="table table-hover table-condensed">
+		            <thead>
+		                <tr>
+		                    <th>Устройство</th>
+		                    <th>Продукт</th>
+		                    <th>Система</th>
+		                    <th>Налични</th>
+		                    <th></th>
+		                </tr>
+		            </thead>
+		            <tbody>               
+		                <tr class="item-row">
+		                    <td>{{selectedRevisionItem.deviceModelName}}</td>
+		                    <td>{{selectedRevisionItem.productCode}} {{selectedRevisionItem.productName}}</td>
+		                    <td>{{selectedRevisionItem.expected}}</td>
+		                    <td>       
+		                        <a href="" ng-click="plusRevisionItem(selectedRevisionItem, true)">
+	                                <md-icon class="primary-icon" md-svg-src="images/icons/add.svg"></md-icon>
+	                            </a>
+	                        		{{selectedRevisionItem.actual}}
+	                      		<a href="" ng-click="minusRevisionItem(selectedRevisionItem, true)" ng-if="selectedRevisionItem.actual > 0">
+	                                <span style="font-size:15px; font-weight:bold; color:#9c27b0">—</span>
+	                            </a>
+	                    	</td>
+		                </tr>
+		            </tbody>
+		        </table>
+		    </div>
 		</md-content>
 	</md-content>
 	<md-content layout="row" layout-padding ng-if="revision.id">
@@ -149,21 +184,23 @@
 	                    <th>Продукт</th>
 	                    <th>Система</th>
 	                    <th>Налични</th>
-	                    <th></th>
 	                </tr>
 	            </thead>
 	            <tbody>               
-	                <tr class="item-row" dir-paginate="revisionItem in revision.revisionItems | filter: filterExpectedEqualsToActual() | itemsPerPage:revisionItemsPerPage" current-page="currentPage" pagination-id="current">
+	                <tr class="item-row" dir-paginate="revisionItem in revision.revisionItems | filter: filterExpectedEqualsToActual() | itemsPerPage:revisionItemsPerPage track by $index" current-page="currentPage" pagination-id="current">
 	                	<td>{{(currentPage - 1) * revisionItemsPerPage + $index + 1}}</td>
 	                    <td>{{revisionItem.deviceModelName}}</td>
 	                    <td>{{revisionItem.productCode}} {{revisionItem.productName}}</td>
 	                    <td>{{revisionItem.expected}}</td>
-	                    <td>{{revisionItem.actual}}</td>
-	                    <td>
-                            <a href="" ng-click="findRevisionItem(revisionItem)">
-                                <md-icon class="primary-icon" md-svg-src="images/icons/check.svg"></md-icon>
+	                    <td>       
+	                        <a href="" ng-click="plusRevisionItem(revisionItem, false)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/add.svg"></md-icon>
                             </a>
-	                    </td>
+                        		{{revisionItem.actual}}
+                      		<a href="" ng-click="minusRevisionItem(revisionItem, false)" ng-if="revisionItem.actual > 0">
+                                <span style="font-size:15px; font-weight:bold; color:#9c27b0">—</span>
+                            </a>
+                    	</td>
 	                </tr>
 	            </tbody>
 	        </table>

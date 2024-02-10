@@ -18,6 +18,6 @@ public interface MonthlyScheduleService {
 
 	List<EmployeeHours> getEmployeeHours(Integer monthlyScheduleId, Integer monthlyScheduleWorkingHoursInMinutes);
 
-	byte[] getPresentFormReport(Integer month, Integer year);
+	byte[] getMonthlyScheduleReport(Integer month, Integer year, Integer storeId);
 
 }

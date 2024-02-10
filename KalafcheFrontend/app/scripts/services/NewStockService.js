@@ -69,8 +69,8 @@ angular.module('kalafcheFrontendApp')
                 ); 
         }
 
-        function printStickersForNewStocks(newStocks) {
-            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/newStock/printAll', newStocks, {responseType: "arraybuffer"})
+        function printStickersForNewStocks(storeId) {
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/newStock/print/' + storeId, {responseType: "arraybuffer"})
                 .then(
                     function(response) {
                         var blob = new Blob([response.data], {type: "application/pdf"});

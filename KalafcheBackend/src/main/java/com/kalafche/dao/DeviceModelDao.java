@@ -19,7 +19,7 @@ public interface DeviceModelDao {
 
 	public abstract List<Integer> getDeviceModelIdsForDailyRevision(Integer start, Integer count);
 
-	public abstract List<Integer> getDeviceModelIdsForFullRevision();
+	public abstract List<Integer> getAllDeviceModelIds();
 
 	public abstract List<DeviceModel> getDeviceModelsByIds(List<Integer> deviceModelIds);
 	

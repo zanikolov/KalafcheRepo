@@ -10,7 +10,7 @@ angular.module('kalafcheFrontendApp')
         }
     });
 
-    function CurrentRevisionController($scope, $rootScope, AuthService, RevisionService, StoreService, ApplicationService, EmployeeService) {
+    function CurrentRevisionController($scope, $rootScope, AuthService, RevisionService, StoreService, ApplicationService, EmployeeService, SessionService, BrandService, ModelService) {
 
         init();
 
@@ -19,16 +19,30 @@ angular.module('kalafcheFrontendApp')
             $scope.revisionItemsPerPage = 20;
             $scope.currentPage = 1;
             $scope.formData = {};
-            $scope.formData.showOnlyMismatches = true;
-
-            if (!AuthService.isAdmin()) {
-                getCurrentRevision();
+            $scope.formData.showOnlyMismatches = false;
+            if (AuthService.isUser()) {
+                $scope.formData.storeId = SessionService.currentUser.employeeStoreId;
+                getCurrentRevision($scope.formData.storeId);
             } else {
                 getAllStores();
             }
             getRevisionTypes();
             getAllActiveEmployees();
+            getAllBrands();
+            getAllDeviceModels();    
         }
+
+        function getAllBrands() {
+            BrandService.getAllDeviceBrands().then(function(response) {
+                $scope.brands = response;
+            });
+        };
+
+        function getAllDeviceModels() {
+            ModelService.getAllDeviceModels().then(function(response) {
+                $scope.models = response; 
+            });
+        };
 
         $scope.initiateRevision = function() {
             $scope.revision.storeId = $scope.formData.storeId;
@@ -65,7 +79,7 @@ angular.module('kalafcheFrontendApp')
         }
 
         function getAllStores() {
-            StoreService.getAllStores().then(function(response) {
+            StoreService.getAllStoresForSaleReport().then(function(response) {
                 $scope.stores = response;
             });
 
@@ -108,29 +122,39 @@ angular.module('kalafcheFrontendApp')
             }
         }
 
-        $scope.findRevisionItem = function(revisionItem) {
-            RevisionService.findRevisionItem(revisionItem).then(function(response) {
-                if (revisionItem.id) {
-                    angular.forEach($scope.revision.revisionItems, function(item) {
-                        if (revisionItem.id == item.id) {
-                            item.actual = item.actual + 1;
-                            return;
-                        }
-                    });
-                } else {
-                    revisionItem.id = response;
-                    revisionItem.actual = 1;
-                    $scope.revision.revisionItems.push(revisionItem);
-                }
-
-                $scope.formData.barcode = "";
-                $scope.selectedRevisionItem = null;
+        $scope.plusRevisionItem = function(revisionItem, foundByBarcode) {
+            RevisionService.plusRevisionItem(revisionItem).then(function(response){
+                changeRevisionItemActual(revisionItem, 1, response)
             });
         }
 
-        $scope.submitRevision = function() {
-            RevisionService.submitRevision($scope.revision).then(function(response) {
-                console.log(response);
+        $scope.minusRevisionItem = function(revisionItem, foundByBarcode) {
+            RevisionService.minusRevisionItem(revisionItem).then(function(response){
+                changeRevisionItemActual(revisionItem, -1, response)
+            });
+        }
+
+        function changeRevisionItemActual(revisionItem, actualChange, response) {
+            if (revisionItem.id) {
+                angular.forEach($scope.revision.revisionItems, function(item) {
+                    if (revisionItem.id == item.id) {
+                        item.actual = item.actual + actualChange;
+                        return;
+                    }
+                });
+            } else {
+                revisionItem.id = response;
+                revisionItem.actual = 1;
+                $scope.revision.revisionItems.push(revisionItem);
+            }
+
+            $scope.formData.barcode = "";
+            $scope.selectedRevisionItem = null;
+        }
+
+        $scope.finalizeRevision = function() {
+            RevisionService.finalizeRevision($scope.revision).then(function(response) {
+                getCurrentRevision();
             });
         }
 

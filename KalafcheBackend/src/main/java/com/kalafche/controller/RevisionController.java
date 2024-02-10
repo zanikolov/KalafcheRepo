@@ -14,8 +14,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.kalafche.exceptions.CommonException;
 import com.kalafche.model.Revision;
 import com.kalafche.model.RevisionItem;
+import com.kalafche.model.RevisionReport;
 import com.kalafche.model.RevisionType;
 import com.kalafche.service.RevisionService;
 
@@ -28,7 +30,7 @@ public class RevisionController {
 	private RevisionService revisionService;
 	
 	@PutMapping
-	public Revision initiateRevision(@RequestBody Revision revision) throws SQLException {
+	public Revision initiateRevision(@RequestBody Revision revision) throws SQLException, CommonException {
 		return revisionService.initiateRevision(revision);
 	}
 	
@@ -52,9 +54,19 @@ public class RevisionController {
 		return revisionService.getRevisionItemByBarcode(revisionId, barcode);
 	}
 	
-	@PostMapping("/item")
-	public Integer findRevisionItem(@RequestBody RevisionItem revisionItem) throws SQLException {
-		return revisionService.findRevisionItem(revisionItem);
+	@GetMapping("/item/{revisionId}")
+	public List<RevisionItem> getRevisionItems(@PathVariable (value = "revisionId") Integer revisionId) throws SQLException {
+		return revisionService.getRevisionItemsByRevisionId(revisionId);
+	}
+	
+	@PostMapping("/item/plus")
+	public Integer plusRevisionItem(@RequestBody RevisionItem revisionItem) throws SQLException {
+		return revisionService.updateRevisionItem(revisionItem, 1);
+	}
+	
+	@PostMapping("/item/minus")
+	public Integer minusRevisionItem(@RequestBody RevisionItem revisionItem) throws SQLException {
+		return revisionService.updateRevisionItem(revisionItem, -1);
 	}
 	
 	@PostMapping("/sync")
@@ -63,14 +75,14 @@ public class RevisionController {
 	}
 	
 	@PostMapping
-	public Revision submitRevision(@RequestBody Revision revision) throws SQLException {
-		return revisionService.submitRevision(revision);
+	public Revision finalizeRevision(@RequestBody Revision revision) throws SQLException {
+		return revisionService.finalizeRevision(revision);
 	}
 	
 	@GetMapping
-	public List<Revision> searchRevisions(@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds, 
-			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds, @RequestParam(value = "storeId") Integer storeId) {
-		return revisionService.searchRevisions(startDateMilliseconds, endDateMilliseconds, storeId);
+	public RevisionReport searchRevisions(@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds, 
+			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds, @RequestParam(value = "storeId") Integer storeId, @RequestParam(value = "typeId", required = false) Integer typeId) {
+		return revisionService.searchRevisions(startDateMilliseconds, endDateMilliseconds, storeId, typeId);
 	}
 	
 }

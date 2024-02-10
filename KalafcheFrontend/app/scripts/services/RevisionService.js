@@ -7,10 +7,12 @@ angular.module('kalafcheFrontendApp')
             getCurrentRevision: getCurrentRevision,
             getRevisionTypes: getRevisionTypes,
             getRevisionItemByBarcode: getRevisionItemByBarcode,
-            findRevisionItem: findRevisionItem,
-            submitRevision: submitRevision,
+            plusRevisionItem: plusRevisionItem,
+            minusRevisionItem: minusRevisionItem,
+            finalizeRevision: finalizeRevision,
             searchRevisions: searchRevisions,
-            getRevisionDetailedData: getRevisionDetailedData
+            getRevisionDetailedData: getRevisionDetailedData,
+            getRevisionItems: getRevisionItems
 		});
 
         function initiateRevision(revision) { 
@@ -24,7 +26,6 @@ angular.module('kalafcheFrontendApp')
 
         function getCurrentRevision(storeId) {
             var params = {"params" : {"storeId": storeId}};
-            console.log(">>>>>>> " + storeId);
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/revision/current', params)
                 .then(
                     function(response) {
@@ -51,10 +52,30 @@ angular.module('kalafcheFrontendApp')
                 );
         }
 
-        function findRevisionItem(revisionItem) { 
-            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/revision/item', revisionItem)
+        function getRevisionItems(revisionId) {
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/revision/item/' + revisionId)
                 .then(
                     function(response) {
+                        return response.data
+                    }
+                );
+        }
+
+        function plusRevisionItem(revisionItem) { 
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/revision/item/plus', revisionItem)
+                .then(
+                    function(response) {
+                        console.log(response.data);
+                        return response.data
+                    }
+                );
+        };
+
+        function minusRevisionItem(revisionItem) { 
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/revision/item/minus', revisionItem)
+                .then(
+                    function(response) {
+                        console.log(response.data);
                         return response.data
                     }
                 );
@@ -69,7 +90,7 @@ angular.module('kalafcheFrontendApp')
                 );
         };
 
-        function submitRevision(revision) { 
+        function finalizeRevision(revision) { 
             return $http.post(Environment.apiEndpoint + '/KalafcheBackend/revision', revision)
                 .then(
                     function(response) {
@@ -87,10 +108,9 @@ angular.module('kalafcheFrontendApp')
                 );
         }
 
-        function searchRevisions(startDateMilliseconds, endDateMilliseconds, storeId) { 
-            var params = {"params" : {"startDateMilliseconds": startDateMilliseconds, "endDateMilliseconds": endDateMilliseconds, 
-                "storeId": storeId}};
-
+        function searchRevisions(startDateMilliseconds, endDateMilliseconds, storeId, typeId) { 
+            var params = {"params" : {"startDateMilliseconds": startDateMilliseconds, "endDateMilliseconds": endDateMilliseconds, "storeId": storeId, "typeId": typeId}};
+            console.log(params);
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/revision', params)
                 .then(
                     function(response) {

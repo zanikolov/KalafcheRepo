@@ -14,7 +14,7 @@
                             </md-select>
                         </md-input-container>
                     </div>
-                    <div layout-xs="row" flex-offset="5" flex="50" flex-xs="100">
+                    <div layout-xs="row" flex-offset="5" flex="45" flex-xs="100">
                         <md-input-container>
                             <md-datepicker style="width:100%" ng-model="startDate" md-min-date="startMinDate" md-max-date="startMaxDate" ng-change="changeStartDate()"></md-datepicker>
                         </md-input-container>
@@ -22,13 +22,46 @@
                             <md-datepicker style="width:100%" ng-model="endDate" md-min-date="endMinDate" md-max-date="startMaxDate" ng-change="changeEndDate()"></md-datepicker>
                         </md-input-container>
                     </div>
-                    <div layout-xs="row" flex="20" flex-xs="100">
+                    <div layout-xs="row" flex-offset="5" flex="10" flex-xs="100">
+                        <md-input-container>
+                            <label>Тип</label>
+                            <md-select ng-model="selectedType.id" ng-selected="false">
+                                <md-option value="0">Всички</md-option>
+                                <md-option ng-repeat="type in types" ng-value="type.id">
+                                    {{type.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <div layout-xs="row" flex-offset="5" flex="10" flex-xs="100">
                         <md-input-container>
                             <md-button layout-align="right" ng-click="searchRevisions()" class="md-raised md-primary">Търси</md-button>
                         </md-input-container>
                     </div>
                 </div>
             </form>
+        </div>
+        <div class="report-summary" ng-if="report.revisions != undefined && report.revisions.length > 0" flex>
+            <div layout="column">
+                <div layout="row" ng-if="report.endDate - report.startDate > 86340000">
+                    от {{getReportDate(report.startDate)}} до {{getReportDate(report.endDate)}}
+                </div>
+                <div layout="row" ng-if="report.endDate - report.startDate <= 86340000">
+                    {{getReportDate(report.startDate)}}
+                </div>
+                <div layout="row" flex>
+                    Липси: {{report.totalShortageCount}}, {{report.totalShortageAmount}}лв
+                </div>
+                <div layout="row" flex>
+                    Екстра: {{report.totalSurplusCount}}, {{report.totalSurplusAmount}}лв
+                </div>
+                <div layout="row" flex>
+                    Абсолютна стойност: {{report.totalAbsoluteAmountBalance}}лв
+                </div>
+                <div layout="row" flex>
+                    Обща стойност: {{report.totalAmount}}лв
+                </div>  
+            </div>
         </div>
         <div flex>
             <table class="table table-hover table-condensed">
@@ -43,24 +76,36 @@
                             <label>Завършена</label>
                         </th>                    
                         <th>
-                            <label>Система</label>
+                            <label>Липси</label>
                         </th>
                         <th>
-                            <label>Налични</label>
+                            <label>В лв.</label>
                         </th>
                         <th>
-                            <label>Баланс</label>
-                        </th> 
+                            <label>Екстра</label>
+                        </th>
+                        <th>
+                            <label>В лв.</label>
+                        </th>
+                        <th>
+                            <label>Абс. стойност</label>
+                        </th>
+                        <th>
+                            <label>Общо</label>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr ng-click="expand(revision)" expand dir-paginate-start="revision in revisions | itemsPerPage:revisionsPerPage" current-page="currentPage" pagination-id="revision">
+                    <tr ng-click="expand(revision)" expand dir-paginate-start="revision in report.revisions | itemsPerPage:revisionsPerPage" current-page="currentPage" pagination-id="revision">
                         <td>{{(currentPage - 1) * revisionsPerPage + $index + 1}}</td>
                         <td>{{revision.storeName}}</td>
                         <td>{{getRevisionTimestamp(revision.submitTimestamp)}}</td>
-                        <td>{{revision.totalExpected}}</td>
-                        <td>{{revision.totalActual}}</td>
-                        <td>{{revision.balance}}лв</td>
+                        <td>{{revision.shortageCount}}</td>
+                        <td>{{revision.shortageAmount}}</td>
+                        <td>{{revision.surplusCount}}</td>
+                        <td>{{revision.surplusAmount}}</td>
+                        <td>{{revision.absoluteAmountBalance}}</td>
+                        <td>{{revision.totalAmount}}</td>
                     </tr>
                     <tr dir-paginate-end ng-show="revision.expanded" class="sale-details" pagination-id="revision">
                         <!-- <td></td> -->
@@ -77,7 +122,7 @@
                                                     </tr>
                                                 </thead>
                                                 <tbody>               
-                                                    <tr ng-if="revision.typeCode == 'DAILY'" class="item-row" ng-repeat="deviceModel in revision.deviceModels">
+                                                    <tr ng-if="revision.typeCode == 'DAILY' || revision.typeCode == 'CHECK'" class="item-row" ng-repeat="deviceModel in revision.deviceModels">
                                                         <td>{{deviceModel.name}}</td>
                                                     </tr>
                                                     <tr ng-if="revision.typeCode == 'FULL'" class="item-row">
@@ -126,6 +171,30 @@
 
                             <md-content layout-padding layout="row" flex>
                                 <table class="table table-hover table-condensed borderless">
+                                        <thead>
+                                            <tr>
+                                                <th>
+                                                </th>
+                                                <th>
+                                                    <label>Модел</label>
+                                                </th>
+                                                <th>
+                                                    <label>Продукт</label>
+                                                </th>                    
+                                                <th>
+                                                    <label>Система</label>
+                                                </th>
+                                                <th>
+                                                    <label>Налични</label>
+                                                </th>
+                                                <th>
+                                                    <label>Цена</label>
+                                                </th>
+                                                <th>
+                                                    
+                                                </th>
+                                            </tr>
+                                        </thead>
                                     <tbody>
                                         <tr dir-paginate="revisionItem in revision.revisionItems | itemsPerPage:revisionItemsPerPage" current-page="itemsCurrentPage" pagination-id="revisionItem">
                                             <td style="width:2%;">{{(itemsCurrentPage - 1) * revisionItemsPerPage + $index + 1}}</td>
@@ -134,6 +203,7 @@
                                             <td style="width:8%;">{{revisionItem.expected}}</td>
                                             <td style="width:8%;">{{revisionItem.actual}}</td>
                                             <td style="width:8%;">{{revisionItem.productPrice}}лв</td>
+                                            <td style="width:20%;">{{revisionItem.shortageInfo}}</td>
 <!--                                             <td ng-if="!revisionItem.synced" style="width:8%;">
                                                 <a href="" ng-click="syncRevisionItem(revisionItem)">
                                                     <md-icon class="primary-icon" md-svg-src="images/icons/check.svg"></md-icon>

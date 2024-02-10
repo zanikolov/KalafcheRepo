@@ -108,7 +108,7 @@ angular.module('kalafcheFrontendApp')
 
         $scope.showImage = function(waste){
             $mdDialog.show({
-                locals:{imgSrc:"https://drive.google.com/uc?export=view&id=" + waste.fileId},
+                locals:{imgSrc:"https://drive.google.com/thumbnail?id=" + waste.fileId + "&sz=w1000"},
                 controller: function($scope, imgSrc) { $scope.imgSrc = imgSrc; },
                 templateUrl: 'views/modals/image-modal.html',
                 clickOutsideToClose:true,

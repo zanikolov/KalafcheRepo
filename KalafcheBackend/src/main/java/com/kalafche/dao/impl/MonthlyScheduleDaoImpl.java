@@ -26,7 +26,7 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 	private static final String INSERT_MONTHLY_SCHEDULE = "insert into monthly_schedule " +
 			"(create_timestamp,created_by,store_id,is_finalized,is_present_form,month,year,working_hours_in_minutes,WORKING_HOURS) VALUES " +
 			"(?               ,?         ,?       ,?           ,?              ,?    ,?   ,?                       ,?) ";
-	private static final String SELECT_MONTHLY_SCHEDULE = "select ms.*, CONCAT(s.city, ', ', s.name) as store_name from monthly_schedule ms join store s on ms.store_id = s.id ";
+	private static final String SELECT_MONTHLY_SCHEDULE = "select ms.*, CONCAT(s.city, ', ', s.name) as store_name, s.company_id as company_id, c.name as company_name from monthly_schedule ms join store s on ms.store_id = s.id join company c on s.company_id = c.id ";
 	
 	private static final String IS_PRESENT_CLAUSE = "where is_present_form = ? "; 
 	
@@ -34,19 +34,11 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 	
 	private static final String STORE_CLAUSE = "and store_id = ? ";
 	
-	private static final String  MONTH_YEAR_CLAUSE = "and month = ? and year = ?";
+	private static final String MONTH_YEAR_CLAUSE = "and month = ? and year = ? ";
 	
-	private static final String ID_CLAUSE = "where id = ?";
+	private static final String ID_CLAUSE = "where ms.id = ? ";
 	
-//	private static final String SELECT_EMPLOYEE_HOURS = "select ds.employee_id, " +
-//			"e.name, " +
-//			"sum(ws.duration_minutes) " +
-//			"from daily_shift ds " +
-//			"join employee e on ds.EMPLOYEE_ID = e.id " +
-//			"left join working_shift ws on ds.WORKING_SHIFT_ID = ws.id " +
-//			"where MONTHLY_SCHEDULE_ID = ? " +
-//			"group by ds.employee_id, e.name " +
-//			"order by ds.employee_id ";
+	private static final String ORDER_BY_COMPANY_ID = "order by s.company_id ";
 	
 	private static final String SELECT_EMPLOYEE_HOURS = "select ds.employee_id, " +
 			"e.name, " +
@@ -160,7 +152,7 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 	public List<MonthlySchedule> getMonthlySchedules(Integer month, Integer year, boolean isPresentForm,
 			boolean isFinalized) {
 		return getJdbcTemplate().query(
-				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + IS_FINALIZED_CLAUSE + MONTH_YEAR_CLAUSE, new Object[] { isPresentForm, isFinalized, month, year },
+				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + IS_FINALIZED_CLAUSE + MONTH_YEAR_CLAUSE + ORDER_BY_COMPANY_ID, new Object[] { isPresentForm, isFinalized, month, year },
 				getRowMapper());
 	}
 

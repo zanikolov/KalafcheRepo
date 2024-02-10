@@ -1,6 +1,5 @@
 package com.kalafche.service.impl;
 
-import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,11 +16,13 @@ import com.kalafche.model.DailyShift;
 import com.kalafche.model.DayDto;
 import com.kalafche.model.EmployeeHours;
 import com.kalafche.model.MonthlySchedule;
+import com.kalafche.model.WorkingShift;
 import com.kalafche.service.CalendarService;
 import com.kalafche.service.DailyShiftService;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.MonthlyScheduleService;
+import com.kalafche.service.WorkingShiftService;
 import com.kalafche.service.fileutil.MonthlyScheduleExcelReportService;
 
 @Service
@@ -41,6 +42,9 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 
 	@Autowired
 	DailyShiftService dailyShiftService;
+	
+	@Autowired
+	WorkingShiftService workingShiftService;
 	
 	@Autowired
 	MonthlyScheduleExcelReportService monthlyScheduleExcelReportService;
@@ -221,13 +225,22 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 	}
 
 	@Override
-	public byte[] getPresentFormReport(Integer month, Integer year) {
-		List<MonthlySchedule> presentForms = monthlyScheduleDao.getMonthlySchedules(month, year, true, true);
+	public byte[] getMonthlyScheduleReport(Integer month, Integer year, Integer storeId) {
 		List<DayDto> days = calendarService.getDaysByMonthAndYear(month, year);
+		List<WorkingShift> workingShifts = workingShiftService.getWorkingShiftsForLegendTableInExcelReport();
+		List<MonthlySchedule> presentForms;
+		if (storeId == null) {
+			presentForms = monthlyScheduleDao.getMonthlySchedules(month, year, true, true);
+		} else {
+			MonthlySchedule monthlySchedule = monthlyScheduleDao.getMonthlySchedule(storeId, month, year, false);
+			presentForms = monthlySchedule != null ? List.of(monthlySchedule) : new ArrayList<MonthlySchedule>();
+		}
+		
 		for (MonthlySchedule presentForm : presentForms) {
 			addDataToMonthlySchedule(presentForm);
 		}
-		return monthlyScheduleExcelReportService.createPresentFormReportExcel(presentForms, days, month, year);
+
+		return monthlyScheduleExcelReportService.createMonthlyScheduleReportExcel(presentForms, days, workingShifts, month, year, storeId == null);
 	}
 
 }

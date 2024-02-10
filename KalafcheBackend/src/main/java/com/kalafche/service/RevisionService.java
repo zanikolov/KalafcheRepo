@@ -3,13 +3,15 @@ package com.kalafche.service;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.kalafche.exceptions.CommonException;
 import com.kalafche.model.Revision;
 import com.kalafche.model.RevisionItem;
+import com.kalafche.model.RevisionReport;
 import com.kalafche.model.RevisionType;
 
 public interface RevisionService {
 
-	Revision initiateRevision(Revision revision) throws SQLException;
+	Revision initiateRevision(Revision revision) throws SQLException, CommonException;
 
 	Revision getRevision(Integer revisionId);
 
@@ -19,12 +21,14 @@ public interface RevisionService {
 
 	RevisionItem getRevisionItemByBarcode(Integer revisionId, String barcode);
 
-	Integer findRevisionItem(RevisionItem revisionItem) throws SQLException;
+	Revision finalizeRevision(Revision revision);
 
-	Revision submitRevision(Revision revision);
-
-	List<Revision> searchRevisions(Long startDateMilliseconds, Long endDateMilliseconds, Integer storeId);
+	RevisionReport searchRevisions(Long startDateMilliseconds, Long endDateMilliseconds, Integer storeId, Integer typeId);
 
 	Integer correctionOfItemQuantityAfterRevision(RevisionItem revisionItem);
+
+	Integer updateRevisionItem(RevisionItem revisionItem, int actualChange) throws SQLException;
+
+	List<RevisionItem> getRevisionItemsByRevisionId(Integer revisionId);
 
 }
