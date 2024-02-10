@@ -24,20 +24,31 @@ import com.kalafche.model.MonthlySchedule;
 public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlyScheduleDao {
 
 	private static final String INSERT_MONTHLY_SCHEDULE = "insert into monthly_schedule " +
-			"(create_timestamp,created_by,store_id,is_finalized,is_present_form,month,year) VALUES " +
-			"(?               ,?         ,?       ,?           ,?              ,?    ,?) ";
-	private static final String SELECT_MONTHLY_SCHEDULE = "select * from monthly_schedule ";
+			"(create_timestamp,created_by,store_id,is_finalized,is_present_form,month,year,working_hours_in_minutes,WORKING_HOURS) VALUES " +
+			"(?               ,?         ,?       ,?           ,?              ,?    ,?   ,?                       ,?) ";
+	private static final String SELECT_MONTHLY_SCHEDULE = "select ms.*, CONCAT(s.city, ', ', s.name) as store_name, s.company_id as company_id, c.name as company_name from monthly_schedule ms join store s on ms.store_id = s.id join company c on s.company_id = c.id ";
 	
 	private static final String IS_PRESENT_CLAUSE = "where is_present_form = ? "; 
 	
-	private static final String STORE_MONTH_YEAR_CLAUSE = "and store_id = ? and month = ? and year = ?";
+	private static final String IS_FINALIZED_CLAUSE = "and is_finalized = ? ";
 	
-	private static final String ID_CLAUSE = "where id = ?";
+	private static final String STORE_CLAUSE = "and store_id = ? ";
+	
+	private static final String MONTH_YEAR_CLAUSE = "and month = ? and year = ? ";
+	
+	private static final String ID_CLAUSE = "where ms.id = ? ";
+	
+	private static final String ORDER_BY_COMPANY_ID = "order by s.company_id ";
 	
 	private static final String SELECT_EMPLOYEE_HOURS = "select ds.employee_id, " +
 			"e.name, " +
-			"sum(ws.duration_minutes) " +
+			"sum(ws.duration_minutes), " +
+			"sum(if(ws.code = 'PL', 1, 0)) as paid_leaves, " +
+			"sum(if(ws.code = 'UL', 1, 0)) as unpaid_leaves, " +
+			"sum(if(ws.code = 'SL', 1, 0)) as sick_leaves, " +
+			"sum(if(cal.is_holiday = true and ws.code not in ('', 'PL', 'UL', 'SL'), ws.duration_minutes, 0)) as work_during_holidays " +
 			"from daily_shift ds " +
+			"join calendar cal on ds.calendar_id = cal.id " +
 			"join employee e on ds.EMPLOYEE_ID = e.id " +
 			"left join working_shift ws on ds.WORKING_SHIFT_ID = ws.id " +
 			"where MONTHLY_SCHEDULE_ID = ? " +
@@ -75,6 +86,8 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 			statement.setBoolean(5, monthlySchedule.getIsPresentForm());
 			statement.setInt(6, monthlySchedule.getMonth());
 			statement.setInt(7, monthlySchedule.getYear());
+			statement.setInt(8, monthlySchedule.getWorkingHoursInMinutes());
+			statement.setString(9, monthlySchedule.getWorkingHours());
 
 			int affectedRows = statement.executeUpdate();
 
@@ -98,7 +111,7 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 	@Override
 	public MonthlySchedule getMonthlySchedule(Integer storeId, Integer month, Integer year, Boolean isPresentForm) {
 		List<MonthlySchedule> monthlySchedule = getJdbcTemplate().query(
-				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + STORE_MONTH_YEAR_CLAUSE, new Object[] { isPresentForm, storeId, month, year },
+				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + STORE_CLAUSE + MONTH_YEAR_CLAUSE, new Object[] { isPresentForm, storeId, month, year },
 				getRowMapper());
 		return monthlySchedule != null && !monthlySchedule.isEmpty() ? monthlySchedule.get(0) : null;
 	}
@@ -126,9 +139,21 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 		    	EmployeeHours employeeHours = new EmployeeHours();
 		    	employeeHours.setEmployee(employee);
 		    	employeeHours.setMinutes(rs.getInt(3));
+		    	employeeHours.setPaidLeaves(rs.getInt(4));
+		    	employeeHours.setUnpaidLeaves(rs.getInt(5));
+		    	employeeHours.setSickLeaves(rs.getInt(6));
+		    	employeeHours.setWorkDuringHolidaysInMinutes(rs.getInt(7));
 		        return employeeHours;
 		    }
 		}, monthlyScheduleId);
+	}
+
+	@Override
+	public List<MonthlySchedule> getMonthlySchedules(Integer month, Integer year, boolean isPresentForm,
+			boolean isFinalized) {
+		return getJdbcTemplate().query(
+				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + IS_FINALIZED_CLAUSE + MONTH_YEAR_CLAUSE + ORDER_BY_COMPANY_ID, new Object[] { isPresentForm, isFinalized, month, year },
+				getRowMapper());
 	}
 
 }

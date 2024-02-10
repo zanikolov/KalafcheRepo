@@ -12,10 +12,12 @@ public interface MonthlyScheduleService {
 
 	MonthlySchedule generateMonthlySchedule(MonthlySchedule monthlySchedule) throws SQLException;
 
-	List<EmployeeHours> getEmployeeHours(Integer monthlyScheduleId);
-
 	void finalizeMonthlySchedule(MonthlySchedule monthlySchedule, Boolean isPresentForm) throws SQLException;
 
 	MonthlySchedule getMonthlyScheduleById(Integer monthlyScheduleId);
+
+	List<EmployeeHours> getEmployeeHours(Integer monthlyScheduleId, Integer monthlyScheduleWorkingHoursInMinutes);
+
+	byte[] getMonthlyScheduleReport(Integer month, Integer year, Integer storeId);
 
 }

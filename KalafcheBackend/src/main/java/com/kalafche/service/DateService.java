@@ -17,4 +17,8 @@ public interface DateService {
 	String generateDisplayDate(Integer day, Integer month, Integer year, Integer dayOfTheWeekNumber);
 
 	String convertMinutesToTime(Integer minutes);
+
+	public Integer getCurrentYear();
+
+	public Integer getNextYear();
 }

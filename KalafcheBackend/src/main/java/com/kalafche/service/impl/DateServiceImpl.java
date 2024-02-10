@@ -2,6 +2,8 @@ package com.kalafche.service.impl;
 
 import java.text.SimpleDateFormat;
 import java.time.DayOfWeek;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.TextStyle;
 import java.util.Calendar;
 import java.util.Date;
@@ -72,7 +74,7 @@ public class DateServiceImpl implements DateService {
 				.append(String.format("%02d", day)).append('/')
 				.append(String.format("%02d", month)).append('/')
 				.append(year).append(' ')
-				.append(DayOfWeek.of(dayOfTheWeek).getDisplayName(TextStyle.SHORT_STANDALONE, Locale.of("bg", "BG")));
+				.append(DayOfWeek.of(dayOfTheWeek).getDisplayName(TextStyle.SHORT_STANDALONE, new Locale("bg", "BG")));
 
 		return dateString.toString();
 	}
@@ -80,6 +82,16 @@ public class DateServiceImpl implements DateService {
 	@Override
 	public String convertMinutesToTime(Integer minutes) {
 		return new StringBuilder().append(String.format("%02d", minutes / 60)).append(':').append(String.format("%02d", minutes % 60)).toString();
+	}
+
+	@Override
+	public Integer getCurrentYear() {
+		return LocalDateTime.now(ZoneId.of("Europe/Sofia")).getYear();
+	}
+
+	@Override
+	public Integer getNextYear() {
+		return getCurrentYear() + 1;
 	}
 	
 }

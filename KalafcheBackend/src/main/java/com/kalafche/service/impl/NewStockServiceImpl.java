@@ -140,8 +140,8 @@ public class NewStockServiceImpl implements NewStockService {
 	}
 
 	@Override
-	public byte[] printNewStockStickers() {
-		List<NewStock> newStocks = getAllNewStocks();
+	public byte[] printNewStockStickers(Integer storeId) {
+		List<NewStock> newStocks = getNewStockByStoreId(storeId);
 		return pdfGeneratorService.generatePdf(newStocks);
 	}
 

@@ -3,8 +3,10 @@ package com.kalafche.dao;
 import java.sql.SQLException;
 import java.util.List;
 
+import com.kalafche.model.DayInMillis;
 import com.kalafche.model.DeviceModel;
 import com.kalafche.model.Employee;
+import com.kalafche.model.MissingRevisionItem;
 import com.kalafche.model.Revision;
 import com.kalafche.model.RevisionItem;
 import com.kalafche.model.RevisionType;
@@ -23,7 +25,7 @@ public interface RevisionDao {
 
 	void insertRevisionItems(Integer revisionId, List<RevisionItem> revisionItems);
 
-	List<RevisionItem> getRevisionItemByRevisionId(Integer revisionId, Boolean onlyMismatches);
+	List<RevisionItem> getRevisionItemsByRevisionId(Integer revisionId, Boolean onlyMismatches);
 
 	void insertRevisers(Integer revisionId, List<Employee> revisers);
 
@@ -43,12 +45,21 @@ public interface RevisionDao {
 
 	Integer insertNonExpectedRevisionItem(RevisionItem revisionItem) throws SQLException;
 
-	void submitRevision(Revision revision);
+	void finalizeRevision(Revision revision);
 
-	List<Revision> selectRevisions(Long startDateMilliseconds, Long endDateMilliseconds, Integer storeId);
-
-	void syncRevisionItemsActualWithStockQuantities(Integer storeId, List<RevisionItem> mismatchedRevisionItems);
+	List<Revision> selectRevisions(Long startDateMilliseconds, Long endDateMilliseconds, Integer storeId, Integer typeId);
 
 	RevisionItem getRevisionItemById(Integer revisionItemId);
+
+	RevisionType selectRevisionType(Integer typeId);
+
+	List<Integer> getDeviceModelIdsFromLastRevisionByStore(Integer storeId, int pastRevisionsCount);
+
+	void syncRevisionItemsActualWithStockQuantities(Integer revisionId, Integer storeId,
+			List<RevisionItem> mismatchedRevisionItems);
+
+	RevisionType selectRevisionTypeByCode(String typeCode);
+
+	List<MissingRevisionItem> findLastRevisionTheItemIsMissing(Integer itemId, Integer storeId, Long submitDate);
 	
 }

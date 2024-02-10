@@ -16,7 +16,7 @@ public interface DeviceModelService {
 
 	List<Integer> getDeviceModelIdsForDailyRevision(Integer lastRevisedDevieModelId, Integer count);
 
-	List<Integer> getDeviceModelIdsForFullRevision();
+	List<Integer> getAllDeviceModelIds();
 
 	List<DeviceModel> getDeviceModelsByIds(List<Integer> deviceModelIds);
 

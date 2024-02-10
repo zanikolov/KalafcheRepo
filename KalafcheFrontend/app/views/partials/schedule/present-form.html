@@ -44,20 +44,30 @@
                     <tr>
                         <th>Дата</th>
                         <th ng-repeat="employeeHours in presentForm.employeesHours">
-                            <label>{{employeeHours.employee.name}} {{employeeHours.hours}}</label>
+                            <label>{{employeeHours.employee.name}} {{employeeHours.hours}}/{{presentForm.workingHours}} <span ng-show="employeeHours.overtime">  (+{{employeeHours.overtime}})</span></label>
                         </th>                      
                     </tr>
                 </thead>
                 <tbody>
                     <tr ng-repeat="(day, dailyShifts) in presentForm.dailyShiftsGroupedByDay">
                         <td>{{day}}</td>
-                        <td ng-repeat="dailyShift in dailyShifts">
-                            <md-select name="selectWorkingShift" ng-model="dailyShift.workingShiftId" style="margin:0" ng-change="updateDailyShift(dailyShift)">
+                        <td ng-if="isAdmin() || isManager()" ng-repeat="dailyShift in dailyShifts">
+                            <md-select name="selectWorkingShift" ng-model="dailyShift.workingShiftId" style="margin:0" ng-change="updateDailyShift(dailyShift)" data-md-container-class="selectSearchTermHeader" md-on-close="clearWorkingShiftSearchTerm()">
+                                <md-select-header class="select-header">
+                                    <input id="workingShiftSearchTerm" ng-model="workingShiftSearchTerm"
+                                       type="search"
+                                       placeholder="Търси смяна.."
+                                       class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+                                </md-select-header>
                                 <md-option value=""></md-option>
-                                <md-option ng-repeat="workingShift in workingShifts" ng-value="workingShift.id">
+                                <md-option ng-repeat="workingShift in workingShifts |
+                                  filter:workingShiftSearchTerm" ng-value="workingShift.id">
                                     {{workingShift.displaynName}}
                                 </md-option>
                             </md-select>
+                        </td>
+                        <td ng-if="isUser()" ng-repeat="dailyShift in dailyShifts">
+                            {{generateWorkingShiftDisplayName(dailyShift.workingShiftId, dailyShift.workingShiftName, dailyShift.workingShiftStartTime, dailyShift.workingShiftEndTime, dailyShift.workingShiftDuration)}} 
                         </td>
                     </tr>
                 </tbody>
@@ -69,7 +79,7 @@
                     <tr>
                         <th>Дата</th>
                         <th ng-repeat="employeeHours in presentForm.employeesHours">
-                            <label>{{employeeHours.employee.name}} {{employeeHours.hours}}</label>
+                            <label>{{employeeHours.employee.name}} {{employeeHours.hours}}/{{presentForm.workingHours}} <span ng-show="employeeHours.overtime">  (+{{employeeHours.overtime}})</span></label>
                         </th>                      
                     </tr>
                 </thead>
@@ -77,7 +87,7 @@
                     <tr ng-repeat="(day, dailyShifts) in presentForm.dailyShiftsGroupedByDay">
                         <td>{{day}}</td>
                         <td ng-repeat="dailyShift in dailyShifts">
-                            {{generateWorkingShiftDisplayName(dailyShift.workingShiftId, dailyShift.workingShiftName, dailyShift.workingShiftStartTime, dailyShift.workingShiftEndTime)}} 
+                            {{generateWorkingShiftDisplayName(dailyShift.workingShiftId, dailyShift.workingShiftName, dailyShift.workingShiftStartTime, dailyShift.workingShiftEndTime, dailyShift.workingShiftDuration)}} 
                         </td>
                     </tr>
                 </tbody>
@@ -85,7 +95,7 @@
         </div>
         <div flex>
             <md-input-container>
-                <md-button ng-if="presentForm != '' && presentForm != null && !presentForm.isFinalized" layout-align="right" ng-click="finalizePresentForm()" class="md-raised md-primary">Финализирай</md-button>
+                <md-button ng-if="!isUser() && isFinalizeButtonVisible" ng-disabled="loading" layout-align="right" ng-click="finalizePresentForm()" class="md-raised md-primary">Финализирай</md-button>
             </md-input-container>
         </div>
     </md-content>

@@ -74,9 +74,9 @@ public class NewStockController {
 		newStockService.approveNewStock(newStocks);
 	}
 		
-	@PostMapping("/printAll")
-	public ResponseEntity<byte[]> printNewStockStickers() {
-		byte[] pdfBytes = newStockService.printNewStockStickers();
+	@GetMapping("/print/{storeId}")
+	public ResponseEntity<byte[]> printNewStockStickers(@PathVariable (value = "storeId")Integer storeId) {
+		byte[] pdfBytes = newStockService.printNewStockStickers(storeId);
 
 	    HttpHeaders headers = new HttpHeaders();
 	    headers.setContentType(MediaType.parseMediaType("application/pdf"));

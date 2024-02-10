@@ -19,7 +19,9 @@ angular.module('kalafcheFrontendApp')
             $scope.revisionsPerPage = 15;
             $scope.itemsCurrentPage = 1;
             $scope.revisionItemsPerPage = 15;
-            $scope.revisions = []; 
+            $scope.report = {}; 
+            $scope.types = [];
+            $scope.selectedType = {};
             $scope.stores = [];
             $scope.selectedStore = {};
             
@@ -47,7 +49,8 @@ angular.module('kalafcheFrontendApp')
                 showWeeks: false
             };
 
-            getAllStores(); 
+            getRevisionTypes();
+            getStores(); 
         }
 
         function getCurrentDate() {
@@ -67,8 +70,8 @@ angular.module('kalafcheFrontendApp')
         }
 
         function getRevisions() {
-            RevisionService.searchRevisions($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id).then(function(response) {
-                $scope.revisions = response;
+            RevisionService.searchRevisions($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id, $scope.selectedType.id).then(function(response) {
+                $scope.report = response;
             });           
         }
 
@@ -105,7 +108,7 @@ angular.module('kalafcheFrontendApp')
             $scope.searchRevisions();
         };
 
-        function getAllStores() {
+        function getStores() {
             StoreService.getAllStoresForSaleReport().then(function(response) {
                 $scope.stores = response;
                 $scope.selectedStore =  {"id": SessionService.currentUser.employeeStoreId};
@@ -114,8 +117,18 @@ angular.module('kalafcheFrontendApp')
 
         };
 
+        function getRevisionTypes() {
+            RevisionService.getRevisionTypes().then(function(response) {
+                $scope.types = response;
+            });
+        }
+
         $scope.getRevisionTimestamp = function(revisionSubmitTimestamp) {
             return ApplicationService.convertEpochToTimestamp(revisionSubmitTimestamp);
+        };
+
+        $scope.getReportDate = function(reportTimestamp) {
+            return ApplicationService.convertEpochToDate(reportTimestamp)
         };
 
         $scope.resetCurrentPage = function() {

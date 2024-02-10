@@ -12,5 +12,7 @@ public interface WorkingShiftService {
 	void updateWorkingShift(WorkingShift workingShift) throws SQLException;
 
 	List<WorkingShift> getWorkingShifts();
+	
+	List<WorkingShift> getWorkingShiftsForLegendTableInExcelReport();
 
 }

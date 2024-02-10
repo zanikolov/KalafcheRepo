@@ -98,7 +98,7 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.printStickersForNewStocks = function() {
-            NewStockService.printStickersForNewStocks($scope.newStocks).then(
+            NewStockService.printStickersForNewStocks($scope.selectedStore.id).then(
                     function(response) {
                     }
                 );     

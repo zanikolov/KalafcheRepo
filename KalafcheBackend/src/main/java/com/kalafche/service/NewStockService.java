@@ -24,7 +24,7 @@ public interface NewStockService {
 
 	void approveNewStock(List<NewStock> newStocks);
 
-	byte[] printNewStockStickers();
+	byte[] printNewStockStickers(Integer storeId);
 
 	void submitNewStock(Integer productId, Integer deviceModelId, Integer quantity, Integer storeId);
 

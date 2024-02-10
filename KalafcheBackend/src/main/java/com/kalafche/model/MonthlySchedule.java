@@ -27,5 +27,7 @@ public class MonthlySchedule {
 	private Boolean isPresentForm;
 	private TreeMap<String, List<DailyShift>> dailyShiftsGroupedByDay;
 	private List<EmployeeHours> employeesHours;
+	private Integer workingHoursInMinutes;
+	private String workingHours;
 	
 }

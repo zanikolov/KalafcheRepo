@@ -11,15 +11,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.MonthlyScheduleDao;
+import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.model.DailyShift;
 import com.kalafche.model.DayDto;
 import com.kalafche.model.EmployeeHours;
 import com.kalafche.model.MonthlySchedule;
+import com.kalafche.model.WorkingShift;
 import com.kalafche.service.CalendarService;
 import com.kalafche.service.DailyShiftService;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.MonthlyScheduleService;
+import com.kalafche.service.WorkingShiftService;
+import com.kalafche.service.fileutil.MonthlyScheduleExcelReportService;
 
 @Service
 public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
@@ -38,15 +42,25 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 
 	@Autowired
 	DailyShiftService dailyShiftService;
+	
+	@Autowired
+	WorkingShiftService workingShiftService;
+	
+	@Autowired
+	MonthlyScheduleExcelReportService monthlyScheduleExcelReportService;
 
 	@Override
 	public MonthlySchedule generateMonthlySchedule(MonthlySchedule monthlySchedule) throws SQLException {
+		if (!checkIfMonthlyScheduleCanBeGenerated(monthlySchedule)) {
+			throw new DuplicationException("month", "Montlhy schedule already generated.");
+		}
 		insertMonthlySchedule(monthlySchedule);
 
-		List<DayDto> days = calendarService.getDaysByMonthAndYear(monthlySchedule.getMonth(), monthlySchedule.getYear());
+		List<DayDto> days = calendarService.getDaysByMonthAndYear(monthlySchedule.getMonth(),
+				monthlySchedule.getYear());
 		Collections.sort(monthlySchedule.getEmployeesHours());
-		TreeMap<String, List<DailyShift>>  dailyShiftsGroupedByDay = new TreeMap<>();
-    Integer loggedInEmployeeId = employeeService.getLoggedInEmployee().getId();
+		TreeMap<String, List<DailyShift>> dailyShiftsGroupedByDay = new TreeMap<>();
+		Integer loggedInEmployeeId = employeeService.getLoggedInEmployee().getId();
 		for (DayDto day : days) {
 			List<DailyShift> dailyShifts = new ArrayList<DailyShift>();
 			for (EmployeeHours employee : monthlySchedule.getEmployeesHours()) {
@@ -67,11 +81,21 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 		return monthlySchedule;
 	}
 
+	private boolean checkIfMonthlyScheduleCanBeGenerated(MonthlySchedule monthlySchedule) {
+		monthlySchedule = monthlyScheduleDao.getMonthlySchedule(monthlySchedule.getStoreId(),
+				monthlySchedule.getMonth(), monthlySchedule.getYear(), false);
+		return monthlySchedule == null;
+	}
+
 	private void insertMonthlySchedule(MonthlySchedule monthlySchedule) throws SQLException {
+		Integer workingHourInMinutesForMonth = calendarService
+				.getWorkingHoursInMinutesForMonth(monthlySchedule.getMonth(), monthlySchedule.getYear());
 		monthlySchedule.setCreatedByEmployeeId(employeeService.getLoggedInEmployee().getId());
 		monthlySchedule.setCreateTimestamp(dateService.getCurrentMillisBGTimezone());
 		monthlySchedule.setIsFinalized(false);
 		monthlySchedule.setIsPresentForm(false);
+		monthlySchedule.setWorkingHoursInMinutes(workingHourInMinutesForMonth);
+		monthlySchedule.setWorkingHours(dateService.convertMinutesToTime(workingHourInMinutesForMonth));
 		monthlySchedule.setId(monthlyScheduleDao.insertMonthlySchedule(monthlySchedule));
 	}
 
@@ -87,7 +111,8 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 		if (monthlySchedule != null) {
 			List<DailyShift> dailyShifts = dailyShiftService.getDailyShiftByMonthlyScheduleId(monthlySchedule.getId());
 			monthlySchedule.setDailyShiftsGroupedByDay(getDailyShiftsGroupedByDay(dailyShifts));
-			monthlySchedule.setEmployeesHours(getEmployeeHours(monthlySchedule.getId()));
+			monthlySchedule.setEmployeesHours(
+					getEmployeeHours(monthlySchedule.getId(), monthlySchedule.getWorkingHoursInMinutes()));
 		}
 	}
 
@@ -121,10 +146,18 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 	}
 
 	@Override
-	public List<EmployeeHours> getEmployeeHours(Integer monthlyScheduleId) {
-		List<EmployeeHours> employeeHoursList = monthlyScheduleDao.getEmployeeHoursByMonthlyScheduleId(monthlyScheduleId);
+	public List<EmployeeHours> getEmployeeHours(Integer monthlyScheduleId,
+			Integer monthlyScheduleWorkingHoursInMinutes) {
+		List<EmployeeHours> employeeHoursList = monthlyScheduleDao
+				.getEmployeeHoursByMonthlyScheduleId(monthlyScheduleId);
 		for (EmployeeHours employeeHours : employeeHoursList) {
 			employeeHours.setHours(dateService.convertMinutesToTime(employeeHours.getMinutes()));
+			employeeHours.setWorkDuringHolidays(dateService.convertMinutesToTime(employeeHours.getWorkDuringHolidaysInMinutes()));
+			if (employeeHours.getMinutes() > monthlyScheduleWorkingHoursInMinutes) {
+				employeeHours.setOvertimeInMinutes(employeeHours.getMinutes() - monthlyScheduleWorkingHoursInMinutes);
+				employeeHours.setOvertime(dateService
+						.convertMinutesToTime(employeeHours.getMinutes() - monthlyScheduleWorkingHoursInMinutes));
+			}
 		}
 		Collections.sort(employeeHoursList);
 
@@ -133,14 +166,32 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 
 	@Override
 	public void finalizeMonthlySchedule(MonthlySchedule monthlySchedule, Boolean isPresentForm) throws SQLException {
-		monthlySchedule.setIsFinalized(true);
-		monthlySchedule.setLastUpdateTimestamp(dateService.getCurrentMillisBGTimezone());
-		monthlySchedule.setUpdatedByEmployeeId(employeeService.getLoggedInEmployee().getId());
-		monthlyScheduleDao.updateMonthlySchedule(monthlySchedule);
-		if (!isPresentForm) {
-			monthlySchedule = monthlyScheduleDao.getMonthlyScheduleById(monthlySchedule.getId());
-			createPresentForm(monthlySchedule);
+		monthlySchedule = monthlyScheduleDao.getMonthlyScheduleById(monthlySchedule.getId());
+		if (!monthlySchedule.getIsFinalized()) {
+			List<EmployeeHours> employeeHours = getEmployeeHours(monthlySchedule.getId(),
+					monthlySchedule.getWorkingHoursInMinutes());
+			if ((isPresentForm && checkOvertimeCorrectness(employeeHours, 1800)
+					|| !isPresentForm && checkOvertimeCorrectness(employeeHours, 0))) {
+				monthlySchedule.setIsFinalized(true);
+				monthlySchedule.setLastUpdateTimestamp(dateService.getCurrentMillisBGTimezone());
+				monthlySchedule.setUpdatedByEmployeeId(employeeService.getLoggedInEmployee().getId());
+				monthlyScheduleDao.updateMonthlySchedule(monthlySchedule);
+				if (!isPresentForm) {
+					createPresentForm(monthlySchedule);
+				}
+			}
 		}
+	}
+
+	private boolean checkOvertimeCorrectness(List<EmployeeHours> employeeHoursList, Integer allowedOvertimeInMinutes) {
+		for (EmployeeHours employeeHours : employeeHoursList) {
+			if (employeeHours.getOvertimeInMinutes() != null
+					&& employeeHours.getOvertimeInMinutes() > allowedOvertimeInMinutes) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private void createPresentForm(MonthlySchedule monthlySchedule) throws SQLException {
@@ -152,6 +203,8 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 		presentForm.setYear(monthlySchedule.getYear());
 		presentForm.setIsFinalized(false);
 		presentForm.setIsPresentForm(true);
+		presentForm.setWorkingHoursInMinutes(monthlySchedule.getWorkingHoursInMinutes());
+		presentForm.setWorkingHours(monthlySchedule.getWorkingHours());
 		presentForm.setId(monthlyScheduleDao.insertMonthlySchedule(presentForm));
 		createPresentFormDailyShifts(monthlySchedule.getId(), presentForm.getId());
 	}
@@ -169,6 +222,25 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 	@Override
 	public MonthlySchedule getMonthlyScheduleById(Integer monthlyScheduleId) {
 		return monthlyScheduleDao.getMonthlyScheduleById(monthlyScheduleId);
+	}
+
+	@Override
+	public byte[] getMonthlyScheduleReport(Integer month, Integer year, Integer storeId) {
+		List<DayDto> days = calendarService.getDaysByMonthAndYear(month, year);
+		List<WorkingShift> workingShifts = workingShiftService.getWorkingShiftsForLegendTableInExcelReport();
+		List<MonthlySchedule> presentForms;
+		if (storeId == null) {
+			presentForms = monthlyScheduleDao.getMonthlySchedules(month, year, true, true);
+		} else {
+			MonthlySchedule monthlySchedule = monthlyScheduleDao.getMonthlySchedule(storeId, month, year, false);
+			presentForms = monthlySchedule != null ? List.of(monthlySchedule) : new ArrayList<MonthlySchedule>();
+		}
+		
+		for (MonthlySchedule presentForm : presentForms) {
+			addDataToMonthlySchedule(presentForm);
+		}
+
+		return monthlyScheduleExcelReportService.createMonthlyScheduleReportExcel(presentForms, days, workingShifts, month, year, storeId == null);
 	}
 
 }

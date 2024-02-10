@@ -28,7 +28,6 @@ angular.module('kalafcheFrontendApp')
         function getAllStores() {
             StoreService.getAllEntities().then(function(response) {
                 $scope.stores = response;
-                $scope.searchRelocations();
             });
 
         };

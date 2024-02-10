@@ -23,7 +23,7 @@ public class DeviceModelDaoImpl extends JdbcDaoSupport implements
 	private static final String UPDATE_MODEL = "update device_model set name = ? where id = ?";
 	private static final String CHECK_IF_MODEL_EXISTS = "select count(*) from device_model where name = ? and device_brand_id = ?";
 	private static final String ID_CLAUSE = " and id <> ?";
-	private static final String SELECT_DEVICE_MODEL_IDS_FOR_FULL_REVISION = "select id from device_model"; 
+	private static final String SELECT_DEVICE_MODEL_IDS = "select id from device_model"; 
 	private static final String WHERE_CLAUSE_FOR_DAILY_REVISION = " where id > ? order by id asc limit ?;";
 	private static final String SELECT_DEVICE_MODELS_BY_IDS = "select dm.id, db.id as device_brand_id, concat(db.name, ' ', dm.name) as name from device_model dm join device_brand db on dm.device_brand_id = db.id where dm.id in (%s);";
 
@@ -85,12 +85,12 @@ public class DeviceModelDaoImpl extends JdbcDaoSupport implements
 
 	@Override
 	public List<Integer> getDeviceModelIdsForDailyRevision(Integer start, Integer count) {
-		return getJdbcTemplate().queryForList(SELECT_DEVICE_MODEL_IDS_FOR_FULL_REVISION + WHERE_CLAUSE_FOR_DAILY_REVISION, Integer.class, start, count);
+		return getJdbcTemplate().queryForList(SELECT_DEVICE_MODEL_IDS + WHERE_CLAUSE_FOR_DAILY_REVISION, Integer.class, start, count);
 	}
 	
 	@Override
-	public List<Integer> getDeviceModelIdsForFullRevision() {
-		return getJdbcTemplate().queryForList(SELECT_DEVICE_MODEL_IDS_FOR_FULL_REVISION, Integer.class);
+	public List<Integer> getAllDeviceModelIds() {
+		return getJdbcTemplate().queryForList(SELECT_DEVICE_MODEL_IDS, Integer.class);
 	}
 
 	@Override

@@ -25,8 +25,12 @@ public class WorkingShiftDaoImpl extends JdbcDaoSupport implements WorkingShiftD
 	
 	private static final String UPDATE_WORKING_SHIFT = "update working_shift set name = ?, updated_by = ?, last_update_timestamp = ?, start_time_minutes = ?, start_time = ?, end_time_minutes = ?, end_time = ?, duration_minutes = ?, duration = ? where id = ?";
 	
-	private static final String SELECT_WORKING_SHIFTS = "select * from working_shift;";
-
+	private static final String SELECT_WORKING_SHIFTS = "select * from working_shift ";
+	
+	private static final String NO_LEAVES_CRITERIA = "where code not in ('PL', 'SL', 'UL') ";
+	
+	private static final String ORDER_BY_NAME = "order by name ";
+ 
 	private BeanPropertyRowMapper<WorkingShift> rowMapper;
 	
 	@Autowired
@@ -81,6 +85,11 @@ public class WorkingShiftDaoImpl extends JdbcDaoSupport implements WorkingShiftD
 	@Override
 	public List<WorkingShift> selectAllWorkingShifts() {
 		return getJdbcTemplate().query(SELECT_WORKING_SHIFTS, getWorkingShiftRowMapper());
+	}
+	
+	@Override
+	public List<WorkingShift> selectWorkingShiftsWithoutLeaves() {
+		return getJdbcTemplate().query(SELECT_WORKING_SHIFTS + NO_LEAVES_CRITERIA + ORDER_BY_NAME, getWorkingShiftRowMapper());
 	}
 
 	@Override

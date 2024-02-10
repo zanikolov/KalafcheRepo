@@ -1,6 +1,6 @@
 <md-content>
 	<md-tabs md-dynamic-height md-border-bottom>
-		<md-tab ng-if="isAdmin()" label="Магазини">
+		<md-tab ng-if="isAdmin() || isManager()" label="Магазини">
   			<sale-report-by-store></sale-report-by-store>
   		</md-tab>
   		<md-tab label="Артикули">

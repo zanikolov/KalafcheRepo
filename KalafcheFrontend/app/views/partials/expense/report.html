@@ -73,7 +73,7 @@
                     <!-- <td></td> -->
                     <td colspan="8">
                         <div layout-padding layout="row" layout-xs="column">
-                            <div flex="20" ng-if="expense.fileId"> <img width="150" ng-src="https://drive.google.com/uc?export=view&id={{expense.fileId}}" ng-click="showImage(expense)"/></div>
+                            <div flex="20" ng-if="expense.fileId"> <img width="150" ng-src="https://drive.google.com/thumbnail?id={{expense.fileId}}&sz=w1000" ng-click="showImage(expense)"/></div>
                             <div flex="80"><span>{{expense.description}}</span></div>
                         </div>
                     </td>

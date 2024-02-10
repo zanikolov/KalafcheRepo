@@ -13,4 +13,6 @@ public interface WorkingShiftDao {
 
 	void updateWorkingShift(WorkingShift workingShift);
 
+	List<WorkingShift> selectWorkingShiftsWithoutLeaves();
+
 }

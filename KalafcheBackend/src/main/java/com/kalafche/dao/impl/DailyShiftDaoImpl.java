@@ -31,10 +31,13 @@ public class DailyShiftDaoImpl extends JdbcDaoSupport implements DailyShiftDao {
 			"ds.WORKING_SHIFT_ID, " +
 			"ds.MONTHLY_SCHEDULE_ID, " +
 			"c.date as calendar_date, " +
+			"c.day_of_the_week as calendar_day_of_the_week, " +
+			"c.is_holiday as calendar_is_holiday, " +
 			"ws.name as working_shift_name, " +
 			"ws.start_time as working_shift_start_time, " +
 			"ws.end_time as working_shift_end_time, " +
-			"ws.duration_minutes as working_shift_duration_minutes " +
+			"ws.duration_minutes as working_shift_duration_minutes, " +
+			"ws.duration as working_shift_duration " +
 			"from " +
 			"keysoo.daily_shift ds " +
 			"join calendar c on ds.CALENDAR_ID = c.id " +

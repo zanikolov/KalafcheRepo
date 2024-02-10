@@ -16,7 +16,7 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.FileContent;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.drive.Drive;
 import com.google.api.services.drive.DriveScopes;
 import com.google.api.services.drive.model.File;
@@ -30,15 +30,15 @@ public class GoogleDriveService implements ImageUploadService {
 	@Autowired
 	ImageResizeService imageResizeService;
 	
-    private static final String APPLICATION_NAME = "keysoo-oauth-client";
-    private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
+    private static final String APPLICATION_NAME = "Keysoo-System";
+    private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final List<String> SCOPES = Collections.singletonList(DriveScopes.DRIVE);
-    private static final String CLIENT_SECRET_FILE_PATH = "/keysoo-221608-b26a7a8aeedd.json";
+    private static final String CLIENT_SECRET_FILE_PATH = "/keysoo-413108-8e0521cef996.json";
     
-    private static final String WASTE_FOLDER_ID = "1ij29QyXfzxMlmhqgq1kM3YYOEJNYuSTV";
+    private static final String WASTE_FOLDER_ID = "1IXDUStO44muwe9UDkaRe3-gOqv01VRD4";
 
-	private static final String EXPENSE_FOLDER_ID = "1Sm-R_fiYKzLxUM4pbF0_zIuYlV69BVLB";
-    
+	private static final String EXPENSE_FOLDER_ID = "1_LR6mwNh5mjiuyryJC8EeaHVGEMXdiUH";
+	
     private static Credential getAPICredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
     	InputStream in = GoogleDriveService.class.getResourceAsStream(CLIENT_SECRET_FILE_PATH);    	
     	GoogleCredential credentials = GoogleCredential.fromStream(in).createScoped(SCOPES);

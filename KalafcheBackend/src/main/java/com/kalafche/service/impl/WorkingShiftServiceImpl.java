@@ -51,6 +51,10 @@ public class WorkingShiftServiceImpl implements WorkingShiftService {
 	public List<WorkingShift> getWorkingShifts() {
 		return workingShiftDao.selectAllWorkingShifts();
 	}
+	
+	public List<WorkingShift> getWorkingShiftsForLegendTableInExcelReport() {
+		return workingShiftDao.selectWorkingShiftsWithoutLeaves();
+	}
 
 	@Override
 	public void updateWorkingShift(WorkingShift workingShift) {

@@ -50,8 +50,8 @@ public class DeviceModelServiceImpl implements DeviceModelService {
 	}
 
 	@Override
-	public List<Integer> getDeviceModelIdsForFullRevision() {
-		return deviceModelDao.getDeviceModelIdsForFullRevision();
+	public List<Integer> getAllDeviceModelIds() {
+		return deviceModelDao.getAllDeviceModelIds();
 	}
 
 	@Override

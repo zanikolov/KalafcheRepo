@@ -19,7 +19,7 @@
                         </md-input-container>
                     </div>
                     <div layout-xs="row" flex="30" flex-xs="100">
-                        <md-input-container  style="width:100%" ng-show="selectedMonth != undefined && selectedMonth != null && selectedStore != undefined && selectedStore != null && (monthlySchedule == null || monthlySchedule == undefined || monthlySchedule == '')">
+                        <md-input-container  style="width:100%" ng-show="selectedMonth != undefined && selectedMonth != null && selectedMonth >= currentMonth && selectedStore != undefined && selectedStore != null && (monthlySchedule == null || monthlySchedule == undefined || monthlySchedule == '')">
                             <label>Търговци</label>
                             <md-select ng-model="selectedEmployees" ng-change="selectEmployee()" multiple>
                                 <md-optgroup ng-repeat="(store, employees) in employees" label="{{store}}">
@@ -31,20 +31,20 @@
                         </md-input-container>    
                     </div>
                 </div>
-                <div layout="row"  ng-if="(monthlySchedule == '' || monthlySchedule == null) && selectedMonth != null && selectedStore != null && selectedEmployees != null && selectedEmployees.length > 0">
+                <div layout="row"  ng-if="isGenerateButtonVisible">
                     <md-input-container>
-                        <md-button layout-align="right" ng-click="generateMonthlySchedule()" class="md-raised md-primary">Генерирай</md-button>
+                        <md-button layout-align="right" ng-disabled="loading" ng-click="generateMonthlySchedule()" class="md-raised md-primary">Генерирай</md-button>
                     </md-input-container>
                 </div>
             </form>
         </div>
         <div flex ng-if="monthlySchedule != null && monthlySchedule != undefined && monthlySchedule != '' && !monthlySchedule.isFinalized">
-            <table class="table table-hover table-condensed">
+            <table class="table table-hover table-condensed" fixed-header  table-height="500px">
                 <thead>
                     <tr>
                         <th>Дата</th>
                         <th ng-repeat="employeeHours in monthlySchedule.employeesHours">
-                            <label>{{employeeHours.employee.name}} {{employeeHours.hours}}</label>
+                            <label>{{employeeHours.employee.name}} {{employeeHours.hours}}/{{monthlySchedule.workingHours}} <span ng-show="employeeHours.overtime">  (+{{employeeHours.overtime}})</span></label>
                         </th>                      
                     </tr>
                 </thead>
@@ -52,9 +52,16 @@
                     <tr ng-repeat="(day, dailyShifts) in monthlySchedule.dailyShiftsGroupedByDay">
                         <td>{{day}}</td>
                         <td ng-repeat="dailyShift in dailyShifts">
-                            <md-select name="selectWorkingShift" ng-model="dailyShift.workingShiftId" style="margin:0" ng-change="updateDailyShift(dailyShift)">
+                            <md-select name="selectWorkingShift" ng-model="dailyShift.workingShiftId" style="margin:0" ng-change="updateDailyShift(dailyShift)" data-md-container-class="selectSearchTermHeader" md-on-close="clearWorkingShiftSearchTerm()">
+                                <md-select-header class="select-header">
+                                    <input id="workingShiftSearchTerm" ng-model="workingShiftSearchTerm"
+                                       type="search"
+                                       placeholder="Търси смяна.."
+                                       class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+                                </md-select-header>
                                 <md-option value=""></md-option>
-                                <md-option ng-repeat="workingShift in workingShifts" ng-value="workingShift.id">
+                                <md-option ng-repeat="workingShift in workingShifts |
+                                  filter:workingShiftSearchTerm" ng-value="workingShift.id">
                                     {{workingShift.displaynName}}
                                 </md-option>
                             </md-select>
@@ -64,12 +71,12 @@
             </table>
         </div>
         <div flex ng-if="monthlySchedule != null && monthlySchedule != undefined && monthlySchedule != '' && monthlySchedule.isFinalized">
-            <table class="table table-hover table-condensed">
+            <table class="table table-hover table-condensed" fixed-header  table-height="500px">
                 <thead>
                     <tr>
                         <th>Дата</th>
                         <th ng-repeat="employeeHours in monthlySchedule.employeesHours">
-                            <label>{{employeeHours.employee.name}} {{employeeHours.hours}}</label>
+                            <label>{{employeeHours.employee.name}} {{employeeHours.hours}}/{{monthlySchedule.workingHours}}</label>
                         </th>                      
                     </tr>
                 </thead>
@@ -77,7 +84,7 @@
                     <tr ng-repeat="(day, dailyShifts) in monthlySchedule.dailyShiftsGroupedByDay">
                         <td>{{day}}</td>
                         <td ng-repeat="dailyShift in dailyShifts">
-                            {{generateWorkingShiftDisplayName(dailyShift.workingShiftId, dailyShift.workingShiftName, dailyShift.workingShiftStartTime, dailyShift.workingShiftEndTime)}} 
+                            {{generateWorkingShiftDisplayName(dailyShift.workingShiftId, dailyShift.workingShiftName, dailyShift.workingShiftStartTime, dailyShift.workingShiftEndTime, dailyShift.workingShiftDuration)}} 
                         </td>
                     </tr>
                 </tbody>
@@ -85,7 +92,7 @@
         </div>
         <div flex>
             <md-input-container>
-                <md-button ng-if="monthlySchedule != '' && monthlySchedule != null && !monthlySchedule.isFinalized" layout-align="right" ng-click="finalizeMonthlySchedule()" class="md-raised md-primary">Финализирай</md-button>
+                <md-button ng-if="!isUser() && isFinalizeButtonVisible" ng-disabled="loading" layout-align="right" ng-click="finalizeMonthlySchedule()" class="md-raised md-primary">Финализирай</md-button>
             </md-input-container>
         </div>
     </md-content>
