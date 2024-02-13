@@ -282,6 +282,14 @@ angular.module('kalafcheFrontendApp')
           admin: true,
           manager: false,
           user: false
+        },
+        {
+          link : 'formula',
+          title: 'Формули',
+          icon: 'dashboard',
+          admin: true,
+          manager: false,
+          user: false
         }
       ];
 	});
