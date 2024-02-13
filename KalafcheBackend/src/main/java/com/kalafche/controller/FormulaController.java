@@ -1,5 +1,7 @@
 package com.kalafche.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,7 +23,7 @@ public class FormulaController {
 	private FormulaService formulaService;
 	
 	@PostMapping
-	public CalculationResponse calculate(@RequestBody Formula formula) throws CommonException {
+	public List<CalculationResponse> calculate(@RequestBody Formula formula) throws CommonException {
 		return formulaService.calculate(formula);
 	}
 	

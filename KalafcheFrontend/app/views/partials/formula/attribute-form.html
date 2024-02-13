@@ -2,7 +2,7 @@
     <md-content layout-padding layout="column">
         <div flex>
             <form name="formulaForm" novalidate>
-                <div layout="row" class="md-inline-form">
+<!--                 <div layout="row" class="md-inline-form">
                     <div layout-xs="row" flex="20" flex-xs="100" ng-if="isAdmin() || isManager()">
                         <md-input-container style="width:95%">
                             <label>Магазин</label>
@@ -14,7 +14,7 @@
                             </md-select>
                         </md-input-container>
                     </div>
-                </div>
+                </div> -->
                 <div layout="row">
                     <md-input-container flex>
                         <label>Формула</label>
@@ -60,11 +60,31 @@
                     </table>
                 </div>
                 <div layout="row">
-                    <md-input-container>
+                    <md-input-container layout-align="end end">
                         <md-button ng-click="calculateFormula()" class="md-raised md-primary">Калкулирай</md-button>
                     </md-input-container>
                 </div>
             </form>
+        </div>
+    </md-content>
+    <md-content ng-if="calculationResponse && calculationResponse.length > 0" layout-padding layout="row" layout-xs="column">
+        <div flex="100">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th><label>Магазин</label></th>
+                        <th><label>Резултат</label></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="store in calculationResponse track by $index" class="item-row">
+                        <td>{{$index + 1}}</td>
+                        <td>{{store.storeName}}</td>
+                        <td>{{store.formulaOutcome}}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </md-content>
 

@@ -186,7 +186,7 @@ angular
                 url: '/formula',
                 templateUrl: 'views/partials/formula/formula-tab.html',
                 data: {
-                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.manager],
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin],
                     title: "Формули"
                 }      
             }).state('login',{

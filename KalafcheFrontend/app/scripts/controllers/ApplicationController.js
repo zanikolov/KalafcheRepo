@@ -288,7 +288,7 @@ angular.module('kalafcheFrontendApp')
           title: 'Формули',
           icon: 'dashboard',
           admin: true,
-          manager: true,
+          manager: false,
           user: false
         }
       ];

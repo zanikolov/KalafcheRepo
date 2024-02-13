@@ -1,10 +1,12 @@
 package com.kalafche.service;
 
+import java.util.List;
+
 import com.kalafche.model.CalculationResponse;
 import com.kalafche.model.Formula;
 
 public interface FormulaService {
 
-	CalculationResponse calculate(Formula formula);
+	List<CalculationResponse> calculate(Formula formula);
 
 }

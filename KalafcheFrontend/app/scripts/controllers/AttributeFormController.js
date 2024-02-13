@@ -19,12 +19,12 @@ angular.module('kalafcheFrontendApp')
             $scope.formula = {};
             $scope.formula.variables = [];
             $scope.calculationInProcess = false;
+            $scope.calculationResponse = {};
 
             getAllStores();
         };
 
         $scope.addNewVariable = function() {
-            console.log(">>>> addNewVariable");
             var newVariable = {};
 
             newVariable.startDate = new Date();
@@ -65,6 +65,7 @@ angular.module('kalafcheFrontendApp')
             FormulaService.calculate($scope.formula).then(
                 function(response) {
                     $scope.calculationInProcess = false;
+                    $scope.calculationResponse = response;
                     //resetExpenseForm();
                 }, function(errorResponse) {
                     $scope.calculationInProcess = false;
