@@ -60,7 +60,7 @@
                 </div>
             </form>
             <md-content layout="row"  ng-if="!revision.id">
-                <md-button ng-disabled="revisionForm.$invalid || (revision.typeCode =='CHECK' && (revision.deviceModels == null || revision.deviceModels.length < 1))" ng-click="initiateRevision()" class="md-raised md-primary">Създай</md-button>
+                <md-button ng-disabled="revisionForm.$invalid || (revision.typeCode =='CHECK' && (revision.deviceModels == null || revision.deviceModels.length < 1)) || loading" ng-click="initiateRevision()" class="md-raised md-primary">Създай</md-button>
             </md-content>
         </div>
     </md-content>
@@ -120,7 +120,7 @@
 		        </div>
 		    </md-content>
             <md-content layout="row" layout-align="end end" ng-if="!revision.submitTimestamp">
-                <md-button ng-click="finalizeRevision()" class="md-raised md-primary">Приключи</md-button>
+                <md-button ng-click="finalizeRevision()" class="md-raised md-primary" ng-disabled="loading">Приключи</md-button>
             </md-content>
 		</md-content>
 	</md-content>

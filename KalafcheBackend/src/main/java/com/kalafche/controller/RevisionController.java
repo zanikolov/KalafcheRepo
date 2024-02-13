@@ -30,7 +30,8 @@ public class RevisionController {
 	private RevisionService revisionService;
 	
 	@PutMapping
-	public Revision initiateRevision(@RequestBody Revision revision) throws SQLException, CommonException {
+	public Revision initiateRevision(@RequestBody Revision revision) throws SQLException, CommonException, InterruptedException {
+		Thread.sleep(5000);
 		return revisionService.initiateRevision(revision);
 	}
 	

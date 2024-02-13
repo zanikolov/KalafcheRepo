@@ -20,6 +20,7 @@ angular.module('kalafcheFrontendApp')
             $scope.currentPage = 1;
             $scope.formData = {};
             $scope.formData.showOnlyMismatches = false;
+            $scope.loading = false; 
             if (AuthService.isUser()) {
                 $scope.formData.storeId = SessionService.currentUser.employeeStoreId;
                 getCurrentRevision($scope.formData.storeId);
@@ -45,11 +46,15 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.initiateRevision = function() {
+            $scope.loading = true;
             $scope.revision.storeId = $scope.formData.storeId;
-            console.log($scope.revision);
             RevisionService.initiateRevision($scope.revision).then(function(response) {
                     $scope.revision = response;
-                });
+                    $scope.loading = false;
+            },
+            function(error) {
+                $scope.loading = false;
+            });
         }
 
         $scope.getCurrentRevision = function() {
@@ -153,8 +158,13 @@ angular.module('kalafcheFrontendApp')
         }
 
         $scope.finalizeRevision = function() {
+            $scope.loading = true;
             RevisionService.finalizeRevision($scope.revision).then(function(response) {
                 getCurrentRevision();
+                $scope.loading = false;
+            },
+            function(error) {
+                $scope.loading = false;
             });
         }
 
