@@ -15,6 +15,7 @@ import com.google.common.collect.Lists;
 import com.kalafche.dao.RevisionDao;
 import com.kalafche.exceptions.CommonException;
 import com.kalafche.exceptions.DomainObjectNotFoundException;
+import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.exceptions.NegativeItemQuantityException;
 import com.kalafche.model.DeviceModel;
 import com.kalafche.model.Employee;
@@ -61,6 +62,10 @@ public class RevisionServiceImpl implements RevisionService {
 	@Transactional
 	@Override
 	public Revision initiateRevision(Revision revision) throws SQLException, CommonException {
+		if (getCurrentRevision(revision.getStoreId()) != null) {
+			throw new DuplicationException("currentRevision",
+					String.format("The last revision for store with id %s is not finalized", revision.getStoreId()));
+		}
 		Employee currentEmployee = employeeService.getLoggedInEmployee();
 		if (!employeeService.isLoggedInEmployeeAdmin() && !employeeService.isLoggedInEmployeeManager()) {
 			revision.setStoreId(currentEmployee.getStoreId());
