@@ -182,6 +182,13 @@ angular
                     authorizedRoles: [UserRoles.superAdmin, UserRoles.admin],
                     title: "Баркодове"
                 }      
+            }).state('formula', {
+                url: '/formula',
+                templateUrl: 'views/partials/formula/formula-tab.html',
+                data: {
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.manager],
+                    title: "Формули"
+                }      
             }).state('login',{
                 url: '/login',
                 templateUrl: 'views/partials/partial-login.html',
