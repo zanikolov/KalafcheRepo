@@ -392,7 +392,7 @@ public class SaleServiceImpl implements SaleService {
 			count = saleItems.size();
 		}
 		
-		saleReport.setCount(count);
+		saleReport.setItemCount(count);
 		saleReport.setTotalAmount(totalAmount);	
 	}
 	
@@ -411,15 +411,15 @@ public class SaleServiceImpl implements SaleService {
 			
 			totalCount = saleByStores.stream()
 					.filter(saleByStore -> Optional.ofNullable(saleByStore)
-							.map(SalesByStore::getCount)
+							.map(SalesByStore::getItemCount)
 							.map(count -> count != null)
 							.orElse(false))
-					.map(saleByStore -> saleByStore.getCount())	        
+					.map(saleByStore -> saleByStore.getItemCount())	        
 					.reduce(BigDecimal.ZERO, BigDecimal::add);	
 		}
 		
 		saleReport.setTotalAmount(totalAmount);	
-		saleReport.setCount(totalCount.intValue());
+		saleReport.setItemCount(totalCount.intValue());
 	}
 	
 	private void calculateTotalAmountAndCountForSales(List<Sale> sales, SaleReport saleReport) {
@@ -433,7 +433,7 @@ public class SaleServiceImpl implements SaleService {
 			count = sales.size();
 		}
 		
-		saleReport.setCount(count);
+		saleReport.setItemCount(count);
 		saleReport.setTotalAmount(totalAmount);
 	}
 
@@ -678,22 +678,75 @@ public class SaleServiceImpl implements SaleService {
 			pastPeriodReport.setStoreId(prevYear.getStoreId());
 			pastPeriodReport.setStoreCode(prevYear.getStoreCode());
 			pastPeriodReport.setStoreName(prevYear.getStoreName());
-			pastPeriodReport.setPrevYearTurnover(prevYear.getAmount());
-			BigDecimal prevMonthTurnoverAmount = previousMonthTurnover.get(i).getAmount();
-			pastPeriodReport.setPrevMonthTurnover(prevMonthTurnoverAmount);
-			BigDecimal selectedMonthTurnoverAmount = selectedMonthTurnover.get(i).getAmount();
-			pastPeriodReport.setSelectedMonthTurnover(selectedMonthTurnoverAmount);
+			
+			pastPeriodReport.setPrevYearAmount(prevYear.getAmount());			
+			BigDecimal prevMonthAmount = previousMonthTurnover.get(i).getAmount();
+			pastPeriodReport.setPrevMonthAmount(prevMonthAmount);
+			BigDecimal selectedMonthAmount = selectedMonthTurnover.get(i).getAmount();
+			pastPeriodReport.setSelectedMonthAmount(selectedMonthAmount);
+			
+			pastPeriodReport.setPrevYearTransactionCount(prevYear.getTransactionCount());
+			BigDecimal prevMonthTransactionCount = previousMonthTurnover.get(i).getTransactionCount();
+			pastPeriodReport.setPrevMonthTransactionCount(prevMonthTransactionCount);
+			BigDecimal selectedMonthTransactionCount = selectedMonthTurnover.get(i).getTransactionCount();
+			pastPeriodReport.setSelectedMonthTransactionCount(selectedMonthTransactionCount);
+			
+			pastPeriodReport.setPrevYearItemCount(prevYear.getItemCount());
+			BigDecimal prevMonthItemCount = previousMonthTurnover.get(i).getItemCount();
+			pastPeriodReport.setPrevMonthItemCount(prevMonthItemCount);
+			BigDecimal selectedMonthItemCount = selectedMonthTurnover.get(i).getItemCount();
+			pastPeriodReport.setSelectedMonthItemCount(selectedMonthItemCount);
+			
+			pastPeriodReport.setPrevYearSpt(prevYear.getSpt());
+			BigDecimal prevMonthSpt = previousMonthTurnover.get(i).getSpt();
+			pastPeriodReport.setPrevMonthSpt(prevMonthSpt);
+			BigDecimal selectedMonthSpt = selectedMonthTurnover.get(i).getSpt();
+			pastPeriodReport.setSelectedMonthSpt(selectedMonthSpt);
 			
 			if (BigDecimal.ZERO.compareTo(prevYear.getAmount()) < 0) {
-				BigDecimal prevYearDelta = selectedMonthTurnoverAmount.multiply(ONE_HUNDRED)
+				BigDecimal prevYearDelta = selectedMonthAmount.multiply(ONE_HUNDRED)
 						.divide(prevYear.getAmount(), RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
-				pastPeriodReport.setPrevYearDelta(prevYearDelta);
+				pastPeriodReport.setPrevYearAmountDelta(prevYearDelta);
 			}
-			if (BigDecimal.ZERO.compareTo(prevMonthTurnoverAmount) < 0) {
-				BigDecimal prevMonthDelta = selectedMonthTurnoverAmount.multiply(ONE_HUNDRED)
-						.divide(prevMonthTurnoverAmount, RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
-				pastPeriodReport.setPrevMonthDelta(prevMonthDelta);
+			if (BigDecimal.ZERO.compareTo(prevMonthAmount) < 0) {
+				BigDecimal prevMonthDelta = selectedMonthAmount.multiply(ONE_HUNDRED)
+						.divide(prevMonthAmount, RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
+				pastPeriodReport.setPrevMonthAmountDelta(prevMonthDelta);
 			}
+			
+			if (BigDecimal.ZERO.compareTo(prevYear.getTransactionCount()) < 0) {
+				BigDecimal prevYearTransactionCountDelta = selectedMonthTransactionCount.multiply(ONE_HUNDRED)
+						.divide(prevYear.getTransactionCount(), RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
+				pastPeriodReport.setPrevYearTransactionCountDelta(prevYearTransactionCountDelta);
+			}
+			if (BigDecimal.ZERO.compareTo(prevMonthTransactionCount) < 0) {
+				BigDecimal prevMonthTransactionCountDelta = selectedMonthTransactionCount.multiply(ONE_HUNDRED)
+						.divide(prevMonthTransactionCount, RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
+				pastPeriodReport.setPrevMonthTransactionCountDelta(prevMonthTransactionCountDelta);
+			}
+			
+			if (BigDecimal.ZERO.compareTo(prevYear.getItemCount()) < 0) {
+				BigDecimal prevYearItemCountDelta = selectedMonthItemCount.multiply(ONE_HUNDRED)
+						.divide(prevYear.getItemCount(), RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
+				pastPeriodReport.setPrevYearItemCountDelta(prevYearItemCountDelta);
+			}
+			if (BigDecimal.ZERO.compareTo(prevMonthItemCount) < 0) {
+				BigDecimal prevMonthItemCountDelta = selectedMonthItemCount.multiply(ONE_HUNDRED)
+						.divide(prevMonthItemCount, RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
+				pastPeriodReport.setPrevMonthItemCountDelta(prevMonthItemCountDelta);
+			}
+			
+			if (BigDecimal.ZERO.compareTo(prevYear.getSpt()) < 0) {
+				BigDecimal prevYearSptDelta = selectedMonthSpt.multiply(ONE_HUNDRED)
+						.divide(prevYear.getSpt(), RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
+				pastPeriodReport.setPrevYearSptDelta(prevYearSptDelta);
+			}
+			if (BigDecimal.ZERO.compareTo(prevMonthSpt) < 0) {
+				BigDecimal prevMonthSptDelta = selectedMonthSpt.multiply(ONE_HUNDRED)
+						.divide(prevMonthSpt, RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
+				pastPeriodReport.setPrevMonthSptDelta(prevMonthSptDelta);
+			}
+			
 			pastPeriodReportList.add(pastPeriodReport);
 		}
 		

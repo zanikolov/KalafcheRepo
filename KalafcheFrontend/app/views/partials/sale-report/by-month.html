@@ -44,14 +44,51 @@
                     <tr dir-paginate="turnoverByStore in report.pastPeriodTurnovers | itemsPerPage:turnoverByStorePerPage" current-page="currentPage" pagination-id="store">
                         <td>{{(currentPage - 1) * turnoverByStorePerPage + $index + 1}}</td>
                         <td>{{turnoverByStore.storeName}}</td>
-                        <td>{{turnoverByStore.selectedMonthTurnover}}лв</td>
-                        <td>{{turnoverByStore.prevMonthTurnover}} 
-                            <span ng-if="turnoverByStore.prevMonthDelta < 0" style="color: red">{{turnoverByStore.prevMonthDelta}}%</span>
-                            <span ng-if="turnoverByStore.prevMonthDelta > 0" style="color: green">{{turnoverByStore.prevMonthDelta}}%</span>
+                        <td>
+                            {{turnoverByStore.selectedMonthAmount}}лв
+                            <br>
+                            t: {{turnoverByStore.selectedMonthTransactionCount}}
+                            <br>
+                            s: {{turnoverByStore.selectedMonthItemCount}}
+                            <br>
+                            SPT: {{turnoverByStore.selectedMonthSpt}}
+                            <br>
                         </td>
-                        <td>{{turnoverByStore.prevYearTurnover}} 
-                            <span ng-if="turnoverByStore.prevYearDelta < 0" style="color: red">{{turnoverByStore.prevYearDelta}}%</span>
-                            <span ng-if="turnoverByStore.prevYearDelta > 0" style="color: green">{{turnoverByStore.prevYearDelta}}%</span>
+                        <td>
+                            {{turnoverByStore.prevMonthAmount}} 
+                            <span ng-if="turnoverByStore.prevMonthAmountDelta < 0" style="color: red">{{turnoverByStore.prevMonthAmountDelta}}%</span>
+                            <span ng-if="turnoverByStore.prevMonthAmountDelta > 0" style="color: green">{{turnoverByStore.prevMonthAmountDelta}}%</span>
+                            <br>
+                            t: {{turnoverByStore.prevMonthTransactionCount}}
+                            <span ng-if="turnoverByStore.prevMonthTransactionCountDelta < 0" style="color: red">{{turnoverByStore.prevMonthTransactionCountDelta}}%</span>
+                            <span ng-if="turnoverByStore.prevMonthTransactionCountDelta > 0" style="color: green">{{turnoverByStore.prevMonthTransactionCountDelta}}%</span>
+                            <br>
+                            s: {{turnoverByStore.prevMonthItemCount}}
+                            <span ng-if="turnoverByStore.prevMonthItemCountDelta < 0" style="color: red">{{turnoverByStore.prevMonthItemCountDelta}}%</span>
+                            <span ng-if="turnoverByStore.prevMonthItemCountDelta > 0" style="color: green">{{turnoverByStore.prevMonthItemCountDelta}}%</span>
+                            <br>
+                            SPT: {{turnoverByStore.prevMonthSpt}}
+                            <span ng-if="turnoverByStore.prevMonthSptDelta < 0" style="color: red">{{turnoverByStore.prevMonthSptDelta}}%</span>
+                            <span ng-if="turnoverByStore.prevMonthSptDelta > 0" style="color: green">{{turnoverByStore.prevMonthSptDelta}}%</span>
+                            <br>
+                        </td>
+                        <td>
+                            {{turnoverByStore.prevYearAmount}} 
+                            <span ng-if="turnoverByStore.prevYearAmountDelta < 0" style="color: red">{{turnoverByStore.prevYearAmountDelta}}%</span>
+                            <span ng-if="turnoverByStore.prevYearAmountDelta > 0" style="color: green">{{turnoverByStore.prevYearAmountDelta}}%</span>
+                            <br>
+                            t: {{turnoverByStore.prevYearTransactionCount}} 
+                            <span ng-if="turnoverByStore.prevYearTransactionCountDelta < 0" style="color: red">t:{{turnoverByStore.prevYearTransactionCountDelta}}%</span>
+                            <span ng-if="turnoverByStore.prevYearTransactionCountDelta > 0" style="color: green">{{turnoverByStore.prevYearTransactionCountDelta}}%</span>
+                            <br>
+                            s: {{turnoverByStore.prevYearItemCount}} 
+                            <span ng-if="turnoverByStore.prevYearItemCountDelta < 0" style="color: red">{{turnoverByStore.prevYearItemCountDelta}}%</span>
+                            <span ng-if="turnoverByStore.prevYearItemCountDelta > 0" style="color: green">{{turnoverByStore.prevYearItemCountDelta}}%</span>
+                            <br>
+                            SPT: {{turnoverByStore.prevYearSpt}} 
+                            <span ng-if="turnoverByStore.prevYearSptDelta < 0" style="color: red">{{turnoverByStore.prevYearSptDelta}}%</span>
+                            <span ng-if="turnoverByStore.prevYearSptDelta > 0" style="color: green">{{turnoverByStore.prevYearSptDelta}}%</span>
+                            <br>
                         </td>
                     </tr>
                 </tbody>

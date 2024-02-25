@@ -12,7 +12,7 @@ public class SaleReport {
 	private Integer warehouseQuantity;
 	private Integer companyQuantity;
 	private BigDecimal totalAmount;
-	private Integer count;
+	private Integer itemCount;
 	private String storeName;
 	private Long startDate;
 	private Long endDate;
@@ -90,12 +90,12 @@ public class SaleReport {
 		this.totalAmount = totalAmount;
 	}
 
-	public Integer getCount() {
-		return count;
+	public Integer getItemCount() {
+		return itemCount;
 	}
 
-	public void setCount(Integer count) {
-		this.count = count;
+	public void setItemCount(Integer itemCount) {
+		this.itemCount = itemCount;
 	}
 
 	public String getStoreName() {

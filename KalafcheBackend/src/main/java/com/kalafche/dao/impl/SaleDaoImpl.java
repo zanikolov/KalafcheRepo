@@ -1,6 +1,7 @@
 package com.kalafche.dao.impl;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -13,12 +14,15 @@ import javax.sql.DataSource;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.kalafche.dao.SaleDao;
 import com.kalafche.model.DailyReportData;
+import com.kalafche.model.Employee;
+import com.kalafche.model.EmployeeHours;
 import com.kalafche.model.Sale;
 import com.kalafche.model.SaleItem;
 import com.kalafche.model.SalesByStore;
@@ -90,11 +94,11 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"ks.code as storeCode, " +
 			"CONCAT(ks.city,\",\",ks.name) as store_name, " +
 			"coalesce(sum(si.sale_price), 0.00) as amount, " +
-			"coalesce(count(si.id), 0) as count " +
+			"coalesce(count(si.id), 0) as item_count, " +
+			"coalesce(count(distinct(s.id)), 0) as transaction_count " +
 			"from store ks " +
 			"left join sale s on s.store_id = ks.id and s.sale_timestamp between ? and ? " +
-			"left join sale_item si on si.sale_id = s.id " +
-			"and si.is_refunded <> true " +
+			"join sale_item si on si.sale_id = s.id and si.is_refunded <> true and si.sale_price > 0 " +
 			"where ks.is_store is true ";
 	
 	private static final String PERIOD_CRITERIA_QUERY = " where sale_timestamp between ? and ?";
@@ -531,7 +535,22 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		argsArr = argsList.toArray(argsArr);
 
 		return getJdbcTemplate().query(
-				searchQuery, argsArr, getSaleByStoreRowMapper());
+				searchQuery, argsArr,  new RowMapper<SalesByStore>() {
+				    @Override
+				    public SalesByStore mapRow(ResultSet rs, int rowNum) throws SQLException {
+				    	SalesByStore salesByStore = new SalesByStore();
+				    	salesByStore.setStoreId(rs.getInt(1));
+				    	salesByStore.setStoreCode(rs.getString(2));
+				    	salesByStore.setStoreName(rs.getString(3));
+				    	salesByStore.setAmount(rs.getBigDecimal(4));
+				    	salesByStore.setItemCount(rs.getBigDecimal(5));
+				    	salesByStore.setTransactionCount(rs.getBigDecimal(6));
+				    	if (BigDecimal.ZERO.compareTo(rs.getBigDecimal(5)) < 0) {
+				    		salesByStore.setSpt(rs.getBigDecimal(5).divide(rs.getBigDecimal(6), 2, RoundingMode.HALF_UP));
+				    	}
+				        return salesByStore;
+				    }
+				});
 	}
 
 	@Override

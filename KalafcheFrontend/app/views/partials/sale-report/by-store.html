@@ -71,7 +71,7 @@
                     {{report.deviceBrandName}} {{report.deviceModelName}} {{report.productCode}}
                 </div>
                 <div layout="row" flex>
-                    Брой {{report.count}}
+                    Брой {{report.itemCount}}
                 </div>
                 <div layout="row" flex>
                     <b>{{report.totalAmount}}лв</b>
@@ -98,7 +98,7 @@
                     <tr dir-paginate="salesByStore in report.salesByStores | itemsPerPage:salesByStorePerPage" current-page="currentPage" pagination-id="store">
                         <td>{{(currentPage - 1) * salesByStorePerPage + $index + 1}}</td>
                         <td>{{salesByStore.storeName}}</td>
-                        <td>{{salesByStore.count}}</td>
+                        <td>{{salesByStore.itemCount}}</td>
                         <td>{{salesByStore.amount}}лв</td>
                     </tr>
                 </tbody>
