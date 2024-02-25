@@ -9,3 +9,4 @@ bower_components
 .metadata/**
 KalafcheBackend/.sts4-cache/
 KalafcheBackend/.settings/**
+KalafcheBackend/.classpath
