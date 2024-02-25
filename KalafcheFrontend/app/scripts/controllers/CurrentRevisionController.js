@@ -20,6 +20,7 @@ angular.module('kalafcheFrontendApp')
             $scope.currentPage = 1;
             $scope.formData = {};
             $scope.formData.showOnlyMismatches = false;
+            $scope.formData.showOnlyNonZeros = false;
             $scope.loading = false; 
             if (AuthService.isUser()) {
                 $scope.formData.storeId = SessionService.currentUser.employeeStoreId;
@@ -171,6 +172,12 @@ angular.module('kalafcheFrontendApp')
         $scope.filterExpectedEqualsToActual = function() {
             return function predicateFunc(revisionItem) {
                 return !$scope.formData.showOnlyMismatches || revisionItem.actual != revisionItem.expected;
+            };
+        }
+
+        $scope.filterZeros = function() {
+            return function predicateFunc(revisionItem) {
+                return !$scope.formData.showOnlyNonZeros || (revisionItem.actual != 0 || revisionItem.expected != 0);
             };
         }
 

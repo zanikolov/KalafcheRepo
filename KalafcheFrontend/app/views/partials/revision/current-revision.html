@@ -139,6 +139,11 @@
 			            		Показвай само разминаванията
 			          		</md-checkbox>
 		                </md-input-container>
+		                <md-input-container class="md-block">
+			          		<md-checkbox ng-model="formData.showOnlyNonZeros" class="md-primary">
+			            		Скрий нулевите наличности
+			          		</md-checkbox>
+		                </md-input-container>
 		            </form>
 		        </div>
 		</md-content>
@@ -187,7 +192,7 @@
 	                </tr>
 	            </thead>
 	            <tbody>               
-	                <tr class="item-row" dir-paginate="revisionItem in revision.revisionItems | filter: filterExpectedEqualsToActual() | itemsPerPage:revisionItemsPerPage track by $index" current-page="currentPage" pagination-id="current">
+	                <tr class="item-row" dir-paginate="revisionItem in revision.revisionItems | filter: filterExpectedEqualsToActual() | filter: filterZeros() | itemsPerPage:revisionItemsPerPage track by $index" current-page="currentPage" pagination-id="current">
 	                	<td>{{(currentPage - 1) * revisionItemsPerPage + $index + 1}}</td>
 	                    <td>{{revisionItem.deviceModelName}}</td>
 	                    <td>{{revisionItem.productCode}} {{revisionItem.productName}}</td>

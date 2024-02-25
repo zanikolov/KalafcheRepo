@@ -115,7 +115,7 @@ angular.module('kalafcheFrontendApp')
 
         function printMonthlySchedule(storeId, selectedMonth) { 
             var request = {};
-            request.storeId = 10;
+            request.storeId = storeId;
             request.month = selectedMonth.value;
             request.year = selectedMonth.year;
 
