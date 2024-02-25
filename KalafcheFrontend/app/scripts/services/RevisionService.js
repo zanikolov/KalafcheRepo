@@ -65,7 +65,6 @@ angular.module('kalafcheFrontendApp')
             return $http.post(Environment.apiEndpoint + '/KalafcheBackend/revision/item/plus', revisionItem)
                 .then(
                     function(response) {
-                        console.log(response.data);
                         return response.data
                     }
                 );
@@ -75,7 +74,6 @@ angular.module('kalafcheFrontendApp')
             return $http.post(Environment.apiEndpoint + '/KalafcheBackend/revision/item/minus', revisionItem)
                 .then(
                     function(response) {
-                        console.log(response.data);
                         return response.data
                     }
                 );
@@ -114,7 +112,6 @@ angular.module('kalafcheFrontendApp')
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/revision', params)
                 .then(
                     function(response) {
-                        console.log(response.data);
                         return response.data
                     }
                 );

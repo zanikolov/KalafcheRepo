@@ -21,7 +21,8 @@ angular.module('kalafcheFrontendApp')
             $scope.formData = {};
             $scope.formData.showOnlyMismatches = false;
             $scope.formData.showOnlyNonZeros = false;
-            $scope.loading = false; 
+            $scope.loading = false;
+            $scope.productCode = "";
             if (AuthService.isUser()) {
                 $scope.formData.storeId = SessionService.currentUser.employeeStoreId;
                 getCurrentRevision($scope.formData.storeId);
@@ -180,6 +181,14 @@ angular.module('kalafcheFrontendApp')
                 return !$scope.formData.showOnlyNonZeros || (revisionItem.actual != 0 || revisionItem.expected != 0);
             };
         }
+
+        $scope.filterByProductCode = function() {
+            var productCodesString = $scope.formData.productCode;
+            var productCodes = productCodesString.split(" ");
+            return function predicateFunc(revisionItem) {
+                return productCodes.indexOf(revisionItem.productCode) !== -1 ;
+            };
+        };
 
         // $scope.$watch('barcode', function(newValue, oldValue) {
         //     console.log(">>>> barcode: " + newValue);

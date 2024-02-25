@@ -134,6 +134,10 @@
 		                    <input ng-model="formData.barcode" name="barcode" ng-change="onChangeBarcode()" maxlength="13">
 		                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.barcode}}</span>
 		                </md-input-container>
+		                <md-input-container class="md-block" style="width:150px">
+		                    <label>Продуктов код</label>
+		                    <input ng-model="formData.productCode" name="productCode" >
+		                </md-input-container> 
 		                <md-input-container class="md-block">
 			          		<md-checkbox ng-model="formData.showOnlyMismatches" class="md-primary">
 			            		Показвай само разминаванията
@@ -192,7 +196,7 @@
 	                </tr>
 	            </thead>
 	            <tbody>               
-	                <tr class="item-row" dir-paginate="revisionItem in revision.revisionItems | filter: filterExpectedEqualsToActual() | filter: filterZeros() | itemsPerPage:revisionItemsPerPage track by $index" current-page="currentPage" pagination-id="current">
+	                <tr class="item-row" dir-paginate="revisionItem in revision.revisionItems | filter:(!!formData.productCode || undefined) && filterByProductCode() | filter: filterExpectedEqualsToActual() | filter: filterZeros() | itemsPerPage:revisionItemsPerPage track by $index" current-page="currentPage" pagination-id="current">
 	                	<td>{{(currentPage - 1) * revisionItemsPerPage + $index + 1}}</td>
 	                    <td>{{revisionItem.deviceModelName}}</td>
 	                    <td>{{revisionItem.productCode}} {{revisionItem.productName}}</td>
