@@ -30,7 +30,7 @@ public abstract interface SaleDao {
 
 	public abstract BigDecimal getSaleItemPrice(Integer saleItemId);
 
-	public abstract List<SalesByStore> searchSaleByStore(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds);
+	public abstract List<SalesByStore> searchSaleByStore(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds, boolean monthlyReportGeneration);
 
 	public abstract List<SalesByStoreByDayByProductType> generateProductTypeSplitReport(Long startDateMilliseconds, Long endDateMilliseconds,
 			String storeId);

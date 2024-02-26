@@ -17,4 +17,14 @@ public class SalesByStore {
 	private BigDecimal transactionCount;
 	private BigDecimal spt;
 	
+	public static SalesByStore createEmptySalesByStore() {
+		SalesByStore empty = new SalesByStore();
+		empty.setAmount(BigDecimal.ZERO);
+		empty.setItemCount(BigDecimal.ZERO);
+		empty.setTransactionCount(BigDecimal.ZERO);
+		empty.setSpt(BigDecimal.ZERO);
+		
+		return empty;
+	}
+	
 }

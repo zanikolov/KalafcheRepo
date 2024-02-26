@@ -433,7 +433,7 @@ public class SaleServiceImpl implements SaleService {
 			count = sales.size();
 		}
 		
-		saleReport.setItemCount(count);
+		saleReport.setTransactionCount(count);
 		saleReport.setTotalAmount(totalAmount);
 	}
 
@@ -558,7 +558,7 @@ public class SaleServiceImpl implements SaleService {
 		SaleReport saleReport = generateReport(null, startDateMilliseconds, endDateMilliseconds, productCode, deviceBrandId, deviceModelId);
 		
 		String storeIds = entityService.getConcatenatedStoreIdsForFiltering("0");
-		List<SalesByStore> salesByStores = saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds, storeIds);
+		List<SalesByStore> salesByStores = saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds, storeIds, true);
 		
 		if (deviceModelId != null && productCode != null && productCode != "") {
 			saleReport.setWarehouseQuantity(stockService.getQuantitiyOfStockInWH(productCode, deviceModelId));
@@ -672,35 +672,41 @@ public class SaleServiceImpl implements SaleService {
 		previousYearTurnover.sort(comparator);
 		previousMonthTurnover.sort(comparator);
 		selectedMonthTurnover.sort(comparator);
-		for (int i = 0; i < previousYearTurnover.size(); i++) {
-			SalesByStore prevYear = previousYearTurnover.get(i);
+		for (int i = 0; i < selectedMonthTurnover.size(); i++) {
+			SalesByStore selectedMonth = selectedMonthTurnover.get(i);
+			SalesByStore prevYear = previousYearTurnover.size() > i ? previousYearTurnover.get(i) : SalesByStore.createEmptySalesByStore();
+			SalesByStore prevMonth = previousMonthTurnover.size() > i ? previousMonthTurnover.get(i) : SalesByStore.createEmptySalesByStore();
 			PastPeriodTurnover pastPeriodReport = new PastPeriodTurnover();
-			pastPeriodReport.setStoreId(prevYear.getStoreId());
-			pastPeriodReport.setStoreCode(prevYear.getStoreCode());
-			pastPeriodReport.setStoreName(prevYear.getStoreName());
+			pastPeriodReport.setStoreId(selectedMonth.getStoreId());
+			pastPeriodReport.setStoreCode(selectedMonth.getStoreCode());
+			pastPeriodReport.setStoreName(selectedMonth.getStoreName());
 			
-			pastPeriodReport.setPrevYearAmount(prevYear.getAmount());			
-			BigDecimal prevMonthAmount = previousMonthTurnover.get(i).getAmount();
+			BigDecimal prevYearAmount = prevYear.getAmount();
+			pastPeriodReport.setPrevYearAmount(prevYearAmount);					
+			BigDecimal prevMonthAmount = prevMonth.getAmount();
 			pastPeriodReport.setPrevMonthAmount(prevMonthAmount);
-			BigDecimal selectedMonthAmount = selectedMonthTurnover.get(i).getAmount();
+			BigDecimal selectedMonthAmount = selectedMonth.getAmount();
 			pastPeriodReport.setSelectedMonthAmount(selectedMonthAmount);
 			
-			pastPeriodReport.setPrevYearTransactionCount(prevYear.getTransactionCount());
-			BigDecimal prevMonthTransactionCount = previousMonthTurnover.get(i).getTransactionCount();
+			BigDecimal prevYearTransactionCount = prevYear.getTransactionCount();
+			pastPeriodReport.setPrevYearTransactionCount(prevYearTransactionCount);
+			BigDecimal prevMonthTransactionCount = prevMonth.getTransactionCount();
 			pastPeriodReport.setPrevMonthTransactionCount(prevMonthTransactionCount);
-			BigDecimal selectedMonthTransactionCount = selectedMonthTurnover.get(i).getTransactionCount();
+			BigDecimal selectedMonthTransactionCount = selectedMonth.getTransactionCount();
 			pastPeriodReport.setSelectedMonthTransactionCount(selectedMonthTransactionCount);
 			
-			pastPeriodReport.setPrevYearItemCount(prevYear.getItemCount());
-			BigDecimal prevMonthItemCount = previousMonthTurnover.get(i).getItemCount();
+			BigDecimal prevYearItemCount = prevYear.getItemCount();
+			pastPeriodReport.setPrevYearItemCount(prevYearItemCount);
+			BigDecimal prevMonthItemCount = prevMonth.getItemCount();
 			pastPeriodReport.setPrevMonthItemCount(prevMonthItemCount);
-			BigDecimal selectedMonthItemCount = selectedMonthTurnover.get(i).getItemCount();
+			BigDecimal selectedMonthItemCount = selectedMonth.getItemCount();
 			pastPeriodReport.setSelectedMonthItemCount(selectedMonthItemCount);
 			
-			pastPeriodReport.setPrevYearSpt(prevYear.getSpt());
-			BigDecimal prevMonthSpt = previousMonthTurnover.get(i).getSpt();
+			BigDecimal prevYearSpt = prevYear.getSpt();
+			pastPeriodReport.setPrevYearSpt(prevYearSpt);
+			BigDecimal prevMonthSpt = prevMonth.getSpt();
 			pastPeriodReport.setPrevMonthSpt(prevMonthSpt);
-			BigDecimal selectedMonthSpt = selectedMonthTurnover.get(i).getSpt();
+			BigDecimal selectedMonthSpt = selectedMonth.getSpt();
 			pastPeriodReport.setSelectedMonthSpt(selectedMonthSpt);
 			
 			if (BigDecimal.ZERO.compareTo(prevYear.getAmount()) < 0) {
@@ -783,7 +789,7 @@ public class SaleServiceImpl implements SaleService {
 			endDateCal.set(Calendar.MILLISECOND, 999);
 			long endDateMilliseconds = endDateCal.getTimeInMillis();
 
-			return saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds, null);
+			return saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds, null, false);
 		}
 
 	}

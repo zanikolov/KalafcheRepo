@@ -13,6 +13,7 @@ public class SaleReport {
 	private Integer companyQuantity;
 	private BigDecimal totalAmount;
 	private Integer itemCount;
+	private Integer transactionCount;
 	private String storeName;
 	private Long startDate;
 	private Long endDate;
@@ -96,6 +97,20 @@ public class SaleReport {
 
 	public void setItemCount(Integer itemCount) {
 		this.itemCount = itemCount;
+	}
+
+	/**
+	 * @return the transactionCount
+	 */
+	public Integer getTransactionCount() {
+		return transactionCount;
+	}
+
+	/**
+	 * @param transactionCount the transactionCount to set
+	 */
+	public void setTransactionCount(Integer transactionCount) {
+		this.transactionCount = transactionCount;
 	}
 
 	public String getStoreName() {

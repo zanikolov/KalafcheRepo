@@ -21,17 +21,20 @@ import org.springframework.util.StringUtils;
 
 import com.kalafche.dao.SaleDao;
 import com.kalafche.model.DailyReportData;
-import com.kalafche.model.Employee;
-import com.kalafche.model.EmployeeHours;
 import com.kalafche.model.Sale;
 import com.kalafche.model.SaleItem;
 import com.kalafche.model.SalesByStore;
 import com.kalafche.model.SalesByStoreByDayByProductType;
 import com.kalafche.model.TransactionsByStoreByDay;
 import com.kalafche.service.DateService;
+import com.kalafche.service.EmployeeService;
 
 @Service
 public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
+	
+	@Autowired
+	EmployeeService employeeService;
+	
 	private static final String GET_ALL_SALES_QUERY = "select " +
 			"s.id, " +
 			"s.sale_timestamp, " +
@@ -98,6 +101,19 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"coalesce(count(distinct(s.id)), 0) as transaction_count " +
 			"from store ks " +
 			"left join sale s on s.store_id = ks.id and s.sale_timestamp between ? and ? " +
+			"%s join sale_item si on si.sale_id = s.id and si.is_refunded <> true and si.sale_price > 0 " +
+			"where ks.is_store is true ";
+	
+	private static final String GET_SALES_DATA_FOR_THE_COMPANY = "union " +
+			"select " +
+			"0 as storeId, " +
+			"'COMPANY' as storeCode, " +
+			"'Всички магазини' as store_name, " +
+			"coalesce(sum(si.sale_price), 0.00) as amount, " +
+			"coalesce(count(si.id), 0) as item_count, " +
+			"coalesce(count(distinct(s.id)), 0) as transaction_count " +
+			"from store ks " +
+			"left join sale s on s.store_id = ks.id and s.sale_timestamp between ? and ? " +
 			"join sale_item si on si.sale_id = s.id and si.is_refunded <> true and si.sale_price > 0 " +
 			"where ks.is_store is true ";
 	
@@ -116,8 +132,9 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			+ " values (?, ?, ?, ?)";
 	private static final String ORDER_BY_SALE = " order by s.sale_timestamp";
 	private static final String ORDER_BY_STORE = " order by ks.id";
+	private static final String ORDER_BY_STOREID = " order by storeId";
 	private static final String GROUP_BY_SALE = " group by s.id";
-	private static final String GROUP_BY_STORE = " group by ks.id";
+	private static final String GROUP_BY_STORE = " group by ks.id ";
 	private static final String GET_SALE_ITEMS_PER_SALE = "select " +
 			"si.id, " +
 			"si.sale_id, " +
@@ -319,7 +336,6 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	
 	private BeanPropertyRowMapper<Sale> saleRowMapper;
 	private BeanPropertyRowMapper<SaleItem> saleItemRowMapper;
-	private BeanPropertyRowMapper<SalesByStore> saleByStoreRowMapper;
 	private BeanPropertyRowMapper<SalesByStoreByDayByProductType> saleByStoreByDayByProductTypeRowMapper;
 	private BeanPropertyRowMapper<TransactionsByStoreByDay> transactionsByStoreByDayRowMapper;
 	private BeanPropertyRowMapper<DailyReportData> dailyReportDataRowMapper;
@@ -346,15 +362,6 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		}
 		
 		return saleItemRowMapper;
-	}
-	
-	private BeanPropertyRowMapper<SalesByStore> getSaleByStoreRowMapper() {
-		if (saleByStoreRowMapper == null) {
-			saleByStoreRowMapper = new BeanPropertyRowMapper<SalesByStore>(SalesByStore.class);
-			saleByStoreRowMapper.setPrimitivesDefaultedForNullValue(true);
-		}
-		
-		return saleByStoreRowMapper;
 	}
 	
 	private BeanPropertyRowMapper<SalesByStoreByDayByProductType> getSalesByStoreByDayByProductTypeRowMapper() {
@@ -517,19 +524,29 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	}
 
 	@Override
-	public List<SalesByStore> searchSaleByStore(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds) {
+	public List<SalesByStore> searchSaleByStore(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds, boolean monthlyReportGeneration) {
 		String searchQuery = GET_SALES_BY_STORE_QUERY;
 		List<Object> argsList = new ArrayList<Object>();
 		argsList.add(startDateMilliseconds);
 		argsList.add(endDateMilliseconds);
 		
-		//searchQuery += addDetailedSearch(productCode, deviceBrandId, deviceModelId, productTypeId, argsList);
-		
 		if (storeIds != null) {
 			searchQuery += String.format(STORE_CRITERIA_QUERY, storeIds);
 		}
 		searchQuery += GROUP_BY_STORE;
-		searchQuery += ORDER_BY_STORE;
+		
+		if (monthlyReportGeneration) {
+			searchQuery = String.format(searchQuery, "left");
+		} else {
+			searchQuery = String.format(searchQuery, "");
+			if (employeeService.isLoggedInEmployeeAdmin()) {
+				searchQuery += GET_SALES_DATA_FOR_THE_COMPANY;
+				argsList.add(startDateMilliseconds);
+				argsList.add(endDateMilliseconds);
+			}
+		}
+
+		searchQuery += ORDER_BY_STOREID;
 		
 		Object[] argsArr = new Object[argsList.size()];
 		argsArr = argsList.toArray(argsArr);
