@@ -2,7 +2,7 @@ package com.kalafche.service;
 
 import java.util.Date;
 
-import com.kalafche.model.DayInMillis;
+import com.kalafche.model.PeriodInMillis;
 
 public interface DateService {
 
@@ -10,7 +10,7 @@ public interface DateService {
 
 	public String convertMillisToDateTimeString(Long millis, String dateFormat, Boolean withTime);
 
-	DayInMillis getTodayInMillis(Integer dayShift);
+	PeriodInMillis getTodayInMillis(Integer dayShift);
 
 	Date getCurrentTimeBGTimezone();
 
@@ -21,4 +21,6 @@ public interface DateService {
 	public Integer getCurrentYear();
 
 	public Integer getNextYear();
+
+	PeriodInMillis getMonthInMillis(Integer monthShift);
 }

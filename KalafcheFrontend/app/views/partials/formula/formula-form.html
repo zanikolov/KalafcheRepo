@@ -1,0 +1,177 @@
+<div layout="column" ng-cloak>
+     <md-content layout-padding layout="row" layout-xs="column">
+        <div flex-xs="100" flex="50">
+            <form name="formulaForm" server-validation novalidate>                
+                <md-input-container class="md-block">
+                    <label>Име</label>
+                    <input ng-model="formula.name" name="name" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Формула</label>
+                    <input ng-model="formula.expression" name="expression" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.expression}}</span>
+                </md-input-container>
+            </form>
+        </div>
+    </md-content>
+    <md-content layout-padding layout="row">
+        <md-button ng-disabled="formulaForm.$invalid" ng-click="submitFormula()" class="md-raised md-primary">Запази</md-button>
+        <md-button ng-if="formula.id" class="md-raised md-primary" ng-click="resetFormulaForm()">Отмени</md-button>
+    </md-content>
+<!--      <md-content layout-padding layout="row">
+        <div layout-xs="row" flex="100" flex-xs="100">
+            <md-input-container style="width:200px">
+                <label>Име</label>
+                <input ng-model="formulaName">
+            </md-input-container>  
+        </div>
+    </md-content> -->
+    <md-content layout-padding layout="row" layout-xs="column">
+        <div flex="100">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th><label>Име</label></th>
+                        <th><label>Формула</label></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                 <tbody>
+                    <tr expand dir-paginate-start="formula in formulas | filter:(!!formulaName || undefined) && filterByFormulaName() | itemsPerPage: formulasPerPage track by $index" current-page="currentPage" pagination-id="formula" class="item-row">
+                        <td><span ng-click="expand(formula)">{{formula.name}}</span></td>
+                        <td>{{formula.expression}}</td>
+                        <td>
+                             <a href="" ng-click="editFormula(formula)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
+                    </tr>
+                    <tr dir-paginate-end ng-show="formula.expanded" class="sale-details" pagination-id="formula">
+                        <td colspan="6">
+                            <table class="table table-hover table-condensed borderless">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th><label>Магазин</label></th>
+                                        <th><label>Резултат</label></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                <tr ng-repeat="store in formula.result track by $index" class="item-row">
+                                        <td>{{$index + 1}}</td>
+                                        <td>{{store.storeName}}</td>
+                                        <td>{{store.result}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody>
+<!--                 <tbody>
+                    <tr ng-click="expand(formula)" expand dir-paginate-start="formula in formulas | itemsPerPage:formulasPerPage" current-page="currentPage" pagination-id="formula">
+                        <td>{{(currentPage - 1) * formulasPerPage + $index + 1}}</td>
+                        <td>{{formula.name}}</td>
+                        <td>{{formula.expression}}</td>
+                    </tr>
+                    <tr dir-paginate-end ng-show="formula.expanded" class="sale-details" pagination-id="formula">
+                        <td colspan="6">
+                            <table class="table table-hover table-condensed borderless">
+                                <tbody>
+                                    <tr ng-repeat="store in formula.result">
+                                        <td>{{store.storeName}}</td>
+                                        <td>{{store.result}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                </tbody> -->
+            </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls pagination-id="formula" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
+        </div>
+    </md-content>
+</div>
+
+
+<!-- <div layout="column" ng-cloak>
+    <md-content layout-padding layout="column">
+        <div flex>
+            <form name="formulaForm" novalidate>
+                <div layout="row">
+                    <md-input-container flex>
+                        <label>Формула</label>
+                        <input ng-model="formula.expression" name="expression">
+                    </md-input-container>
+                </div>
+                <div layout="row" layout-xs="column" class="md-inline-form">
+                    <table class="table table-hover table-condensed">
+                        <thead>
+                            <tr>
+                                <th>            
+                                    <a href="" ng-click="addNewVariable()" style="text-decoration:none;">
+                                        <md-icon class="primary-icon" md-svg-src="images/icons/add.svg"></md-icon>
+                                    </a>
+                                </th>
+                                <th>
+                                    <label>Име</label>
+                                </th>
+                                <th>
+                                    <label>От</label>
+                                </th>
+                                <th>
+                                    <label>До</label>
+                                </th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="variable in formula.variables" class="item-row">
+                                <td></td>
+                                <td>
+                                    <input name="name" ng-model="variable.name" ng-maxlength="30" required>
+                                </td>
+                                <td>
+                                    <md-datepicker style="width:100%" ng-model="variable.startDate" md-min-date="startMinDate" md-max-date="startMaxDate" ng-change="changeStartDate(variable)"></md-datepicker>
+                                </td>
+                                <td>
+                                    <md-datepicker style="width:100%" ng-model="variable.endDate" md-min-date="startDate" md-max-date="startMaxDate" ng-change="changeEndDate(variable)"></md-datepicker>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div layout="row">
+                    <md-input-container layout-align="end end">
+                        <md-button ng-click="calculateFormula()" class="md-raised md-primary">Калкулирай</md-button>
+                    </md-input-container>
+                </div>
+            </form>
+        </div>
+    </md-content>
+    <md-content ng-if="calculationResponse && calculationResponse.length > 0" layout-padding layout="row" layout-xs="column">
+        <div flex="100">
+            <table class="table table-hover table-condensed">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th><label>Магазин</label></th>
+                        <th><label>Резултат</label></th>
+                    </tr>
+                </thead>
+                <tbody>
+                <tr ng-repeat="store in calculationResponse track by $index" class="item-row">
+                        <td>{{$index + 1}}</td>
+                        <td>{{store.storeName}}</td>
+                        <td>{{store.formulaOutcome}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </md-content>
+
+    
+</div> -->

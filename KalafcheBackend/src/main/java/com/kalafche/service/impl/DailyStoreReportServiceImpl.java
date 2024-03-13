@@ -13,7 +13,7 @@ import com.kalafche.dao.DailyStoreReportDao;
 import com.kalafche.exceptions.CommonException;
 import com.kalafche.model.DailyReportData;
 import com.kalafche.model.DailyStoreReport;
-import com.kalafche.model.DayInMillis;
+import com.kalafche.model.PeriodInMillis;
 import com.kalafche.model.Employee;
 import com.kalafche.model.StoreDto;
 import com.kalafche.service.CompanyService;
@@ -74,7 +74,7 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 	}
 
 	@Override
-	public DailyStoreReport getDailyStoreReportByDay(Integer storeId, DayInMillis day) {
+	public DailyStoreReport getDailyStoreReportByDay(Integer storeId, PeriodInMillis day) {
 		return dailyStoreReportDao.getDailyStoreReport(storeId, day);
 	}
 
@@ -87,8 +87,8 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 				storeId = loggedInEmployee.getStoreId();
 			}
 		}
-		DayInMillis todayInMillis = dateService.getTodayInMillis(0);
-		DayInMillis yesterdayInMillis = dateService.getTodayInMillis(-1);
+		PeriodInMillis todayInMillis = dateService.getTodayInMillis(0);
+		PeriodInMillis yesterdayInMillis = dateService.getTodayInMillis(-1);
 		DailyStoreReport yesterdayReport = getDailyStoreReportByDay(storeId, yesterdayInMillis);
 		DailyReportData saleItemDailyReportData = saleService.getSaleItemDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
 		DailyReportData refundedSaleItemDailyReportData = saleService.getRefundedSaleItemDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);

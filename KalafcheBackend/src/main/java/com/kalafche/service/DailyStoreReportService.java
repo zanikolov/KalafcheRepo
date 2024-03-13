@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.kalafche.exceptions.CommonException;
 import com.kalafche.model.DailyStoreReport;
-import com.kalafche.model.DayInMillis;
+import com.kalafche.model.PeriodInMillis;
 
 public interface DailyStoreReportService {
 
@@ -12,7 +12,7 @@ public interface DailyStoreReportService {
 
 	DailyStoreReport getDailyStoreReportById(Integer dailyStoreReportId);
 
-	DailyStoreReport getDailyStoreReportByDay(Integer storeId, DayInMillis day);
+	DailyStoreReport getDailyStoreReportByDay(Integer storeId, PeriodInMillis day);
 
 	DailyStoreReport calculateDailyStoreReport(Integer storeId, Boolean scheduled);
 

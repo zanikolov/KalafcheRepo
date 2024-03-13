@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DailyStoreReportDao;
 import com.kalafche.model.DailyStoreReport;
-import com.kalafche.model.DayInMillis;
+import com.kalafche.model.PeriodInMillis;
 
 @Service
 public class DailyStoreReportDaoImpl extends JdbcDaoSupport implements DailyStoreReportDao {
@@ -113,7 +113,7 @@ public class DailyStoreReportDaoImpl extends JdbcDaoSupport implements DailyStor
 	}
 	
 	@Override
-	public DailyStoreReport getDailyStoreReport(Integer storeId, DayInMillis day) {
+	public DailyStoreReport getDailyStoreReport(Integer storeId, PeriodInMillis day) {
 		List<DailyStoreReport> reports = getJdbcTemplate().query(SELECT_DAILY_STORE_REPORT_BY_STORE_AND_DAY, new Object[] {storeId, day.getStartDateTime(), day.getEndDateTime()}, getRowMapper());
 		return reports != null && !reports.isEmpty() ? reports.get(0) : null;
 	}
