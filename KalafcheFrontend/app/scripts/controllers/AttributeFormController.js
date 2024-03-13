@@ -11,92 +11,110 @@ angular.module('kalafcheFrontendApp')
     });
 
 
-	function AttributeFormController ($scope, $rootScope, FormulaService, StoreService, ServerValidationService, SessionService, AuthService) {
+    function AttributeFormController ($scope, $rootScope, FormulaService, StoreService, ServerValidationService, SessionService, AuthService, ApplicationService) {
 
         init();
 
         function init() {
-            $scope.formula = {};
-            $scope.formula.variables = [];
-            $scope.calculationInProcess = false;
-            $scope.calculationResponse = {};
+            $scope.attribute = {}; 
+            $scope.attributes = [];
+            $scope.currentPage = 1; 
+            $scope.attributesPerPage = 50;
+            $scope.serverErrorMessages = {};
 
-            getAllStores();
-        };
+            getAllAttributeTypes();
+            getAllAttributeContexts();
+            getAllAttributes();
+        }
 
-        $scope.addNewVariable = function() {
-            var newVariable = {};
-
-            newVariable.startDate = new Date();
-            newVariable.startDate.setHours(0);
-            newVariable.startDate.setMinutes(0);
-            newVariable.startDateMilliseconds = newVariable.startDate.getTime();
-            newVariable.endDate = new Date();
-            newVariable.endDate.setHours(23);
-            newVariable.endDate.setMinutes(59);
-            newVariable.endDateMilliseconds = newVariable.endDate.getTime();
-
-            $scope.formula.variables.push(newVariable);
-            console.log($scope.formula.variables);
-        };
-
-        $scope.changeStartDate = function(variable) {
-            variable.startDate.setHours(0);
-            variable.startDate.setMinutes(1);
-            variable.startDateMilliseconds = variable.startDate.getTime();
+        $scope.changeStartDate = function() {
+            $scope.attribute.startDate.setHours(0);
+            $scope.attribute.startDate.setMinutes(1);
+            $scope.attribute.fromTimestamp = $scope.attribute.startDate.getTime();
         };
 
         $scope.changeEndDate = function(variable) {
-            variable.endDate.setHours(23);
-            variable.endDate.setMinutes(59);
-            variable.endDateMilliseconds = variable.endDate.getTime();
+            $scope.attribute.endDate.setHours(23);
+            $scope.attribute.endDate.setMinutes(59);
+            $scope.attribute.toTimestamp = $scope.attribute.endDate.getTime();
         };
 
-        function getAllStores() {
-            StoreService.getAllStores().then(function(response) {
-                $scope.stores = response;
-                $scope.formula.storeId = SessionService.currentUser.employeeStoreId;
+        $scope.resetAttribute = function () {
+            $scope.attribute = null;
+        };
+
+        function getAllAttributeTypes() {
+            FormulaService.getAllAttributeTypes().then(function(response) {
+                $scope.types = response;
             });
-
         };
 
-        $scope.calculateFormula = function() {
-            $scope.calculationInProcess = true;
-            FormulaService.calculate($scope.formula).then(
-                function(response) {
-                    $scope.calculationInProcess = false;
-                    $scope.calculationResponse = response;
-                    //resetExpenseForm();
-                }, function(errorResponse) {
-                    $scope.calculationInProcess = false;
-                    // ServerValidationService.processServerErrors(errorResponse, $scope.expenseForm);
-                    // $scope.serverErrorMessages = errorResponse.data.errors;
-                    // $rootScope.$emit("ExpenseCreated");
-                }
-            );
+        function getAllAttributeContexts() {
+            FormulaService.getAllAttributeContexts().then(function(response) {
+                $scope.contexts = response;
+            });
         };
 
-        // function resetFormulaForm() {
-        //     $scope.expense = {};
-        //     $scope.expense.storeId = SessionService.currentUser.employeeStoreId
-        //     $scope.image = null;
-        //     $scope.filepreview = null;
-        //     $scope.serverErrorMessages = {};
-        //     $scope.expenseForm.$setPristine();
-        //     $scope.expenseForm.$setUntouched();
-        // };
+        function getAllAttributes() {
+            FormulaService.getAllAttributes().then(function(response) {
+                $scope.attributes = response;
+            });
+        };
 
+        $scope.resetServerErrorMessages = function() {
+            $scope.serverErrorMessages = {};
+        };
 
-        $scope.isAdmin = function() {
-            return AuthService.isAdmin();
+        $scope.editAttribute = function (attribute) {
+            $scope.attribute = angular.copy(attribute);
+
+            if ($scope.attribute.typeCode == "ABSOLUTE") {
+                $scope.attribute.startDate = getDateFromDateObjectFromTimestamp($scope.attribute.fromTimestamp);
+                $scope.attribute.endDate = getDateFromDateObjectFromTimestamp($scope.attribute.toTimestamp);
+            }
+        };
+
+        function getDateFromDateObjectFromTimestamp(timestamp) {
+            var dateString = $scope.getDate(timestamp);
+            var dateObject = new Date();
+            dateObject.setDate(dateString.split('-')[0]);
+            dateObject.setMonth(dateString.split('-')[1] - 1);
+            dateObject.setFullYear(dateString.split('-')[2]);
+
+            return dateObject;
         }
-        
-        $scope.isManager = function() {
-            return AuthService.isManager();
+
+        $scope.resetAttributeForm = function() {
+            $scope.resetAttribute();
+            $scope.resetServerErrorMessages();
+            $scope.attributeForm.$setPristine();
+            $scope.attributeForm.$setUntouched();
+        };
+
+        $scope.submitAttribute = function() {
+            console.log($scope.attribute);
+            FormulaService.submitAttribute($scope.attribute).then(function(response) {
+                $scope.resetAttributeForm();
+                getAllAttributes();
+            },
+            function(errorResponse) {
+                ServerValidationService.processServerErrors(errorResponse, $scope.attributeForm);
+                $scope.serverErrorMessages = errorResponse.data.errors;
+            });
+        };
+
+        $scope.isSuperAdmin = function() {
+            return AuthService.isSuperAdmin();
         }
 
-        $scope.isUser = function() {
-            return AuthService.isUser();
-        }
+        $scope.filterByAttributeName = function() {
+            return function predicateFunc(product) {
+                return $scope.attributeName == $scope.attribute.name;
+            };
+        };
 
-	};
+        $scope.getDate = function(epochTimestamp) {
+            return ApplicationService.convertEpochToDate(epochTimestamp)
+        };
+
+    };

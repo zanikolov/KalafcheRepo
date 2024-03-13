@@ -1,92 +1,89 @@
 <div layout="column" ng-cloak>
-    <md-content layout-padding layout="column">
-        <div flex>
-            <form name="formulaForm" novalidate>
-<!--                 <div layout="row" class="md-inline-form">
-                    <div layout-xs="row" flex="20" flex-xs="100" ng-if="isAdmin() || isManager()">
-                        <md-input-container style="width:95%">
-                            <label>Магазин</label>
-                            <md-select name="selectStore" ng-model="selectedStore.id" ng-change="searchSaleItems()">
-                                <md-option value="0" selected>Всички магазини</md-option>
-                                <md-option ng-repeat="store in stores" ng-value="store.id">
-                                    {{store.city}}, {{store.name}}
-                                </md-option>
-                            </md-select>
-                        </md-input-container>
-                    </div>
-                </div> -->
-                <div layout="row">
-                    <md-input-container flex>
-                        <label>Формула</label>
-                        <input ng-model="formula.expression" name="expression">
+     <md-content layout-padding layout="row" layout-xs="column">
+        <div flex-xs="100" flex="50">
+            <form name="attributeForm" server-validation novalidate>                
+                <md-input-container class="md-block">
+                    <label>Име</label>
+                    <input ng-model="attribute.name" name="name" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Тип</label>
+                    <md-select name="typeCode" ng-model="attribute.typeCode" ng-disabled="attribute.id" required>
+                        <md-option value="" selected></md-option>
+                        <md-option ng-repeat="type in types" ng-value="type.code">
+                            {{type.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="md-block">
+                    <label>Контекст</label>
+                    <md-select name="contextId" ng-model="attribute.contextId" required>
+                        <md-option value="" selected></md-option>
+                        <md-option ng-repeat="context in contexts" ng-value="context.id">
+                            {{context.name}}
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+                <div ng-if="attribute.typeCode == 'ABSOLUTE'" layout="row">
+                    <md-input-container>
+                        <md-datepicker ng-model="attribute.startDate" md-min-date="startMinDate" md-max-date="startMaxDate" ng-change="changeStartDate()"></md-datepicker>
+                    </md-input-container>
+                    <md-input-container flex-offset="10">
+                        <md-datepicker ng-model="attribute.endDate" md-min-date="endMinDate" md-max-date="startMaxDate" ng-change="changeEndDate()"></md-datepicker>
                     </md-input-container>
                 </div>
-                <div layout="row" layout-xs="column" class="md-inline-form">
-                    <table class="table table-hover table-condensed">
-                        <thead>
-                            <tr>
-                                <th>            
-                                    <a href="" ng-click="addNewVariable()" style="text-decoration:none;">
-                                        <md-icon class="primary-icon" md-svg-src="images/icons/add.svg"></md-icon>
-                                    </a>
-                                </th>
-                                <th>
-                                    <label>Име</label>
-                                </th>
-                                <th>
-                                    <label>От</label>
-                                </th>
-                                <th>
-                                    <label>До</label>
-                                </th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr ng-repeat="variable in formula.variables" class="item-row">
-                                <td></td>
-                                <td>
-                                    <input name="name" ng-model="variable.name" ng-maxlength="30" required>
-                                </td>
-                                <td>
-                                    <md-datepicker style="width:100%" ng-model="variable.startDate" md-min-date="startMinDate" md-max-date="startMaxDate" ng-change="changeStartDate(variable)"></md-datepicker>
-                                </td>
-                                <td>
-                                    <md-datepicker style="width:100%" ng-model="variable.endDate" md-min-date="startDate" md-max-date="startMaxDate" ng-change="changeEndDate(variable)"></md-datepicker>
-                                </td>
-                                <td></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div layout="row">
-                    <md-input-container layout-align="end end">
-                        <md-button ng-click="calculateFormula()" class="md-raised md-primary">Калкулирай</md-button>
-                    </md-input-container>
-                </div>
+                <md-input-container  ng-if="attribute.typeCode == 'RELATIVE'" class="md-block" flex="45">
+                    <label>Offset (в месеци)</label>
+                    <input type="number" min="0" step="1" ng-model="attribute.offset" name="offset" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.offset}}</span>
+                </md-input-container>
             </form>
         </div>
     </md-content>
-    <md-content ng-if="calculationResponse && calculationResponse.length > 0" layout-padding layout="row" layout-xs="column">
+    <md-content layout-padding layout="row">
+        <md-button ng-disabled="attributeForm.$invalid" ng-click="submitAttribute()" class="md-raised md-primary">Запази</md-button>
+        <md-button ng-if="attribute.id" class="md-raised md-primary" ng-click="resetAttributeForm()">Отмени</md-button>
+    </md-content>
+<!--      <md-content layout-padding layout="row">
+        <div layout-xs="row" flex="100" flex-xs="100">
+            <md-input-container style="width:200px">
+                <label>Име</label>
+                <input ng-model="attributeName">
+            </md-input-container>  
+        </div>
+    </md-content> -->
+    <md-content layout-padding layout="row" layout-xs="column">
         <div flex="100">
             <table class="table table-hover table-condensed">
                 <thead>
                     <tr>
+                        <th><label>Име</label></th>
+                        <th><label>Тип</label></th>
+                        <th><label>Контекст</label></th>
+                        <th><label>Период</label></th>
+                        <th><label>Offset</label></th>
                         <th></th>
-                        <th><label>Магазин</label></th>
-                        <th><label>Резултат</label></th>
                     </tr>
                 </thead>
                 <tbody>
-                <tr ng-repeat="store in calculationResponse track by $index" class="item-row">
-                        <td>{{$index + 1}}</td>
-                        <td>{{store.storeName}}</td>
-                        <td>{{store.formulaOutcome}}</td>
+                <tr dir-paginate="attribute in attributes | filter:(!!attributeName || undefined) && filterByAttributeName() | itemsPerPage: attributesPerPage track by $index" current-page="currentPage" pagination-id="attribute" class="item-row">
+                        <td>{{attribute.name}}</td>
+                        <td>{{attribute.typeName}}</td>
+                        <td>{{attribute.contextName}}</td>
+                        <td><span ng-if="attribute.typeCode == 'ABSOLUTE'">{{getDate(attribute.fromTimestamp)}} - {{getDate(attribute.toTimestamp)}}</span></td>
+                        <td>{{attribute.offset}}</td>
+                        <td>
+                            <a href="" ng-click="editAttribute(attribute)">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
                     </tr>
                 </tbody>
             </table>
+            <div layout="row" layout-align="center center" class="centered-pagination">
+                <dir-pagination-controls pagination-id="attribute" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+            </div>
         </div>
     </md-content>
-
-    
 </div>

@@ -67,7 +67,6 @@ angular.module('kalafcheFrontendApp')
         };
 
       function convertEpochToDate(epochTime) {
-
           if(epochTime != 0) {
               var timeStamp = new Date(epochTime);
 

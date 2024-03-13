@@ -3,7 +3,7 @@ package com.kalafche.model;
 import java.math.BigDecimal;
 import java.util.List;
 
-public class SaleReport {
+public class SaleReport extends DataReport {
 
 	private List<Sale> sales;
 	private List<SaleItem> saleItems;
@@ -11,7 +11,6 @@ public class SaleReport {
 	private List<SalesForPastPeriodsByStore> salesForPastPeriodsByStore;
 	private Integer warehouseQuantity;
 	private Integer companyQuantity;
-	private BigDecimal totalAmount;
 	private Integer itemCount;
 	private Integer transactionCount;
 	private String storeName;
@@ -81,14 +80,6 @@ public class SaleReport {
 
 	public void setCompanyQuantity(Integer companyQuantity) {
 		this.companyQuantity = companyQuantity;
-	}
-
-	public BigDecimal getTotalAmount() {
-		return totalAmount;
-	}
-
-	public void setTotalAmount(BigDecimal totalAmount) {
-		this.totalAmount = totalAmount;
 	}
 
 	public Integer getItemCount() {

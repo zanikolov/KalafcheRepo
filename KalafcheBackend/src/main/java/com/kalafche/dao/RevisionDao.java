@@ -3,7 +3,7 @@ package com.kalafche.dao;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.DayInMillis;
+import com.kalafche.model.PeriodInMillis;
 import com.kalafche.model.DeviceModel;
 import com.kalafche.model.Employee;
 import com.kalafche.model.MissingRevisionItem;

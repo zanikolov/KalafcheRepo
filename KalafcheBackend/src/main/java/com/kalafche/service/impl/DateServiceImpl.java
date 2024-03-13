@@ -12,7 +12,7 @@ import java.util.TimeZone;
 
 import org.springframework.stereotype.Service;
 
-import com.kalafche.model.DayInMillis;
+import com.kalafche.model.PeriodInMillis;
 import com.kalafche.service.DateService;
 
 @Service
@@ -48,8 +48,8 @@ public class DateServiceImpl implements DateService {
 	}
 	
 	@Override
-	public DayInMillis getTodayInMillis(Integer dayShift) {
-		DayInMillis dayInMillis = new DayInMillis();
+	public PeriodInMillis getTodayInMillis(Integer dayShift) {
+		PeriodInMillis dayInMillis = new PeriodInMillis();
 		Calendar day = Calendar.getInstance(TimeZone.getTimeZone("Europe/Sofia"));
 		day.add(Calendar.DATE, dayShift);
 		
@@ -66,6 +66,29 @@ public class DateServiceImpl implements DateService {
 		dayInMillis.setEndDateTime(day.getTimeInMillis());
 		
 		return dayInMillis;
+	}
+	
+	@Override
+	public PeriodInMillis getMonthInMillis(Integer monthShift) {
+		PeriodInMillis monthInMillis = new PeriodInMillis();
+		Calendar month = Calendar.getInstance(TimeZone.getTimeZone("Europe/Sofia"));
+		month.add(Calendar.MONTH, monthShift);
+		
+		month.set(Calendar.DATE, 1);
+		month.set(Calendar.HOUR_OF_DAY, 0);
+		month.set(Calendar.MINUTE, 0);
+		month.set(Calendar.SECOND, 0);
+		month.set(Calendar.MILLISECOND, 0);
+		monthInMillis.setStartDateTime(month.getTimeInMillis());
+		
+		month.set(Calendar.DATE, month.getActualMaximum(Calendar.DAY_OF_MONTH));
+		month.set(Calendar.HOUR_OF_DAY, 23);
+		month.set(Calendar.MINUTE, 59);
+		month.set(Calendar.SECOND, 59);
+		month.set(Calendar.MILLISECOND, 999);
+		monthInMillis.setEndDateTime(month.getTimeInMillis());
+		
+		return monthInMillis;
 	}
 	
 	@Override
