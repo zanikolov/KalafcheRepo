@@ -12,7 +12,8 @@ angular.module('kalafcheFrontendApp')
             finalizePresentForm: finalizePresentForm,
             getPresentFormsForFinalizing: getPresentFormsForFinalizing,
             printPresentForm: printPresentForm,
-            printMonthlySchedule: printMonthlySchedule
+            printMonthlySchedule: printMonthlySchedule,
+            addEmployeeToPresentForm: addEmployeeToPresentForm
 		});
 
         function searchMonthlySchedule(storeId, month, year) {
@@ -112,7 +113,6 @@ angular.module('kalafcheFrontendApp')
                 );
         }
 
-
         function printMonthlySchedule(storeId, selectedMonth) { 
             var request = {};
             request.storeId = storeId;
@@ -124,6 +124,18 @@ angular.module('kalafcheFrontendApp')
                     function(response) {
                         var blob = new Blob([response.data], {type: "application/vnd.openxmlformat-officedocument.spreadsheetml.sheet;"});
                         FileSaver.saveAs(blob, 'График_' + selectedMonth.value + '-' + selectedMonth.year + '.xlsx')
+                    }
+                );
+        }
+
+        function addEmployeeToPresentForm(presentFormId, employeeId) {
+            var params = {"params" : 
+                {"presentFormId": presentFormId, 
+                "employeeId": employeeId}};
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/monthlySchedule/presentForm/' + presentFormId + '/employee/' + employeeId)
+                .then(
+                    function(response) {
+                        return response.data
                     }
                 );
         }

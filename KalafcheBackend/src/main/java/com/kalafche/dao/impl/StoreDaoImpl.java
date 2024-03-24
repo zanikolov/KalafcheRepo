@@ -15,8 +15,9 @@ import com.kalafche.model.StoreDto;
 @Service
 public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 
-	private static final String SELECT_STORE_BY_ID = "select s.id as id, s.name as name, s.city, s.code as code, s.company_id, c.name as company_name, c.code as company_code from store s left join company c on s.company_id = c.id where s.id = ?";
-	private static final String GET_ALL_ENTITES = "select s.id as id, s.name as name, s.city, s.code as code, s.company_id, c.name as company_name, c.code as company_code from store s left join company c on s.company_id = c.id";
+	private static final String GET_ALL_ENTITES = "select s.id as id, s.name as name, s.city, s.code as code, s.company_id, c.name as company_name, c.code as company_code from store s left join company c on s.company_id = c.id ";
+	private static final String ID_CLAUSE = " where s.id = ? ";
+	private static final String CODE_CLAUSE = " where s.code = ? ";
 	private static final String SELECT_STORES = "select s.id as id, s.name as name, s.city, s.code as code, s.company_id, c.name as company_name, c.code as company_code from store s left join company c on s.company_id = c.id where is_store is true";
 	private static final String SELECT_STORE_IDS_BY_MANAGER = "select GROUP_CONCAT(st.id) from store st " +
 			"join store_manager sm on st.id = sm.store_id " +
@@ -77,7 +78,7 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 
 	@Override
 	public StoreDto selectStore(String storeId) {
-		List<StoreDto> store = getJdbcTemplate().query(SELECT_STORE_BY_ID, getRowMapper(), storeId);
+		List<StoreDto> store = getJdbcTemplate().query(GET_ALL_ENTITES + ID_CLAUSE, getRowMapper(), storeId);
 		
 		return store.isEmpty() ? null : store.get(0);
 	}
@@ -119,6 +120,13 @@ public class StoreDaoImpl extends JdbcDaoSupport implements StoreDao {
 	@Override
 	public List<Integer> getStoreIdsByCompanyId(Integer companyId) {
 		return getJdbcTemplate().queryForList(SELECT_STORE_IDS_BY_COMPANY, Integer.class, companyId);
+	}
+
+	@Override
+	public StoreDto selectStoreByCode(String storeCode) {
+		List<StoreDto> store = getJdbcTemplate().query(GET_ALL_ENTITES + CODE_CLAUSE, getRowMapper(), storeCode);
+		
+		return store.isEmpty() ? null : store.get(0);
 	}
 
 }

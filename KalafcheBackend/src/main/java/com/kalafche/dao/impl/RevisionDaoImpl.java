@@ -17,12 +17,12 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.RevisionDao;
-import com.kalafche.model.DeviceModel;
-import com.kalafche.model.Employee;
-import com.kalafche.model.MissingRevisionItem;
-import com.kalafche.model.Revision;
-import com.kalafche.model.RevisionItem;
-import com.kalafche.model.RevisionType;
+import com.kalafche.model.device.DeviceModel;
+import com.kalafche.model.employee.Employee;
+import com.kalafche.model.revision.MissingRevisionItem;
+import com.kalafche.model.revision.Revision;
+import com.kalafche.model.revision.RevisionItem;
+import com.kalafche.model.revision.RevisionType;
 
 @Service
 public class RevisionDaoImpl extends JdbcDaoSupport implements RevisionDao {
@@ -80,6 +80,8 @@ public class RevisionDaoImpl extends JdbcDaoSupport implements RevisionDao {
 			"where st.store_id = ? ";
 	
 	private static final String DEVICE_MODEL_CLAUSE = "and iv.device_model_id in (%s) ";
+	
+	private static final String PRODUCT_CODE_CLAUSE = "and iv.product_code = ? ";
 	
 	private static final String INSERT_REVISION_ITEM = "insert into revision_item(item_id, revision_id, expected, actual, product_price) values (?, ?, ?, ?, ?);";
 	
@@ -410,12 +412,25 @@ public class RevisionDaoImpl extends JdbcDaoSupport implements RevisionDao {
 	}
 
 	@Override
-	public List<RevisionItem> getItemsForRevision(Integer storeId, List<DeviceModel> deviceModels) {
+	public List<RevisionItem> getItemsForRevision(Integer storeId, List<DeviceModel> deviceModels, String productCode) {
 		String commaSeparatedDeviceModelIds = deviceModels.stream().map(deviceModel -> deviceModel.getId().toString())
 				.collect(Collectors.joining(","));
+		String searchQuery = String.format(SELECT_ITEMS_FOR_REVISION + DEVICE_MODEL_CLAUSE,
+				commaSeparatedDeviceModelIds);
 
-		return getJdbcTemplate().query(String.format(SELECT_ITEMS_FOR_REVISION + DEVICE_MODEL_CLAUSE, commaSeparatedDeviceModelIds),
-				getRevisionItemRowMapper(), storeId, storeId);
+		List<Object> argsList = new ArrayList<Object>();
+		argsList.add(storeId);
+		argsList.add(storeId);
+
+		if (productCode != null) {
+			searchQuery += PRODUCT_CODE_CLAUSE;
+			argsList.add(productCode);
+		}
+
+		Object[] argsArr = new Object[argsList.size()];
+		argsArr = argsList.toArray(argsArr);
+
+		return getJdbcTemplate().query(searchQuery, argsArr, getRevisionItemRowMapper());
 	}
 
 	@Override

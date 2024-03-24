@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kalafche.model.PastPeriodSaleReport;
-import com.kalafche.model.Sale;
-import com.kalafche.model.SaleItem;
-import com.kalafche.model.SaleItemExcelReportRequest;
-import com.kalafche.model.SaleReport;
-import com.kalafche.model.SaleSplitReportRequest;
-import com.kalafche.model.TotalSumReport;
+import com.kalafche.model.sale.PastPeriodSaleReport;
+import com.kalafche.model.sale.Sale;
+import com.kalafche.model.sale.SaleItem;
+import com.kalafche.model.sale.SaleItemExcelReportRequest;
+import com.kalafche.model.sale.SaleReport;
+import com.kalafche.model.sale.SaleSplitReportRequest;
+import com.kalafche.model.sale.TotalSumReport;
 import com.kalafche.service.SaleService;
 import com.kalafche.service.fileutil.SaleItemExcelReportService;
 

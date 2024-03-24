@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DeviceBrandDao;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.DeviceBrand;
+import com.kalafche.model.device.DeviceBrand;
 import com.kalafche.service.DeviceBrandService;
 
 @Service

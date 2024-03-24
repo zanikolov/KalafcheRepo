@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.dao.EmployeeDao;
-import com.kalafche.model.Employee;
-import com.kalafche.model.LoginHistory;
+import com.kalafche.model.employee.Employee;
+import com.kalafche.model.employee.LoginHistory;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.LoginHistoryService;
 

@@ -3,7 +3,7 @@ package com.kalafche.dao;
 import java.math.BigDecimal;
 import java.util.List;
 
-import com.kalafche.model.Item;
+import com.kalafche.model.product.Item;
 
 public interface ItemDao {
 

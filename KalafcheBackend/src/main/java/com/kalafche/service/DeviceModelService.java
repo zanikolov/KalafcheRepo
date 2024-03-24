@@ -2,7 +2,7 @@ package com.kalafche.service;
 
 import java.util.List;
 
-import com.kalafche.model.DeviceModel;
+import com.kalafche.model.device.DeviceModel;
 
 public interface DeviceModelService {
 

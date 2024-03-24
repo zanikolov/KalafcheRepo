@@ -24,6 +24,8 @@ public class Attribute {
 	private Long fromTimestamp;
 	private Long toTimestamp;
 	private Integer offset;
+	private Integer offsetStartDay;
+	private Integer offsetEndDay;
 	private Double value;
 	
 }

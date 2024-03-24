@@ -29,5 +29,7 @@ public interface NewStockService {
 	void submitNewStock(Integer productId, Integer deviceModelId, Integer quantity, Integer storeId);
 
 	List<NewStock> getNewStockByStoreId(Integer storeId);
+
+	void relocateNewStock(Integer storeId);
 	
 }

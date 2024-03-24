@@ -9,8 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kalafche.dao.StoreDao;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.Employee;
 import com.kalafche.model.StoreDto;
+import com.kalafche.model.employee.Employee;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.EntityService;
 
@@ -89,6 +89,11 @@ public class EntityServiceImpl implements EntityService {
 	@Override
 	public StoreDto getStoreById(Integer storeId) {
 		return storeDao.selectStore(storeId.toString());
+	}
+	
+	@Override
+	public StoreDto getStoreByCode(String storeCode) {
+		return storeDao.selectStoreByCode(storeCode);
 	}
 
 	@Override

@@ -2,7 +2,7 @@ package com.kalafche.service;
 
 import java.util.List;
 
-import com.kalafche.model.Partner;
+import com.kalafche.model.partner.Partner;
 
 public interface PartnerService {
 

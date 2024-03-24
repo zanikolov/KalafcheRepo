@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.PartnerDao;
-import com.kalafche.model.Partner;
+import com.kalafche.model.partner.Partner;
 
 @Service
 public class PartnerDaoImpl extends JdbcDaoSupport implements PartnerDao {

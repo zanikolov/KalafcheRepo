@@ -3,9 +3,10 @@ package com.kalafche.dao;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.DailyReportData;
-import com.kalafche.model.Expense;
-import com.kalafche.model.ExpenseType;
+import com.kalafche.model.DataReport;
+import com.kalafche.model.expense.Expense;
+import com.kalafche.model.expense.ExpensePriceByType;
+import com.kalafche.model.expense.ExpenseType;
 
 public interface ExpenseDao {
 
@@ -13,7 +14,8 @@ public interface ExpenseDao {
 	
 	public List<ExpenseType> selectExpenseTypes(Boolean isAdmin);
 
-	public List<Expense> searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds, Integer typeId, Boolean isAdmin);
+	public List<Expense> searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
+			Integer typeId, List<String> typeCodesForExclusion, Boolean isAdmin);
 
 	public Integer insertExpenseType(ExpenseType expenseType) throws SQLException;
 
@@ -21,8 +23,12 @@ public interface ExpenseDao {
 
 	public boolean checkIfExpenseTypeExists(ExpenseType expenseType);
 
-	public DailyReportData selectExpenseTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
+	public DataReport selectExpenseTotalAndCountByStore(Long startDateTime, Long endDateTime, Integer storeId);
 
-	public DailyReportData selectCollectionTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
+	public DataReport selectCollectionTotalAndCountByStore(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public DataReport selectExpenseTotalAndCountWithoutRefundByStore(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public List<ExpensePriceByType> selectExpensePriceGroupByType(Long startDateTime, Long endDateTime, Integer storeId);
 	
 }

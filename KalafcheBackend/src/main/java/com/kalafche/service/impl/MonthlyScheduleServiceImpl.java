@@ -11,12 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.MonthlyScheduleDao;
+import com.kalafche.exceptions.CommonException;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.DailyShift;
 import com.kalafche.model.DayDto;
-import com.kalafche.model.EmployeeHours;
-import com.kalafche.model.MonthlySchedule;
-import com.kalafche.model.WorkingShift;
+import com.kalafche.model.schedule.DailyShift;
+import com.kalafche.model.schedule.EmployeeHours;
+import com.kalafche.model.schedule.MonthlySchedule;
+import com.kalafche.model.schedule.WorkingShift;
 import com.kalafche.service.CalendarService;
 import com.kalafche.service.DailyShiftService;
 import com.kalafche.service.DateService;
@@ -241,6 +242,34 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 		}
 
 		return monthlyScheduleExcelReportService.createMonthlyScheduleReportExcel(presentForms, days, workingShifts, month, year, storeId == null);
+	}
+
+	@Override
+	public void addEmployeeToPresentForm(Integer presentFormId, Integer employeeId)
+			throws SQLException, CommonException {
+		MonthlySchedule presentForm = monthlyScheduleDao.getMonthlyScheduleById(presentFormId);
+		if (presentForm.getIsFinalized()) {
+			throw new CommonException(String.format("Present form with id %d is finalized", presentFormId));
+		}
+		List<EmployeeHours> employeeHoursList = monthlyScheduleDao.getEmployeeHoursByMonthlyScheduleId(presentFormId);
+		for (EmployeeHours employeeHour : employeeHoursList) {
+			if (employeeHour.getEmployee().getId().equals(employeeId)) {
+				throw new DuplicationException("employee", String.format(
+						"Employee with id %d is already part of present form with id %d", employeeId, presentFormId));
+			}
+		}
+
+		List<DayDto> days = calendarService.getDaysByMonthAndYear(presentForm.getMonth(), presentForm.getYear());
+		Integer loggedInEmployeeId = employeeService.getLoggedInEmployee().getId();
+		for (DayDto day : days) {
+			DailyShift dailyShift = new DailyShift();
+			dailyShift.setCalendarId(day.getId());
+			dailyShift.setCreatedByEmployeeId(loggedInEmployeeId);
+			dailyShift.setCreateTimestamp(dateService.getCurrentMillisBGTimezone());
+			dailyShift.setEmployeeId(employeeId);
+			dailyShift.setMonthlyScheduleId(presentForm.getId());
+			dailyShift.setId(dailyShiftService.createDailyShift(dailyShift));
+		}
 	}
 
 }

@@ -3,8 +3,9 @@ package com.kalafche.service;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.EmployeeHours;
-import com.kalafche.model.MonthlySchedule;
+import com.kalafche.exceptions.CommonException;
+import com.kalafche.model.schedule.EmployeeHours;
+import com.kalafche.model.schedule.MonthlySchedule;
 
 public interface MonthlyScheduleService {
 
@@ -19,5 +20,7 @@ public interface MonthlyScheduleService {
 	List<EmployeeHours> getEmployeeHours(Integer monthlyScheduleId, Integer monthlyScheduleWorkingHoursInMinutes);
 
 	byte[] getMonthlyScheduleReport(Integer month, Integer year, Integer storeId);
+
+	void addEmployeeToPresentForm(Integer presentFormId, Integer employeeId) throws SQLException, CommonException;
 
 }

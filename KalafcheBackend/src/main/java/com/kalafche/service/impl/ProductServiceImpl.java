@@ -8,10 +8,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.kalafche.dao.ProductDao;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.Product;
-import com.kalafche.model.ProductMasterType;
-import com.kalafche.model.ProductSpecificPrice;
-import com.kalafche.model.ProductType;
+import com.kalafche.model.product.Product;
+import com.kalafche.model.product.ProductMasterType;
+import com.kalafche.model.product.ProductSpecificPrice;
+import com.kalafche.model.product.ProductType;
 import com.kalafche.service.ProductService;
 import com.kalafche.service.StockService;
 

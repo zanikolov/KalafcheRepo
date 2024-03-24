@@ -122,11 +122,20 @@
             </form>
         </div>
 
-        <div flex ng-if="isAdmin()">
+        <md-content layout="row" layout-padding>
             <!-- <md-button type="submit" class="md-raised md-primary" ng-click="approveAllNewStocks()">Одобри всички</md-button> -->
-            <md-button type="submit" class="md-raised md-primary" ng-click="printStickersForNewStocks()">Принтирай</md-button>
-        </div>
+            <md-content layout="column">
+                <md-button type="submit" class="md-raised md-primary" ng-click="printStickersForNewStocks()">Принтирай</md-button>
+            </md-content>
+            <md-content layout="column">
+                <md-button type="submit" class="md-raised md-primary" ng-click="relocateNewStocks()">Релокирай</md-button>
+            </md-content>
+        </md-content>
+
     </md-content>
+<!--                 <md-content layout="row" layout-align="end end" ng-if="!revision.submitTimestamp">
+                <md-button ng-click="finalizeRevision()" class="md-raised md-primary" ng-disabled="loading">Приключи</md-button>
+            </md-content> -->
 </div>
 
 <!-- <form>

@@ -81,7 +81,7 @@ angular
                 url: '/new-stock',
                 templateUrl: 'views/partials/new-stock/new-stock-tab.html',
                 data: {
-                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin],
                     title: "Нова стока"
                 }      
             }).state('inStock', {
@@ -188,6 +188,13 @@ angular
                 data: {
                     authorizedRoles: [UserRoles.superAdmin, UserRoles.admin],
                     title: "Формули"
+                }      
+            }).state('profit', {
+                url: '/profit',
+                templateUrl: 'views/partials/profit/profit-tab.html',
+                data: {
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin],
+                    title: "Рентабилност"
                 }      
             }).state('login',{
                 url: '/login',

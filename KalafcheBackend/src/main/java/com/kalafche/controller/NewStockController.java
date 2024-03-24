@@ -73,9 +73,14 @@ public class NewStockController {
 	public void approveNewStock(@RequestBody List<NewStock> newStocks) {
 		newStockService.approveNewStock(newStocks);
 	}
+	
+	@PostMapping("/relocate/{storeId}")
+	public void relocateNewStock(@PathVariable(value = "storeId") Integer storeId) {
+		newStockService.relocateNewStock(storeId);
+	}
 		
 	@GetMapping("/print/{storeId}")
-	public ResponseEntity<byte[]> printNewStockStickers(@PathVariable (value = "storeId")Integer storeId) {
+	public ResponseEntity<byte[]> printNewStockStickers(@PathVariable(value = "storeId") Integer storeId) {
 		byte[] pdfBytes = newStockService.printNewStockStickers(storeId);
 
 	    HttpHeaders headers = new HttpHeaders();

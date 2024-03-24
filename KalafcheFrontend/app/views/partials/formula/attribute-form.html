@@ -33,16 +33,28 @@
                         <md-datepicker ng-model="attribute.endDate" md-min-date="endMinDate" md-max-date="startMaxDate" ng-change="changeEndDate()"></md-datepicker>
                     </md-input-container>
                 </div>
-                <md-input-container  ng-if="attribute.typeCode == 'RELATIVE'" class="md-block" flex="45">
-                    <label>Offset (в месеци)</label>
-                    <input type="number" min="0" step="1" ng-model="attribute.offset" name="offset" required>
-                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.offset}}</span>
-                </md-input-container>
+                <div ng-if="attribute.typeCode == 'RELATIVE'" layout="row">
+                    <md-input-container  class="md-block" flex="45">
+                        <label>Offset (в месеци)</label>
+                        <input type="number" min="0" step="1" ng-model="attribute.offset" name="offset" required>
+                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.offset}}</span>
+                    </md-input-container>
+                    <md-input-container  class="md-block" flex="45">
+                        <label>От ден</label>
+                        <input type="number" min="1" max="31" step="1" ng-model="attribute.offsetStartDay" name="offsetStartDay">
+                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.offsetStartDay}}</span>
+                    </md-input-container>
+                    <md-input-container  class="md-block" flex="45">
+                        <label>До ден</label>
+                        <input type="number" min="1" max="31" step="1" ng-model="attribute.offsetEndDay" name="offsetEndDay">
+                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.offsetEndDay}}</span>
+                    </md-input-container>
+                </div>
             </form>
         </div>
     </md-content>
     <md-content layout-padding layout="row">
-        <md-button ng-disabled="attributeForm.$invalid" ng-click="submitAttribute()" class="md-raised md-primary">Запази</md-button>
+        <md-button ng-disabled="attributeForm.$invalid || ( attribute.offsetStartDay != null && attribute.offsetEndDay != null && attribute.offsetStartDay > attribute.offsetEndDay)" ng-click="submitAttribute()" class="md-raised md-primary">Запази</md-button>
         <md-button ng-if="attribute.id" class="md-raised md-primary" ng-click="resetAttributeForm()">Отмени</md-button>
     </md-content>
 <!--      <md-content layout-padding layout="row">
@@ -64,6 +76,7 @@
                         <th><label>Период</label></th>
                         <th><label>Offset</label></th>
                         <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -72,10 +85,15 @@
                         <td>{{attribute.typeName}}</td>
                         <td>{{attribute.contextName}}</td>
                         <td><span ng-if="attribute.typeCode == 'ABSOLUTE'">{{getDate(attribute.fromTimestamp)}} - {{getDate(attribute.toTimestamp)}}</span></td>
-                        <td>{{attribute.offset}}</td>
+                        <td><span ng-if="attribute.typeCode == 'RELATIVE'">{{attribute.offset}} - {{attribute.offsetStartDay}} - {{attribute.offsetEndDay}}</span></td>
                         <td>
                             <a href="" ng-click="editAttribute(attribute)">
                                 <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                            </a>
+                        </td>
+                        <td>
+                            <a href="" ng-click="deleteAttribute(attribute)" style="text-decoration:none;">
+                                <md-icon class="primary-icon" md-svg-src="images/icons/delete.svg"></md-icon>
                             </a>
                         </td>
                     </tr>

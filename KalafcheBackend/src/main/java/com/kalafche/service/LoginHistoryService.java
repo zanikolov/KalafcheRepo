@@ -2,7 +2,7 @@ package com.kalafche.service;
 
 import java.util.List;
 
-import com.kalafche.model.LoginHistory;
+import com.kalafche.model.employee.LoginHistory;
 
 public interface LoginHistoryService {
 

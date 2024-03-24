@@ -11,7 +11,8 @@ angular.module('kalafcheFrontendApp')
             importFile: importFile,
             approveNewStock: approveNewStock,
             approveAllNewStocks: approveAllNewStocks,
-            printStickersForNewStocks: printStickersForNewStocks
+            printStickersForNewStocks: printStickersForNewStocks,
+            relocateNewStocks: relocateNewStocks
 		});
 
     	function submitNewStock(newStock, storeId) {	
@@ -77,6 +78,15 @@ angular.module('kalafcheFrontendApp')
                         FileSaver.saveAs(blob, 'Етикети за нова стока.pdf')
                     }
                 ); 
+        }
+
+        function relocateNewStocks(storeId) {
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/newStock/relocate/' + storeId)
+                .then(
+                    function(response) {
+                        return response.data;
+                    }
+                );  
         }
 
         function validateFile(file) {

@@ -11,8 +11,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.kalafche.model.AuthRole;
-import com.kalafche.model.Employee;
+import com.kalafche.model.employee.AuthRole;
+import com.kalafche.model.employee.Employee;
 
 @Service
 public class UserService implements UserDetailsService {

@@ -3,7 +3,7 @@ package com.kalafche.service;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.WorkingShift;
+import com.kalafche.model.schedule.WorkingShift;
 
 public interface WorkingShiftService {
 

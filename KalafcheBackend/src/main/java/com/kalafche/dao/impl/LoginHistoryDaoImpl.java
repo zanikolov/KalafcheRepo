@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.LoginHistoryDao;
-import com.kalafche.model.LoginHistory;
+import com.kalafche.model.employee.LoginHistory;
 
 @Service
 public class LoginHistoryDaoImpl extends JdbcDaoSupport implements LoginHistoryDao {

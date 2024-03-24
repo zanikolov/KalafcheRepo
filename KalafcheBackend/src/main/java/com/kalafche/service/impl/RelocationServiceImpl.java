@@ -9,9 +9,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kalafche.dao.RelocationDao;
 import com.kalafche.dao.impl.StockDaoImpl;
 import com.kalafche.enums.RelocationStatus;
+import com.kalafche.model.NewStock;
 import com.kalafche.model.Relocation;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
+import com.kalafche.service.EntityService;
+import com.kalafche.service.ItemService;
 import com.kalafche.service.RelocationService;
 
 @Service
@@ -23,6 +26,12 @@ public class RelocationServiceImpl implements RelocationService {
 	
 	@Autowired
 	EmployeeService employeeService;
+	
+	@Autowired
+	EntityService entityService;
+	
+	@Autowired
+	ItemService itemService;
 	
 	@Autowired
 	StockDaoImpl stockDao;
@@ -68,6 +77,24 @@ public class RelocationServiceImpl implements RelocationService {
 	@Override
 	public List<Relocation> getRelocations(Integer sourceStoreId, Integer destStoreId, boolean isCompleted) {
 		return relocationDao.getRelocations(sourceStoreId, destStoreId, isCompleted);
+	}
+
+	@Override
+	public void generateRelocationsForNewStock(List<NewStock> newStocks) {
+		for (NewStock newStock : newStocks) {
+			for (int i = 0; i < newStock.getQuantity(); i++) {
+				Relocation relocation = new Relocation();
+				relocation.setRelocationRequestTimestamp(dateService.getCurrentMillisBGTimezone());
+				relocation.setEmployeeId(employeeService.getLoggedInEmployee().getId());
+				relocation.setStatus(RelocationStatus.SENT);
+				relocation.setItemId(newStock.getItemId());
+				relocation.setQuantity(1);
+				relocation.setSourceStoreId(entityService.getStoreByCode("RU_WH").getId());
+				relocation.setDestStoreId(newStock.getStoreId());
+				
+				relocationDao.insertRelocation(relocation);
+			}
+		}		
 	}
 
 }

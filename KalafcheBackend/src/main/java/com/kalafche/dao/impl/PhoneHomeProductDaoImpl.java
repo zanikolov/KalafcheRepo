@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.PhoneHomeProductDao;
-import com.kalafche.model.PhoneHomeProduct;
+import com.kalafche.model.product.PhoneHomeProduct;
 
 @Service
 public class PhoneHomeProductDaoImpl extends JdbcDaoSupport implements

@@ -2,7 +2,7 @@ package com.kalafche.dao;
 
 import java.util.List;
 
-import com.kalafche.model.PhoneHomeProduct;
+import com.kalafche.model.product.PhoneHomeProduct;
 
 public interface PhoneHomeProductDao {
 

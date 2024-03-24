@@ -1,6 +1,6 @@
 package com.kalafche.service.fileutil;
 
-import com.kalafche.model.SaleItemExcelReportRequest;
+import com.kalafche.model.sale.SaleItemExcelReportRequest;
 
 public interface SaleItemExcelReportService {
 

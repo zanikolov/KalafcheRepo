@@ -6,7 +6,6 @@ angular.module('kalafcheFrontendApp')
         init();
 
         function init() {
-            $scope.relocations = [];
             $scope.outgoingStockRelocations = [];
             $scope.incomingStockRelocations = [];
             $scope.sourceStore = {"id": 4};

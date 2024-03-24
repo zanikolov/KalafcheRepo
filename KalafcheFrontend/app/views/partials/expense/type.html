@@ -12,6 +12,17 @@
                     <input ng-model="expenseType.code" name="code" ng-disabled="expenseType.id" required>
                     <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>  
                 </md-input-container>
+                <div layout="row">
+                    <md-input-container flex="30" flex-xs="100">
+                        <label>Данък</label>
+                        <md-select name="expenseTypeTaxId" ng-model="expenseType.taxId">
+                            <md-option value="" selected></md-option>
+                            <md-option ng-repeat="tax in taxes" ng-value="tax.id">
+                                {{tax.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
                 <md-input-container class="md-block">
                     <md-checkbox ng-model="expenseType.isAdmin" class="md-primary">
                         Администраторски
@@ -32,6 +43,7 @@
                         <th></th>
                         <th><label>Име</label></th>
                         <th><label>Код</label></th>
+                        <th><label>Данък</label></th>
                         <th><label>Админ</label></th>
                         <th></th>
                     </tr>
@@ -41,6 +53,7 @@
                         <td>{{(currentPage - 1) * expenseTypesPerPage + $index + 1}}</td>
                         <td>{{expenseType.name}}</td>
                         <td>{{expenseType.code}}</td>
+                        <td>{{expenseType.taxName}}</td>
                         <td>
      <!--                        <div ng-if="!expenseType.isAdmin">
                                 <md-icon md-svg-src="images/icons/close.svg"></md-icon>

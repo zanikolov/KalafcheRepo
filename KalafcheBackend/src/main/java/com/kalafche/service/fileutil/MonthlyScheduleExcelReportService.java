@@ -21,11 +21,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.kalafche.model.DailyShift;
 import com.kalafche.model.DayDto;
-import com.kalafche.model.EmployeeHours;
-import com.kalafche.model.MonthlySchedule;
-import com.kalafche.model.WorkingShift;
+import com.kalafche.model.schedule.DailyShift;
+import com.kalafche.model.schedule.EmployeeHours;
+import com.kalafche.model.schedule.MonthlySchedule;
+import com.kalafche.model.schedule.WorkingShift;
 
 @Service
 public class MonthlyScheduleExcelReportService {

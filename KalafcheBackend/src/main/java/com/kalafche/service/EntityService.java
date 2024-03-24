@@ -20,4 +20,6 @@ public interface EntityService {
 	
 	List<Integer> getStoreIdsByCompanyId(Integer companyId);
 
+	StoreDto getStoreByCode(String storeCode);
+
 }

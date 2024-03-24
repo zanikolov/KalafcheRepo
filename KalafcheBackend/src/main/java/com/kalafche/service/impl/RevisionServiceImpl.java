@@ -17,15 +17,15 @@ import com.kalafche.exceptions.CommonException;
 import com.kalafche.exceptions.DomainObjectNotFoundException;
 import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.exceptions.NegativeItemQuantityException;
-import com.kalafche.model.DeviceModel;
-import com.kalafche.model.Employee;
-import com.kalafche.model.MissingRevisionItem;
-import com.kalafche.model.Item;
-import com.kalafche.model.ProductSpecificPrice;
-import com.kalafche.model.Revision;
-import com.kalafche.model.RevisionItem;
-import com.kalafche.model.RevisionReport;
-import com.kalafche.model.RevisionType;
+import com.kalafche.model.device.DeviceModel;
+import com.kalafche.model.employee.Employee;
+import com.kalafche.model.product.Item;
+import com.kalafche.model.product.ProductSpecificPrice;
+import com.kalafche.model.revision.MissingRevisionItem;
+import com.kalafche.model.revision.Revision;
+import com.kalafche.model.revision.RevisionItem;
+import com.kalafche.model.revision.RevisionReport;
+import com.kalafche.model.revision.RevisionType;
 import com.kalafche.service.DateService;
 import com.kalafche.service.DeviceModelService;
 import com.kalafche.service.EmployeeService;
@@ -82,7 +82,7 @@ public class RevisionServiceImpl implements RevisionService {
 		
 		revisionDao.insertRevisers(revisionId, revision.getRevisers());
 		List<DeviceModel> deviceModels = createRevisionDeviceModels(revision, revisionType.getStrategy(), revision.getStoreId());
-		List<RevisionItem> revisionItems = createRevisionItems(revisionId, revision.getStoreId(), deviceModels);
+		List<RevisionItem> revisionItems = createRevisionItems(revision, deviceModels);
 			
 		revision.setTypeCode(revisionType.getCode());
 		revision.setDeviceModels(deviceModels);
@@ -91,11 +91,15 @@ public class RevisionServiceImpl implements RevisionService {
 		return revision;
 	}
 
-	private List<RevisionItem> createRevisionItems(Integer revisionId, Integer storeId, List<DeviceModel> deviceModels) {
-		List<RevisionItem> revisionItems = revisionDao.getItemsForRevision(storeId, deviceModels);
-		revisionDao.insertRevisionItems(revisionId, revisionItems);
+	private List<RevisionItem> createRevisionItems(Revision revision, List<DeviceModel> deviceModels) {
+		String productCode = null;
+		if ("CHECK".equals(revision.getTypeCode()) && deviceModels.size() == 1) {
+			productCode = revision.getProductCode();
+		}
+		List<RevisionItem> revisionItems = revisionDao.getItemsForRevision(revision.getStoreId(), deviceModels, productCode);
+		revisionDao.insertRevisionItems(revision.getId(), revisionItems);
 		
-		return revisionDao.getRevisionItemsByRevisionId(revisionId, false);
+		return revisionDao.getRevisionItemsByRevisionId(revision.getId(), false);
 	}
 
 	private List<DeviceModel> createRevisionDeviceModels(Revision revision, String revisionTypeStrategy,

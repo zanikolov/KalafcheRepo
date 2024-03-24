@@ -15,7 +15,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.WorkingShiftDao;
-import com.kalafche.model.WorkingShift;
+import com.kalafche.model.schedule.WorkingShift;
 
 @Service
 public class WorkingShiftDaoImpl extends JdbcDaoSupport implements WorkingShiftDao {

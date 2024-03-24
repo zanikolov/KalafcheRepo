@@ -6,8 +6,10 @@ angular.module('kalafcheFrontendApp')
             calculate: calculate,
             getAllFormulas: getAllFormulas,
             submitFormula: submitFormula,
+            deleteFormula: deleteFormula,
             getAllAttributes: getAllAttributes,
             submitAttribute: submitAttribute,
+            deleteAttribute: deleteAttribute,
             getAllAttributeTypes: getAllAttributeTypes,
             getAllAttributeContexts: getAllAttributeContexts
 		});
@@ -73,6 +75,24 @@ angular.module('kalafcheFrontendApp')
                         }
                     )
             }
+        }
+
+        function deleteAttribute(attribute) { 
+            return $http.delete(Environment.apiEndpoint + '/KalafcheBackend/formula/attribute',  {"params": {"attributeId": attribute.id}})
+                .then(
+                    function(response) {
+                        return response.data;
+                    }
+                ); 
+        }
+
+        function deleteFormula(formula) { 
+            return $http.delete(Environment.apiEndpoint + '/KalafcheBackend/formula',  {"params": {"formulaId": formula.id}})
+                .then(
+                    function(response) {
+                        return response.data;
+                    }
+                ); 
         }
 
         function getAllAttributeTypes() {

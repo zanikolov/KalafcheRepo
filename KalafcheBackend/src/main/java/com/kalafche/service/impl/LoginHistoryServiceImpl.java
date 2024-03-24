@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.LoginHistoryDao;
-import com.kalafche.model.LoginHistory;
+import com.kalafche.model.employee.LoginHistory;
 import com.kalafche.service.DateService;
 import com.kalafche.service.LoginHistoryService;
 

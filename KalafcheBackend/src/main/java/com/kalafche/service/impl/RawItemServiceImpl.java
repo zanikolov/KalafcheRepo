@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kalafche.model.Item;
 import com.kalafche.model.RawItem;
+import com.kalafche.model.product.Item;
 import com.kalafche.service.ItemService;
 import com.kalafche.service.RawItemExcelReaderService;
 import com.kalafche.service.RawItemService;

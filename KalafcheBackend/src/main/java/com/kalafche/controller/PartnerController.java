@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kalafche.model.Partner;
+import com.kalafche.model.partner.Partner;
 import com.kalafche.service.PartnerService;
 
 @CrossOrigin

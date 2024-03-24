@@ -15,7 +15,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DailyShiftDao;
-import com.kalafche.model.DailyShift;
+import com.kalafche.model.schedule.DailyShift;
 
 @Service
 public class DailyShiftDaoImpl extends JdbcDaoSupport implements DailyShiftDao {

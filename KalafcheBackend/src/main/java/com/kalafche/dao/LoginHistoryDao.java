@@ -2,7 +2,7 @@ package com.kalafche.dao;
 
 import java.util.List;
 
-import com.kalafche.model.LoginHistory;
+import com.kalafche.model.employee.LoginHistory;
 
 public interface LoginHistoryDao {
 	

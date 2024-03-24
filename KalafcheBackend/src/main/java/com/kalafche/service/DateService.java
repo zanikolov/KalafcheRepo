@@ -7,20 +7,24 @@ import com.kalafche.model.PeriodInMillis;
 public interface DateService {
 
 	public long getCurrentMillisBGTimezone();
+	
+	public long getSameDayPrevYearInMillisBGTimezone(long millis);
 
 	public String convertMillisToDateTimeString(Long millis, String dateFormat, Boolean withTime);
 
-	PeriodInMillis getTodayInMillis(Integer dayShift);
+	public PeriodInMillis getTodayInMillis(Integer dayShift);
 
-	Date getCurrentTimeBGTimezone();
+	public Date getCurrentTimeBGTimezone();
 
-	String generateDisplayDate(Integer day, Integer month, Integer year, Integer dayOfTheWeekNumber);
+	public String generateDisplayDate(Integer day, Integer month, Integer year, Integer dayOfTheWeekNumber);
 
-	String convertMinutesToTime(Integer minutes);
+	public String convertMinutesToTime(Integer minutes);
 
 	public Integer getCurrentYear();
 
 	public Integer getNextYear();
 
-	PeriodInMillis getMonthInMillis(Integer monthShift);
+	public PeriodInMillis getMonthInMillis(Integer monthShift);
+
+	PeriodInMillis getPeriodInMillis(Integer monthShift, Integer startDay, Integer endDay);
 }

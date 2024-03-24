@@ -16,8 +16,8 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.EmployeeDao;
-import com.kalafche.model.AuthRole;
-import com.kalafche.model.Employee;
+import com.kalafche.model.employee.AuthRole;
+import com.kalafche.model.employee.Employee;
 
 @Service
 public class EmployeeDaoImpl extends JdbcDaoSupport implements EmployeeDao {

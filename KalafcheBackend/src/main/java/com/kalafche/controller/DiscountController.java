@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kalafche.model.DiscountCampaign;
-import com.kalafche.model.DiscountCode;
-import com.kalafche.model.DiscountType;
+import com.kalafche.model.discount.DiscountCampaign;
+import com.kalafche.model.discount.DiscountCode;
+import com.kalafche.model.discount.DiscountType;
 import com.kalafche.service.DiscountService;
 
 @CrossOrigin

@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.BaseController;
-import com.kalafche.model.Product;
-import com.kalafche.model.ProductMasterType;
-import com.kalafche.model.ProductSpecificPrice;
-import com.kalafche.model.ProductType;
+import com.kalafche.model.product.Product;
+import com.kalafche.model.product.ProductMasterType;
+import com.kalafche.model.product.ProductSpecificPrice;
+import com.kalafche.model.product.ProductType;
 import com.kalafche.service.ProductService;
 
 @CrossOrigin

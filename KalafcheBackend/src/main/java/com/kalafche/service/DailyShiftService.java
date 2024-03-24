@@ -3,8 +3,8 @@ package com.kalafche.service;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.DailyShift;
-import com.kalafche.model.EmployeeHours;
+import com.kalafche.model.schedule.DailyShift;
+import com.kalafche.model.schedule.EmployeeHours;
 
 public interface DailyShiftService {
 

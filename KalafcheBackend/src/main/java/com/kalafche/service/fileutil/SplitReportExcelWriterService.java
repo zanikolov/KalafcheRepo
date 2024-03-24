@@ -5,8 +5,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.kalafche.model.SalesByStoreByDayByProductType;
-import com.kalafche.model.TransactionsByStoreByDay;
+import com.kalafche.model.sale.SalesByStoreByDayByProductType;
+import com.kalafche.model.sale.TransactionsByStoreByDay;
 
 public interface SplitReportExcelWriterService {
 

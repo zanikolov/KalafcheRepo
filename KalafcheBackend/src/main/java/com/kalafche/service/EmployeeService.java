@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 
-import com.kalafche.model.Employee;
+import com.kalafche.model.employee.Employee;
 
 public interface EmployeeService {
 

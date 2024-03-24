@@ -104,6 +104,14 @@ angular.module('kalafcheFrontendApp')
                 );     
         };
 
+        $scope.relocateNewStocks = function() {
+            NewStockService.relocateNewStocks($scope.selectedStore.id).then(
+                    function(response) {
+                        getNewStocks();
+                    }
+                );     
+        };
+
         function getAllBrands() {
             BrandService.getAllDeviceBrands().then(function(response) {
                 $scope.brands = response;

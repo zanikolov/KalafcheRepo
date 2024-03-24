@@ -20,12 +20,12 @@ import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.model.CalculationResponse;
 import com.kalafche.model.DataReport;
 import com.kalafche.model.PeriodInMillis;
-import com.kalafche.model.SaleReport;
 import com.kalafche.model.StoreDto;
 import com.kalafche.model.formula.Attribute;
 import com.kalafche.model.formula.AttributeContext;
 import com.kalafche.model.formula.AttributeType;
 import com.kalafche.model.formula.Formula;
+import com.kalafche.model.sale.SaleReport;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.EntityService;
@@ -142,13 +142,13 @@ public class FormulaServiceImpl implements FormulaService {
 			value = dataReport.getCount() != null ? dataReport.getCount().doubleValue() : Double.valueOf(0);
 			break;
 		case "EXPENSE_AMOUNT":
-			dataReport = expenseService.searchExpenses(monthInMillis.getStartDateTime(),
-					monthInMillis.getEndDateTime(), store.getId().toString(), 0);
+			dataReport = expenseService.getExpenseReport(monthInMillis.getStartDateTime(),
+					monthInMillis.getEndDateTime(), store.getId().toString(), 0, List.of("COLLECTION"));
 			value = dataReport.getTotalAmount() != null ? dataReport.getTotalAmount().doubleValue() : Double.valueOf(0);
 			break;
 		case "EXPENSE_COUNT":
-			dataReport = expenseService.searchExpenses(monthInMillis.getStartDateTime(),
-					monthInMillis.getEndDateTime(), store.getId().toString(), 0);
+			dataReport = expenseService.getExpenseReport(monthInMillis.getStartDateTime(),
+					monthInMillis.getEndDateTime(), store.getId().toString(), 0, List.of("COLLECTION"));
 			value = dataReport.getCount() != null ? dataReport.getCount().doubleValue() : Double.valueOf(0);
 			break;
 		default:
@@ -165,12 +165,13 @@ public class FormulaServiceImpl implements FormulaService {
 			monthInMillis = new PeriodInMillis(attribute.getFromTimestamp(), attribute.getToTimestamp());
 			break;
 		case "RELATIVE":
-			monthInMillis = dateService.getMonthInMillis(-1 * attribute.getOffset());
+			monthInMillis = dateService.getPeriodInMillis(-1 * attribute.getOffset(), attribute.getOffsetStartDay(),
+					attribute.getOffsetEndDay());
 			break;
 		default:
 			throw new CommonException(String.format("Incorrect attribute type [%s]", attribute.getTypeCode()));
 		}
-		
+
 		return monthInMillis;
 	}
 
@@ -237,13 +238,21 @@ public class FormulaServiceImpl implements FormulaService {
 	}
 
 	@Override
-	public void updateAttribute(Attribute attribute) {
+	public void updateAttribute(Attribute attribute) throws CommonException {
 		validateAttributeName(attribute);
+		validatOffseteAttribute(attribute);
 		
 		attribute.setLastUpdateTimestamp(dateService.getCurrentMillisBGTimezone());
 		attribute.setUpdatedByEmployeeId(employeeService.getLoggedInEmployee().getId());
 		
 		formulaDao.updateAttribute(attribute);
+	}
+
+	private void validatOffseteAttribute(Attribute attribute) throws CommonException {
+		if (attribute.getTypeCode() == "RELATIVE" && attribute.getOffsetStartDay() != null
+				&& attribute.getOffsetEndDay() != null && attribute.getOffsetStartDay() > attribute.getOffsetEndDay()) {
+			throw new CommonException("Offset start day could not be greater then the offset end day.");
+		}
 	}
 
 	@Override
@@ -281,6 +290,16 @@ public class FormulaServiceImpl implements FormulaService {
 		if (formulaDao.checkIfFormulaNameExists(formula)) {
 			throw new DuplicationException("name", "Name duplication.");
 		}
+	}
+
+	@Override
+	public void deleteFormula(Integer formulaId) {
+		formulaDao.deleteFormula(formulaId);	
+	}
+	
+	@Override
+	public void deleteAttribute(Integer attributeId) {
+		formulaDao.deleteAttribute(attributeId);	
 	}
 
 }

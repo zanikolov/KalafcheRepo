@@ -1,8 +1,8 @@
 package com.kalafche.dao;
 
-import com.kalafche.model.DeviceBrand;
-
 import java.util.List;
+
+import com.kalafche.model.device.DeviceBrand;
 
 public interface DeviceBrandDao {
 

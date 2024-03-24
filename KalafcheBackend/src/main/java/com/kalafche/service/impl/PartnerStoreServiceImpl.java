@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.PartnerStoreDao;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.PartnerStore;
+import com.kalafche.model.partner.PartnerStore;
 import com.kalafche.service.PartnerStoreService;
 
 @Service

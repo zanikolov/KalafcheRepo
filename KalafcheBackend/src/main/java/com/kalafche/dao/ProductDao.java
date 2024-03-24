@@ -2,10 +2,10 @@ package com.kalafche.dao;
 
 import java.util.List;
 
-import com.kalafche.model.Product;
-import com.kalafche.model.ProductMasterType;
-import com.kalafche.model.ProductSpecificPrice;
-import com.kalafche.model.ProductType;
+import com.kalafche.model.product.Product;
+import com.kalafche.model.product.ProductMasterType;
+import com.kalafche.model.product.ProductSpecificPrice;
+import com.kalafche.model.product.ProductType;
 
 public abstract interface ProductDao {
 	

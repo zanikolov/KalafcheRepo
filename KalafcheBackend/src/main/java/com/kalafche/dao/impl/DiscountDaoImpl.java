@@ -15,9 +15,9 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DiscountDao;
-import com.kalafche.model.DiscountCampaign;
-import com.kalafche.model.DiscountCode;
-import com.kalafche.model.DiscountType;
+import com.kalafche.model.discount.DiscountCampaign;
+import com.kalafche.model.discount.DiscountCode;
+import com.kalafche.model.discount.DiscountType;
 
 @Service
 public class DiscountDaoImpl extends JdbcDaoSupport implements DiscountDao {

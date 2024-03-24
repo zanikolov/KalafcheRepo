@@ -5,12 +5,14 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.exceptions.CommonException;
@@ -50,8 +52,18 @@ public class FormulaController {
 	}
 	
 	@PostMapping("/attribute")
-	public void updateAttribute(@RequestBody Attribute attribute) throws SQLException {
+	public void updateAttribute(@RequestBody Attribute attribute) throws SQLException, CommonException {
 		formulaService.updateAttribute(attribute);
+	}
+	
+	@DeleteMapping
+	public void deleteFormula(@RequestParam(value = "formulaId") Integer formulaId) {		
+		formulaService.deleteFormula(formulaId);
+	}
+	
+	@DeleteMapping("/attribute")
+	public void deleteAttribute(@RequestParam(value = "attributeId") Integer attributeId) {		
+		formulaService.deleteAttribute(attributeId);
 	}
 	
 	@GetMapping()
