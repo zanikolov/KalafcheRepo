@@ -18,18 +18,25 @@
                             <md-datepicker ng-model="selectedMonth" md-placeholder="Месец" md-mode="month" md-max-date="maxMonth" ng-change="searchPresentForm()"></md-datepicker>
                         </md-input-container>
                     </div>
-<!--                     <div layout-xs="row" flex="30" flex-xs="100">
-                        <md-input-container  style="width:100%" ng-show="selectedMonth != undefined && selectedMonth != null && selectedStore != undefined && selectedStore != null && (monthlySchedule == null || monthlySchedule == undefined || monthlySchedule == '')">
+                </div>
+                <div layout="row" layout-xs="column" ng-show="presentForm != null && presentForm != undefined && presentForm != '' && !presentForm.isFinalized">
+                    <div layout-xs="row" flex="25" flex-xs="100">
+                        <md-input-container style="width: 100%">
                             <label>Търговци</label>
-                            <md-select ng-model="selectedEmployees" ng-change="selectEmployee()" multiple>
+                            <md-select ng-model="selectedEmployee" ng-change="selectEmployee()">
                                 <md-optgroup ng-repeat="(store, employees) in employees" label="{{store}}">
                                     <md-option ng-value="employee" ng-repeat="employee in employees">
                                         {{employee.name}}
                                     </md-option>
                                 </md-optgroup>
                             </md-select>
-                        </md-input-container>    
-                    </div> -->
+                        </md-input-container>  
+                    </div>
+                    <div layout-xs="row" flex="25" flex-xs="100">
+                        <md-input-container style="width: 100%">
+                            <md-button ng-disabled="loading" layout-align="right" ng-click="addEmployeeToPresentForm()" class="md-raised md-primary">Добави търговец</md-button>
+                        </md-input-container>  
+                    </div>
                 </div>
 <!--                 <div layout="row"  ng-if="(monthlySchedule == '' || monthlySchedule == null) && selectedMonth != null && selectedStore != null && selectedEmployees != null && selectedEmployees.length > 0">
                     <md-input-container>

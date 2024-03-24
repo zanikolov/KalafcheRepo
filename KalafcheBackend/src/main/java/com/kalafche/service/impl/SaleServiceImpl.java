@@ -29,22 +29,22 @@ import com.kalafche.dao.ItemDao;
 import com.kalafche.dao.SaleDao;
 import com.kalafche.dao.StoreDao;
 import com.kalafche.exceptions.DomainObjectNotFoundException;
-import com.kalafche.model.DailyReportData;
-import com.kalafche.model.DiscountCode;
-import com.kalafche.model.Employee;
-import com.kalafche.model.PastPeriodSaleReport;
-import com.kalafche.model.PastPeriodTurnover;
-import com.kalafche.model.Sale;
-import com.kalafche.model.SaleItem;
-import com.kalafche.model.SaleReport;
-import com.kalafche.model.SaleSplitReportRequest;
-import com.kalafche.model.SalesByStore;
-import com.kalafche.model.SalesByStoreByDayByProductType;
+import com.kalafche.model.DataReport;
 import com.kalafche.model.StoreDto;
-import com.kalafche.model.TotalSumReport;
-import com.kalafche.model.TotalSumRequest;
-import com.kalafche.model.TransactionsByStoreByDay;
 import com.kalafche.model.comparator.SalesByStoreByStoreIdComparator;
+import com.kalafche.model.discount.DiscountCode;
+import com.kalafche.model.employee.Employee;
+import com.kalafche.model.sale.PastPeriodSaleReport;
+import com.kalafche.model.sale.PastPeriodTurnover;
+import com.kalafche.model.sale.Sale;
+import com.kalafche.model.sale.SaleItem;
+import com.kalafche.model.sale.SaleReport;
+import com.kalafche.model.sale.SaleSplitReportRequest;
+import com.kalafche.model.sale.SalesByStore;
+import com.kalafche.model.sale.SalesByStoreByDayByProductType;
+import com.kalafche.model.sale.TotalSumReport;
+import com.kalafche.model.sale.TotalSumRequest;
+import com.kalafche.model.sale.TransactionsByStoreByDay;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.EntityService;
@@ -831,18 +831,23 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	@Override
-	public DailyReportData getSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
-		return saleDao.selectSaleItemTotalAndCount(startDateTime, endDateTime, storeId);
+	public DataReport getSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+		return saleDao.selectSaleItemTotalAndCountByStoreId(startDateTime, endDateTime, storeId);
 	}
 	
 	@Override
-	public DailyReportData getRefundedSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+	public DataReport getRefundedSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
 		return saleDao.selectRefundedSaleItemTotalAndCount(startDateTime, endDateTime, storeId);
 	}
 
 	@Override
-	public DailyReportData getCardPaymentDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+	public DataReport getCardPaymentDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
 		return saleDao.selectSaleItemWithCardPaymentTotalAndCount(startDateTime, endDateTime, storeId);
+	}
+
+	@Override
+	public DataReport getSaleItemTotalAndCountWithoutRefundByStoreId(Long startDateTime, Long endDateTime, Integer storeId) {
+		return saleDao.selectSaleItemTotalAndCountWithoutRefundByStoreId(startDateTime, endDateTime, storeId);
 	}
 
 }

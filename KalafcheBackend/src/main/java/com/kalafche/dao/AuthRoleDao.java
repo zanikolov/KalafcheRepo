@@ -2,7 +2,7 @@ package com.kalafche.dao;
 
 import java.util.List;
 
-import com.kalafche.model.AuthRole;
+import com.kalafche.model.employee.AuthRole;
 
 public abstract interface AuthRoleDao {
 	

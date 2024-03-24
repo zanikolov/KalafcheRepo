@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.StockOrderDao;
 import com.kalafche.exceptions.CommonException;
-import com.kalafche.model.Employee;
 import com.kalafche.model.StockOrder;
+import com.kalafche.model.employee.Employee;
 import com.kalafche.service.EmployeeService;
 
 @Service

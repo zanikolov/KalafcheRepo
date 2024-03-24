@@ -3,13 +3,12 @@ package com.kalafche.dao;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.PeriodInMillis;
-import com.kalafche.model.DeviceModel;
-import com.kalafche.model.Employee;
-import com.kalafche.model.MissingRevisionItem;
-import com.kalafche.model.Revision;
-import com.kalafche.model.RevisionItem;
-import com.kalafche.model.RevisionType;
+import com.kalafche.model.device.DeviceModel;
+import com.kalafche.model.employee.Employee;
+import com.kalafche.model.revision.MissingRevisionItem;
+import com.kalafche.model.revision.Revision;
+import com.kalafche.model.revision.RevisionItem;
+import com.kalafche.model.revision.RevisionType;
 
 public interface RevisionDao {
 
@@ -21,7 +20,7 @@ public interface RevisionDao {
 
 	void insertRevisionDeviceModels(Integer id, List<Integer> deviceModelIds);
 
-	List<RevisionItem> getItemsForRevision(Integer storeId, List<DeviceModel> deviceModels);
+	List<RevisionItem> getItemsForRevision(Integer storeId, List<DeviceModel> deviceModels, String productCode);
 
 	void insertRevisionItems(Integer revisionId, List<RevisionItem> revisionItems);
 

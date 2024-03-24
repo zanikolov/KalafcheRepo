@@ -11,7 +11,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DeviceModelDao;
-import com.kalafche.model.DeviceModel;
+import com.kalafche.model.device.DeviceModel;
 
 @Service
 public class DeviceModelDaoImpl extends JdbcDaoSupport implements

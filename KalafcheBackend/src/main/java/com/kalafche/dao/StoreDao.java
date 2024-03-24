@@ -26,4 +26,6 @@ public interface StoreDao {
 
 	public abstract List<Integer> getStoreIdsByCompanyId(Integer companyId);
 
+	public abstract StoreDto selectStoreByCode(String storeCode);
+
 }

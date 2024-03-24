@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import com.kalafche.dao.PartnerDao;
 import com.kalafche.exceptions.DomainObjectNotFoundException;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.Partner;
+import com.kalafche.model.partner.Partner;
 import com.kalafche.service.PartnerService;
 
 @Service

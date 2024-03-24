@@ -3,8 +3,8 @@ package com.kalafche.dao;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.AuthRole;
-import com.kalafche.model.Employee;
+import com.kalafche.model.employee.AuthRole;
+import com.kalafche.model.employee.Employee;
 
 public interface EmployeeDao {
 

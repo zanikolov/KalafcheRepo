@@ -4,12 +4,12 @@ import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.DailyReportData;
-import com.kalafche.model.Sale;
-import com.kalafche.model.SaleItem;
-import com.kalafche.model.SalesByStore;
-import com.kalafche.model.SalesByStoreByDayByProductType;
-import com.kalafche.model.TransactionsByStoreByDay;
+import com.kalafche.model.DataReport;
+import com.kalafche.model.sale.Sale;
+import com.kalafche.model.sale.SaleItem;
+import com.kalafche.model.sale.SalesByStore;
+import com.kalafche.model.sale.SalesByStoreByDayByProductType;
+import com.kalafche.model.sale.TransactionsByStoreByDay;
 
 public abstract interface SaleDao {
 
@@ -38,10 +38,12 @@ public abstract interface SaleDao {
 	public abstract List<TransactionsByStoreByDay> generateTransactionSplitReport(Long startDateMilliseconds, Long endDateMilliseconds,
 			String storeId);
 
-	public abstract DailyReportData selectSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
+	public abstract DataReport selectSaleItemTotalAndCountByStoreId(Long startDateTime, Long endDateTime, Integer storeId);
 
-	public abstract DailyReportData selectSaleItemWithCardPaymentTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
+	public abstract DataReport selectSaleItemWithCardPaymentTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
 
-	public abstract DailyReportData selectRefundedSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
+	public abstract DataReport selectRefundedSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public abstract DataReport selectSaleItemTotalAndCountWithoutRefundByStoreId(Long startDateTime, Long endDateTime, Integer storeId);
 
 }

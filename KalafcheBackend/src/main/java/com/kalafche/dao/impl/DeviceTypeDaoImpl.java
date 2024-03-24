@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DeviceTypeDao;
-import com.kalafche.model.DeviceType;
+import com.kalafche.model.device.DeviceType;
 
 @Service
 public class DeviceTypeDaoImpl extends JdbcDaoSupport implements DeviceTypeDao {

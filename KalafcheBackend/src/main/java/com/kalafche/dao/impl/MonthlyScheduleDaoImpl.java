@@ -16,9 +16,9 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.MonthlyScheduleDao;
-import com.kalafche.model.Employee;
-import com.kalafche.model.EmployeeHours;
-import com.kalafche.model.MonthlySchedule;
+import com.kalafche.model.employee.Employee;
+import com.kalafche.model.schedule.EmployeeHours;
+import com.kalafche.model.schedule.MonthlySchedule;
 
 @Service
 public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlyScheduleDao {

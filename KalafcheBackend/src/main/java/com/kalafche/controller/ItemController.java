@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.BaseController;
-import com.kalafche.model.Item;
+import com.kalafche.model.product.Item;
 import com.kalafche.service.ItemService;
 
 @CrossOrigin

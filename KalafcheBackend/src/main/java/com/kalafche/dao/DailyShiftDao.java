@@ -3,7 +3,7 @@ package com.kalafche.dao;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.DailyShift;
+import com.kalafche.model.schedule.DailyShift;
 
 public interface DailyShiftDao {
 

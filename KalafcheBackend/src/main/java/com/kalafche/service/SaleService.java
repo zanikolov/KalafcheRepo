@@ -3,14 +3,14 @@ package com.kalafche.service;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.DailyReportData;
-import com.kalafche.model.PastPeriodSaleReport;
-import com.kalafche.model.Sale;
-import com.kalafche.model.SaleItem;
-import com.kalafche.model.SaleReport;
-import com.kalafche.model.SaleSplitReportRequest;
-import com.kalafche.model.TotalSumReport;
-import com.kalafche.model.TotalSumRequest;
+import com.kalafche.model.DataReport;
+import com.kalafche.model.sale.PastPeriodSaleReport;
+import com.kalafche.model.sale.Sale;
+import com.kalafche.model.sale.SaleItem;
+import com.kalafche.model.sale.SaleReport;
+import com.kalafche.model.sale.SaleSplitReportRequest;
+import com.kalafche.model.sale.TotalSumReport;
+import com.kalafche.model.sale.TotalSumRequest;
 
 public interface SaleService {
 
@@ -36,12 +36,12 @@ public interface SaleService {
 
 	public TotalSumReport calculateTotalSum(List<SaleItem> selectedSaleItems);
 
-	public DailyReportData getSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
+	public DataReport getSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
 
-	public DailyReportData getCardPaymentDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
+	public DataReport getCardPaymentDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
 
-	public DailyReportData getRefundedSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
+	public DataReport getRefundedSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public DataReport getSaleItemTotalAndCountWithoutRefundByStoreId(Long startDateTime, Long endDateTime, Integer storeId);
 	
-	
-
 }

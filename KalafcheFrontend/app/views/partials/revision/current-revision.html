@@ -36,7 +36,7 @@
                             </md-option>
                         </md-select>
                     </md-input-container>
-                    <md-input-container flex style="width:69%">
+                    <md-input-container flex style="width:40%">
                         <label>Модел</label>
                         <md-select ng-model="revision.deviceModels"
                                    md-on-close="clearModelSearchTerm()"
@@ -53,6 +53,10 @@
                                 {{model.name}}
                             </md-option>
                         </md-select>
+                    </md-input-container>
+                    <md-input-container flex style="width:20%" class="hide-validation-error" ng-if="revision.deviceModels != null && revision.deviceModels.length == 1">
+                        <label>Код</label>
+                        <input ng-model="revision.productCode" name="productCode">
                     </md-input-container>
                     <ul>
 					    <li ng-repeat="deviceModel in revision.deviceModels">{{deviceModel.name}}</li>

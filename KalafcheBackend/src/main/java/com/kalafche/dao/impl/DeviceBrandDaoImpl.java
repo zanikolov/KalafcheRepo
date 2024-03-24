@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DeviceBrandDao;
-import com.kalafche.model.DeviceBrand;
+import com.kalafche.model.device.DeviceBrand;
 
 @Service
 public class DeviceBrandDaoImpl extends JdbcDaoSupport implements

@@ -10,8 +10,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.kalafche.model.SaleItem;
-import com.kalafche.model.SaleItemExcelReportRequest;
+import com.kalafche.model.sale.SaleItem;
+import com.kalafche.model.sale.SaleItemExcelReportRequest;
 import com.kalafche.service.DateService;
 
 @Service

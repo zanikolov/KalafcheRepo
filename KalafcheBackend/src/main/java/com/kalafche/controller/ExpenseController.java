@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kalafche.model.ExpenseReport;
-import com.kalafche.model.ExpenseType;
+import com.kalafche.model.expense.ExpenseReport;
+import com.kalafche.model.expense.ExpenseType;
 import com.kalafche.service.ExpenseService;
 
 @CrossOrigin
@@ -31,7 +31,7 @@ public class ExpenseController {
 	public ExpenseReport searchExpenses(@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds,
 			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds,
 			@RequestParam(value = "storeIds") String storeIds, @RequestParam(value = "typeId") Integer typeId) {
-		return expenseService.searchExpenses(startDateMilliseconds, endDateMilliseconds, storeIds, typeId);
+		return expenseService.getExpenseReport(startDateMilliseconds, endDateMilliseconds, storeIds, typeId, null);
 	}
 
 	@PostMapping

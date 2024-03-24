@@ -3,8 +3,8 @@ package com.kalafche.dao;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.EmployeeHours;
-import com.kalafche.model.MonthlySchedule;
+import com.kalafche.model.schedule.EmployeeHours;
+import com.kalafche.model.schedule.MonthlySchedule;
 
 public interface MonthlyScheduleDao {
 

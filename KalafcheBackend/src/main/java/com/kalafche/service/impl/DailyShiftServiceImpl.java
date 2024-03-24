@@ -7,9 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DailyShiftDao;
-import com.kalafche.model.DailyShift;
-import com.kalafche.model.EmployeeHours;
-import com.kalafche.model.MonthlySchedule;
+import com.kalafche.model.schedule.DailyShift;
+import com.kalafche.model.schedule.EmployeeHours;
+import com.kalafche.model.schedule.MonthlySchedule;
 import com.kalafche.service.DailyShiftService;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;

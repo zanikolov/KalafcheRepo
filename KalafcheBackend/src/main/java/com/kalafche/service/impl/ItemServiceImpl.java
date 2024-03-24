@@ -8,7 +8,7 @@ import org.springframework.util.StringUtils;
 
 import com.kalafche.dao.ItemDao;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.Item;
+import com.kalafche.model.product.Item;
 import com.kalafche.service.ItemService;
 
 @Service
@@ -25,6 +25,11 @@ public class ItemServiceImpl implements ItemService {
 	@Override
 	public Item getItemByBarcode(String barcode) {
 		return itemDao.getItem(barcode);
+	}
+	
+	@Override
+	public Item getItemById(Integer itemId) {
+		return itemDao.getItem(itemId);
 	}
 	
 	@Override

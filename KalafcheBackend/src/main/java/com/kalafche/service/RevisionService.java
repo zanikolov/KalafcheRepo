@@ -4,10 +4,10 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.kalafche.exceptions.CommonException;
-import com.kalafche.model.Revision;
-import com.kalafche.model.RevisionItem;
-import com.kalafche.model.RevisionReport;
-import com.kalafche.model.RevisionType;
+import com.kalafche.model.revision.Revision;
+import com.kalafche.model.revision.RevisionItem;
+import com.kalafche.model.revision.RevisionReport;
+import com.kalafche.model.revision.RevisionType;
 
 public interface RevisionService {
 

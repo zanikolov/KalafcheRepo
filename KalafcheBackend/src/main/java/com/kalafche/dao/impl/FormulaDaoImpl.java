@@ -29,12 +29,12 @@ public class FormulaDaoImpl extends JdbcDaoSupport implements FormulaDao {
 	private static final String INSERT_ABSOLUTE_ATTRIBUTE = "INSERT INTO attribute (NAME, TYPE_ID, CONTEXT_ID, FROM_TIMESTAMP, TO_TIMESTAMP, CREATE_TIMESTAMP, CREATED_BY, LAST_UPDATE_TIMESTAMP, UPDATED_BY) "
 			+ "VALUES (?, (select id from attribute_type where code = 'ABSOLUTE'), ?, ?, ?, ?, ?, ?, ?); ";
 	
-	private static final String INSERT_RELATIVE_ATTRIBUTE = "INSERT INTO attribute (NAME, TYPE_ID, CONTEXT_ID, OFFSET, CREATE_TIMESTAMP, CREATED_BY, LAST_UPDATE_TIMESTAMP, UPDATED_BY) "
-			+ "VALUES (?, (select id from attribute_type where code = 'RELATIVE'), ?, ?, ?, ?, ?, ?); ";
+	private static final String INSERT_RELATIVE_ATTRIBUTE = "INSERT INTO attribute (NAME, TYPE_ID, CONTEXT_ID, OFFSET, OFFSET_START_DAY, OFFSET_END_DAY, CREATE_TIMESTAMP, CREATED_BY, LAST_UPDATE_TIMESTAMP, UPDATED_BY) "
+			+ "VALUES (?, (select id from attribute_type where code = 'RELATIVE'), ?, ?, ?, ?, ?, ?, ?, ?); ";
 
 	private static final String UPDATE_FORMULA = "update formula set name = ?, expression = ?, description = ?, last_update_timestamp = ?, updated_by = ? where id = ?";
 
-	private static final String UPDATE_ATTRIBUTE = "update attribute set name = ?, context_id = ?, offset = ?, from_timestamp = ?, to_timestamp = ?, last_update_timestamp = ?, updated_by = ? where id = ?";
+	private static final String UPDATE_ATTRIBUTE = "update attribute set name = ?, context_id = ?, offset = ?, offset_start_day = ?, offset_end_day = ?, from_timestamp = ?, to_timestamp = ?, last_update_timestamp = ?, updated_by = ? where id = ?";
 
 	private static final String SELECT_FORMULAS = "select " +
 			"f.ID as id, " +
@@ -57,6 +57,8 @@ public class FormulaDaoImpl extends JdbcDaoSupport implements FormulaDao {
 			"a.ID as id, " +
 			"a.NAME as name, " +
 			"a.offset, " +
+			"a.offset_start_day, " +
+			"a.offset_end_day, " +
 			"a.from_timestamp, " +
 			"a.to_timestamp, " +
 			"a.CREATE_TIMESTAMP, " +
@@ -90,6 +92,10 @@ public class FormulaDaoImpl extends JdbcDaoSupport implements FormulaDao {
 	private static final String ATTRIBUTE_NAMES_CLAUSE = " where a.name in (%s)";
 	
 	private static final String ORDER_BY_CREATE_TIMESTAMP = " order by create_timestamp desc";
+	
+	private static final String DELETE_FORMULA = "delete from formula where id = ?";
+	
+	private static final String DELETE_ATTRIBUTE = "delete from attribute where id = ?";
 	
 	@Autowired
 	public FormulaDaoImpl(DataSource dataSource) {
@@ -181,8 +187,9 @@ public class FormulaDaoImpl extends JdbcDaoSupport implements FormulaDao {
 	@Override
 	public void insertRelativeAttribute(Attribute attribute) {
 		getJdbcTemplate().update(INSERT_RELATIVE_ATTRIBUTE, attribute.getName(), attribute.getContextId(),
-				attribute.getOffset(), attribute.getCreateTimestamp(), attribute.getCreatedByEmployeeId(),
-				attribute.getLastUpdateTimestamp(), attribute.getUpdatedByEmployeeId());
+				attribute.getOffset(), attribute.getOffsetStartDay(), attribute.getOffsetEndDay(),
+				attribute.getCreateTimestamp(), attribute.getCreatedByEmployeeId(), attribute.getLastUpdateTimestamp(),
+				attribute.getUpdatedByEmployeeId());
 	}
 
 	@Override
@@ -193,9 +200,9 @@ public class FormulaDaoImpl extends JdbcDaoSupport implements FormulaDao {
 
 	@Override
 	public void updateAttribute(Attribute attribute) {
-		getJdbcTemplate().update(UPDATE_ATTRIBUTE, attribute.getName(), attribute.getContextId(), attribute.getOffset(),
-				attribute.getFromTimestamp(), attribute.getToTimestamp(), attribute.getLastUpdateTimestamp(),
-				attribute.getUpdatedByEmployeeId(), attribute.getId());
+		getJdbcTemplate().update(UPDATE_ATTRIBUTE, attribute.getName(), attribute.getContextId(), attribute.getOffset(), attribute.getOffsetStartDay(),
+				attribute.getOffsetEndDay(), attribute.getFromTimestamp(), attribute.getToTimestamp(),
+				attribute.getLastUpdateTimestamp(), attribute.getUpdatedByEmployeeId(), attribute.getId());
 	}
 
 	@Override
@@ -253,6 +260,16 @@ public class FormulaDaoImpl extends JdbcDaoSupport implements FormulaDao {
 		}
 		
 		return exists != null && exists > 0 ;
+	}
+
+	@Override
+	public void deleteFormula(Integer formulaId) {
+		getJdbcTemplate().update(DELETE_FORMULA, formulaId);
+	}
+
+	@Override
+	public void deleteAttribute(Integer attributeId) {
+		getJdbcTemplate().update(DELETE_ATTRIBUTE, attributeId);
 	}
 
 }

@@ -91,3 +91,7 @@ md-item-content:hover {
 {
   background-color: #ffeb66;
 }
+
+.hide-validation-error .md-errors-spacer { 
+    display: none; 
+}

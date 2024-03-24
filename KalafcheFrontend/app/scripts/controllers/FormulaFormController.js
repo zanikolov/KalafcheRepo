@@ -62,6 +62,12 @@ angular.module('kalafcheFrontendApp')
             });
         };
 
+        $scope.deleteFormula = function(formula) {
+            FormulaService.deleteFormula(formula).then(function(response) {
+                getAllFormulas();
+            });
+        }
+
         $scope.expand = function(formula) {
             if (!formula.expanded){
                 calculate(formula);

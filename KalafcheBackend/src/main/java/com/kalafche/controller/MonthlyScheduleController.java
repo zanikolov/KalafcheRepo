@@ -18,10 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.kalafche.model.DailyShift;
-import com.kalafche.model.EmployeeHours;
-import com.kalafche.model.MonthlySchedule;
-import com.kalafche.model.MonthlySchedulePrintRequest;
+import com.kalafche.exceptions.CommonException;
+import com.kalafche.model.schedule.DailyShift;
+import com.kalafche.model.schedule.EmployeeHours;
+import com.kalafche.model.schedule.MonthlySchedule;
+import com.kalafche.model.schedule.MonthlySchedulePrintRequest;
 import com.kalafche.service.DailyShiftService;
 import com.kalafche.service.MonthlyScheduleService;
 
@@ -45,6 +46,12 @@ public class MonthlyScheduleController {
 	@PostMapping
 	public void finalizeMonthlySchedule(@RequestBody MonthlySchedule monthlySchedule) throws SQLException {
 		monthlyScheduleService.finalizeMonthlySchedule(monthlySchedule, false);
+	}
+
+	@PostMapping("/presentForm/{presentFormId}/employee/{employeeId}")
+	public void addEmployeeToPresentForm(@PathVariable(value = "presentFormId") Integer presentFormId,
+			@PathVariable(value = "employeeId") Integer employeeId) throws SQLException, CommonException {
+		monthlyScheduleService.addEmployeeToPresentForm(presentFormId, employeeId);
 	}
 	
 	@PostMapping("/presentForm")

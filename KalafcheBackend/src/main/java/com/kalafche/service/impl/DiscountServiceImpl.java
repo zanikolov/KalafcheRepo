@@ -9,9 +9,9 @@ import org.springframework.util.StringUtils;
 
 import com.kalafche.dao.DiscountDao;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.DiscountCampaign;
-import com.kalafche.model.DiscountCode;
-import com.kalafche.model.DiscountType;
+import com.kalafche.model.discount.DiscountCampaign;
+import com.kalafche.model.discount.DiscountCode;
+import com.kalafche.model.discount.DiscountType;
 import com.kalafche.service.DateService;
 import com.kalafche.service.DiscountService;
 import com.kalafche.service.EmployeeService;

@@ -10,7 +10,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.AuthRoleDao;
-import com.kalafche.model.AuthRole;
+import com.kalafche.model.employee.AuthRole;
 
 @Service
 public class AuthRoleDaoImpl extends JdbcDaoSupport implements AuthRoleDao {

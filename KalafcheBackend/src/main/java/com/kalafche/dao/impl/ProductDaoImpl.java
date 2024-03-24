@@ -10,10 +10,10 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.ProductDao;
-import com.kalafche.model.Product;
-import com.kalafche.model.ProductMasterType;
-import com.kalafche.model.ProductSpecificPrice;
-import com.kalafche.model.ProductType;
+import com.kalafche.model.product.Product;
+import com.kalafche.model.product.ProductMasterType;
+import com.kalafche.model.product.ProductSpecificPrice;
+import com.kalafche.model.product.ProductType;
 
 @Service
 public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {

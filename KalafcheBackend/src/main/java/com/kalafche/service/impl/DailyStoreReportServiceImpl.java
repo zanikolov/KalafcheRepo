@@ -11,11 +11,11 @@ import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.DailyStoreReportDao;
 import com.kalafche.exceptions.CommonException;
-import com.kalafche.model.DailyReportData;
 import com.kalafche.model.DailyStoreReport;
+import com.kalafche.model.DataReport;
 import com.kalafche.model.PeriodInMillis;
-import com.kalafche.model.Employee;
 import com.kalafche.model.StoreDto;
+import com.kalafche.model.employee.Employee;
 import com.kalafche.service.CompanyService;
 import com.kalafche.service.DailyStoreReportService;
 import com.kalafche.service.DateService;
@@ -90,11 +90,11 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 		PeriodInMillis todayInMillis = dateService.getTodayInMillis(0);
 		PeriodInMillis yesterdayInMillis = dateService.getTodayInMillis(-1);
 		DailyStoreReport yesterdayReport = getDailyStoreReportByDay(storeId, yesterdayInMillis);
-		DailyReportData saleItemDailyReportData = saleService.getSaleItemDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
-		DailyReportData refundedSaleItemDailyReportData = saleService.getRefundedSaleItemDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
-		DailyReportData cardPaymentDailyReportData = saleService.getCardPaymentDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
-		DailyReportData expensesDailyReportData = expenseService.getExpenseDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
-		DailyReportData collectionDailyReportData = expenseService.getCollectionDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
+		DataReport saleItemDailyReportData = saleService.getSaleItemDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
+		DataReport refundedSaleItemDailyReportData = saleService.getRefundedSaleItemDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
+		DataReport cardPaymentDailyReportData = saleService.getCardPaymentDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
+		DataReport expensesDailyReportData = expenseService.getExpenseDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
+		DataReport collectionDailyReportData = expenseService.getCollectionDailyReportData(todayInMillis.getStartDateTime(), todayInMillis.getEndDateTime(), storeId);
 		
 		DailyStoreReport report = new DailyStoreReport();
 		report.setInitialBalance(yesterdayReport != null && yesterdayReport.getFinalBalance() != null ? yesterdayReport.getFinalBalance() : BigDecimal.ZERO);

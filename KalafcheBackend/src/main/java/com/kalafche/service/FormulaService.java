@@ -20,7 +20,7 @@ public interface FormulaService {
 
 	void updateFormula(Formula formula);
 
-	void updateAttribute(Attribute attribute);
+	void updateAttribute(Attribute attribute) throws CommonException;
 
 	List<Formula> getAllFormulas();
 
@@ -31,5 +31,9 @@ public interface FormulaService {
 	List<AttributeType> getAttributeTypes();
 
 	List<AttributeContext> getAttributeContexts();
+
+	void deleteAttribute(Integer attributeId);
+
+	void deleteFormula(Integer formulaId);
 
 }

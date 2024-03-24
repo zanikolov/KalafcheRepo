@@ -11,7 +11,7 @@ angular.module('kalafcheFrontendApp')
         }
     });
 
-    function ExpenseTypeController ($scope, ExpenseService, AuthService, ServerValidationService) {
+    function ExpenseTypeController ($scope, ExpenseService, AuthService, ServerValidationService, TaxService) {
 
         init();
 
@@ -22,6 +22,7 @@ angular.module('kalafcheFrontendApp')
             $scope.expenseTypesPerPage = 20;
             $scope.serverErrorMessages = {};
 
+            getTaxes();
             getExpenseTypes();
         }
 
@@ -32,6 +33,12 @@ angular.module('kalafcheFrontendApp')
         function getExpenseTypes() {
             ExpenseService.getExpenseTypes().then(function(response) {
                 $scope.expenseTypes = response;
+            });
+        };
+
+        function getTaxes() {
+            TaxService.getTaxes().then(function(response) {
+                $scope.taxes = response;
             });
         };
 

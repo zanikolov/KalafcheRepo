@@ -11,7 +11,7 @@ import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.ItemDao;
-import com.kalafche.model.Item;
+import com.kalafche.model.product.Item;
 
 @Service
 public class ItemDaoImpl extends JdbcDaoSupport implements ItemDao {
@@ -19,7 +19,7 @@ public class ItemDaoImpl extends JdbcDaoSupport implements ItemDao {
 	private static final String GET_ALL_ITEMS = "select * from item_vw";
 	private static final String GET_ITEM = "select * from item where product_id = ? and device_model_id = ?";
 	private static final String GET_ITEM_BY_BARCODE = "select * from item_vw where barcode = ?";
-	private static final String GET_ITEM_BY_ID = "select * from item where id = ?";
+	private static final String GET_ITEM_BY_ID = "select * from item_vw where id = ?";
 	private static final String INSERT_ITEM = "insert into item(product_id, device_model_id, barcode) values (?, ?, ?)";
 	private static final String UPDATE_ITEM = "update item set barcode = ?  where id = ?";
 	private static final String UPDATE_ITEM_BY_PRODUCT_ID_AND_DEVICE_MODEL_ID = "update item set barcode = ?  where product_id = ? and device_model_id = ?";

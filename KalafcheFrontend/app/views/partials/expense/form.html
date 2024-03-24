@@ -19,6 +19,12 @@
                     </md-input-container>
                 </div>
                 <div layout="row">
+                    <md-input-container flex flex-xs="100">
+                        <label>Документ №</label>
+                        <input ng-model="expense.invoice" id="invoice" name="invoice" flex="50"/>
+                    </md-input-container>
+                </div>
+                <div layout="row">
                     <md-input-container flex="30" flex-xs="100">
                         <label>Тип</label>
                         <md-select name="expenseTypeCode" ng-model="expense.typeCode" required>

@@ -145,7 +145,7 @@ angular.module('kalafcheFrontendApp')
           icon: 'dashboard',
           admin: true,
           manager: false,
-          user: true
+          user: false
         },  
         {
           link : 'device',
@@ -286,6 +286,14 @@ angular.module('kalafcheFrontendApp')
         {
           link : 'formula',
           title: 'Формули',
+          icon: 'dashboard',
+          admin: true,
+          manager: false,
+          user: false
+        },
+        {
+          link : 'profit',
+          title: 'Рентабилност',
           icon: 'dashboard',
           admin: true,
           manager: false,

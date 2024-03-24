@@ -92,7 +92,6 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.submitAttribute = function() {
-            console.log($scope.attribute);
             FormulaService.submitAttribute($scope.attribute).then(function(response) {
                 $scope.resetAttributeForm();
                 getAllAttributes();
@@ -102,6 +101,12 @@ angular.module('kalafcheFrontendApp')
                 $scope.serverErrorMessages = errorResponse.data.errors;
             });
         };
+
+        $scope.deleteAttribute = function(attribute) {
+            FormulaService.deleteAttribute(attribute).then(function(response) {
+                getAllAttributes();
+            });
+        }
 
         $scope.isSuperAdmin = function() {
             return AuthService.isSuperAdmin();

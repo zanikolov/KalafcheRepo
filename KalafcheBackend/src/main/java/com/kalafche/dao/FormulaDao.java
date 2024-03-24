@@ -36,4 +36,8 @@ public interface FormulaDao {
 
 	List<Attribute> getAtributesByNames(String commaSeparatedAttributeNames);
 
+	void deleteFormula(Integer formulaId);
+	
+	void deleteAttribute(Integer attributeId);
+
 }

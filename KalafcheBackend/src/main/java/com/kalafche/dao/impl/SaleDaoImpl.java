@@ -20,12 +20,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.kalafche.dao.SaleDao;
-import com.kalafche.model.DailyReportData;
-import com.kalafche.model.Sale;
-import com.kalafche.model.SaleItem;
-import com.kalafche.model.SalesByStore;
-import com.kalafche.model.SalesByStoreByDayByProductType;
-import com.kalafche.model.TransactionsByStoreByDay;
+import com.kalafche.model.DataReport;
+import com.kalafche.model.sale.Sale;
+import com.kalafche.model.sale.SaleItem;
+import com.kalafche.model.sale.SalesByStore;
+import com.kalafche.model.sale.SalesByStoreByDayByProductType;
+import com.kalafche.model.sale.TransactionsByStoreByDay;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 
@@ -87,8 +87,9 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"sum(si.sale_price) as totalAmount " +
 			"from sale_item si " +
 			"join sale s on si.sale_id = s.id " +
-			"where s.sale_timestamp between ? and ? " +
-			"and s.store_id = ? ";
+			"where s.sale_timestamp between ? and ? ";
+	
+	private static final String STORE_ID_CRITERIA = " and s.store_id = ? ";
 	
 	private static final String CARD_PAYMENT_CRITERIA = " and s.is_cash_payment <> true";
 	
@@ -121,6 +122,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	private static final String STORE_CRITERIA_QUERY = " and ks.id in (%s)";
 	private static final String NOT_REFUND_QUERY = " and si.is_refunded <> true";
 	private static final String REFUND_QUERY = " and si.is_refunded is true";
+	private static final String NON_REFUND_QUERY = " and si.is_refunded is false";
 	private static final String PRODUCT_CODE_QUERY = " and iv.product_code in (%s)";
 	private static final String DEVICE_BRAND_QUERY = " and iv.device_brand_id = ?";
 	private static final String DEVICE_MODEL_QUERY = " and iv.device_model_id = ?";
@@ -338,7 +340,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	private BeanPropertyRowMapper<SaleItem> saleItemRowMapper;
 	private BeanPropertyRowMapper<SalesByStoreByDayByProductType> saleByStoreByDayByProductTypeRowMapper;
 	private BeanPropertyRowMapper<TransactionsByStoreByDay> transactionsByStoreByDayRowMapper;
-	private BeanPropertyRowMapper<DailyReportData> dailyReportDataRowMapper;
+	private BeanPropertyRowMapper<DataReport> dailyReportDataRowMapper;
 
 	@Autowired
 	public SaleDaoImpl(DataSource dataSource) {
@@ -382,9 +384,9 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		return transactionsByStoreByDayRowMapper;
 	}
 	
-	private BeanPropertyRowMapper<DailyReportData> getDailyReportDataRowMapper() {
+	private BeanPropertyRowMapper<DataReport> getDailyReportDataRowMapper() {
 		if (dailyReportDataRowMapper == null) {
-			dailyReportDataRowMapper = new BeanPropertyRowMapper<DailyReportData>(DailyReportData.class);
+			dailyReportDataRowMapper = new BeanPropertyRowMapper<DataReport>(DataReport.class);
 			dailyReportDataRowMapper.setPrimitivesDefaultedForNullValue(true);
 		}
 		
@@ -599,9 +601,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		}
 		searchQuery += ORDER_TRANSACTION_SPLIT_REPORT;
 		
-		Long yearInMillis = 31536000000L;
-		Long startDateMillisecondsPrevYear = startDateMilliseconds - yearInMillis;
-		Long endDateMillisecondsPrevYear = endDateMilliseconds - yearInMillis;
+		Long startDateMillisecondsPrevYear = dateService.getSameDayPrevYearInMillisBGTimezone(startDateMilliseconds);
+		Long endDateMillisecondsPrevYear = dateService.getSameDayPrevYearInMillisBGTimezone(endDateMilliseconds);
 		
 		List<Object> argsList = new ArrayList<Object>();
 		argsList.add(dateService.convertMillisToDateTimeString(startDateMilliseconds, "yyyy-MM-dd", false));
@@ -621,18 +622,23 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	}
 
 	@Override
-	public DailyReportData selectSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
-		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
+	public DataReport selectSaleItemTotalAndCountWithoutRefundByStoreId(Long startDateTime, Long endDateTime, Integer storeId) {
+		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + NON_REFUND_QUERY + STORE_ID_CRITERIA, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
 	}
 	
 	@Override
-	public DailyReportData selectRefundedSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
-		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + REFUND_QUERY, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
+	public DataReport selectSaleItemTotalAndCountByStoreId(Long startDateTime, Long endDateTime, Integer storeId) {
+		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + STORE_ID_CRITERIA, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
 	}
 	
 	@Override
-	public DailyReportData selectSaleItemWithCardPaymentTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
-		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + CARD_PAYMENT_CRITERIA, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
+	public DataReport selectRefundedSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
+		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + STORE_ID_CRITERIA + REFUND_QUERY, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
+	}
+	
+	@Override
+	public DataReport selectSaleItemWithCardPaymentTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
+		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + STORE_ID_CRITERIA + CARD_PAYMENT_CRITERIA, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
 	}
 	
 }

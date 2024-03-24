@@ -12,11 +12,12 @@ import org.springframework.web.multipart.MultipartFile;
 import com.kalafche.dao.ExpenseDao;
 import com.kalafche.dao.StoreDao;
 import com.kalafche.exceptions.DuplicationException;
-import com.kalafche.model.DailyReportData;
-import com.kalafche.model.Employee;
-import com.kalafche.model.Expense;
-import com.kalafche.model.ExpenseReport;
-import com.kalafche.model.ExpenseType;
+import com.kalafche.model.DataReport;
+import com.kalafche.model.employee.Employee;
+import com.kalafche.model.expense.Expense;
+import com.kalafche.model.expense.ExpensePriceByType;
+import com.kalafche.model.expense.ExpenseReport;
+import com.kalafche.model.expense.ExpenseType;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.EntityService;
@@ -74,15 +75,28 @@ public class ExpenseServiceImpl implements ExpenseService {
 	}
 
 	@Override
-	public ExpenseReport searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds, Integer typeId) {
+	public ExpenseReport getExpenseReport(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
+			Integer typeId, List<String> typeCodesForExclusion) {
 		Boolean isAdmin = employeeService.isLoggedInEmployeeAdmin();
-		
-		ExpenseReport report = new ExpenseReport();	
-		List<Expense> expenses = expenseDao.searchExpenses(startDateMilliseconds, endDateMilliseconds, entityService.getConcatenatedStoreIdsForFiltering(storeIds), typeId, isAdmin);
+
+		ExpenseReport report = new ExpenseReport();
+		List<Expense> expenses = expenseDao.searchExpenses(startDateMilliseconds, endDateMilliseconds,
+				entityService.getConcatenatedStoreIdsForFiltering(storeIds), typeId, typeCodesForExclusion, isAdmin);
 		calculateTotalAmountAndCount(expenses, report);
 		report.setExpenses(expenses);
-		
+
 		return report;
+	}
+	
+	@Override
+	public List<Expense> searchExpenses(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
+			Integer typeId, List<String> typeCodesForExclusion) {
+		Boolean isAdmin = employeeService.isLoggedInEmployeeAdmin();
+
+		List<Expense> expenses = expenseDao.searchExpenses(startDateMilliseconds, endDateMilliseconds,
+				entityService.getConcatenatedStoreIdsForFiltering(storeIds), typeId, typeCodesForExclusion, isAdmin);
+
+		return expenses;
 	}
 
 	private void calculateTotalAmountAndCount(List<Expense> expenses, ExpenseReport expenseReport) {
@@ -115,13 +129,24 @@ public class ExpenseServiceImpl implements ExpenseService {
 	}
 
 	@Override
-	public DailyReportData getExpenseDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
-		return expenseDao.selectExpenseTotalAndCount(startDateTime, endDateTime, storeId);
+	public DataReport getExpenseDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+		return expenseDao.selectExpenseTotalAndCountByStore(startDateTime, endDateTime, storeId);
 	}
 
 	@Override
-	public DailyReportData getCollectionDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
-		return expenseDao.selectCollectionTotalAndCount(startDateTime, endDateTime, storeId);
+	public DataReport getCollectionDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
+		return expenseDao.selectCollectionTotalAndCountByStore(startDateTime, endDateTime, storeId);
+	}
+
+	@Override
+	public DataReport getExpenseTotalAndCountWithoutRefundByStore(Long startDateTime, Long endDateTime,
+			Integer storeId) {
+		return expenseDao.selectExpenseTotalAndCountWithoutRefundByStore(startDateTime, endDateTime, storeId);
 	}
 	
+	@Override
+	public List<ExpensePriceByType> getExpensePriceGroupdByType(Long startDateTime, Long endDateTime,
+			Integer storeId) {
+		return expenseDao.selectExpensePriceGroupByType(startDateTime, endDateTime, storeId);
+	}
 }

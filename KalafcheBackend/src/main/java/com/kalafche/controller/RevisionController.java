@@ -15,10 +15,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.exceptions.CommonException;
-import com.kalafche.model.Revision;
-import com.kalafche.model.RevisionItem;
-import com.kalafche.model.RevisionReport;
-import com.kalafche.model.RevisionType;
+import com.kalafche.model.revision.Revision;
+import com.kalafche.model.revision.RevisionItem;
+import com.kalafche.model.revision.RevisionReport;
+import com.kalafche.model.revision.RevisionType;
 import com.kalafche.service.RevisionService;
 
 @CrossOrigin

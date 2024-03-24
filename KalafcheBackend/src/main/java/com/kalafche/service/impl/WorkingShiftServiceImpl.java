@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.kalafche.dao.WorkingShiftDao;
-import com.kalafche.model.WorkingShift;
+import com.kalafche.model.schedule.WorkingShift;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.WorkingShiftService;

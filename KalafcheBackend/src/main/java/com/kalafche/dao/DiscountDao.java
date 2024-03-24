@@ -3,9 +3,9 @@ package com.kalafche.dao;
 import java.sql.SQLException;
 import java.util.List;
 
-import com.kalafche.model.DiscountCampaign;
-import com.kalafche.model.DiscountCode;
-import com.kalafche.model.DiscountType;
+import com.kalafche.model.discount.DiscountCampaign;
+import com.kalafche.model.discount.DiscountCode;
+import com.kalafche.model.discount.DiscountType;
 
 public interface DiscountDao {
 

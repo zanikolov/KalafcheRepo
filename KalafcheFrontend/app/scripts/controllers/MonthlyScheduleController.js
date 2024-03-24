@@ -95,7 +95,6 @@ angular.module('kalafcheFrontendApp')
             EmployeeService.getAllActiveEmployeesGroupedByStore().then(function(response) {
                 $scope.employees = response;
             });
-
         };
 
         $scope.updateDailyShift = function(dailyShift) {

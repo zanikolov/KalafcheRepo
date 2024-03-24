@@ -16,6 +16,8 @@ angular.module('kalafcheFrontendApp')
 
         function init() {
             $scope.stores = [];
+            $scope.employees = [];
+            $scope.selectedEmployee = {};
             $scope.workingShifts = [];
             $scope.selectedStore = null;   
             $scope.selectedMonth = null;  
@@ -25,6 +27,17 @@ angular.module('kalafcheFrontendApp')
 
             getAllStores();
             getAllWorkingShifts();
+            getAllActiveEmployeesGroupedByStore();
+        }
+
+        function getAllActiveEmployeesGroupedByStore() {
+            EmployeeService.getAllActiveEmployeesGroupedByStore().then(function(response) {
+                $scope.employees = response;
+            });
+        };
+
+        $scope.selectEmployee = function() {
+            console.log($scope.selectedEmployee);
         }
 
         $scope.searchPresentForm = function() {
@@ -72,6 +85,15 @@ angular.module('kalafcheFrontendApp')
                 function(error) {
                     $scope.loading = false;
                 }); 
+        }
+
+        $scope.addEmployeeToPresentForm = function() {
+            console.log($scope.selectedEmployee);
+            if ($scope.presentForm != null && $scope.selectedEmployee != null) {
+                MonthlyScheduleService.addEmployeeToPresentForm($scope.presentForm.id, $scope.selectedEmployee.id).then(function(response) {
+                    $scope.searchPresentForm();
+                }); 
+            }
         }
 
         $scope.finalizePresentForm = function() {

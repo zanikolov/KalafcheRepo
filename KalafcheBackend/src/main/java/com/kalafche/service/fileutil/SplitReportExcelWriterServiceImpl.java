@@ -14,8 +14,8 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.kalafche.model.SalesByStoreByDayByProductType;
-import com.kalafche.model.TransactionsByStoreByDay;
+import com.kalafche.model.sale.SalesByStoreByDayByProductType;
+import com.kalafche.model.sale.TransactionsByStoreByDay;
 
 @Service
 public class SplitReportExcelWriterServiceImpl implements SplitReportExcelWriterService {

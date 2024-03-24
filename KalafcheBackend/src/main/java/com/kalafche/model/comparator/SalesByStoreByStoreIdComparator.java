@@ -2,7 +2,7 @@ package com.kalafche.model.comparator;
 
 import java.util.Comparator;
 
-import com.kalafche.model.SalesByStore;
+import com.kalafche.model.sale.SalesByStore;
 
 public class SalesByStoreByStoreIdComparator implements Comparator<SalesByStore> {
 
