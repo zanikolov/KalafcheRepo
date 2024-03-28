@@ -7,7 +7,8 @@ import lombok.Setter;
 @Setter
 public class MonthlySchedulePrintRequest {
 
-	int month;
-	int year;
-	int storeId;
+	private int month;
+	private int year;
+	private int storeId;
+	private int companyId;
 }

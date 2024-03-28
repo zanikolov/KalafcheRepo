@@ -19,7 +19,7 @@ public interface MonthlyScheduleService {
 
 	List<EmployeeHours> getEmployeeHours(Integer monthlyScheduleId, Integer monthlyScheduleWorkingHoursInMinutes);
 
-	byte[] getMonthlyScheduleReport(Integer month, Integer year, Integer storeId);
+	byte[] getMonthlyScheduleReport(Integer month, Integer year, Integer storeId, Integer companyId) throws CommonException;
 
 	void addEmployeeToPresentForm(Integer presentFormId, Integer employeeId) throws SQLException, CommonException;
 

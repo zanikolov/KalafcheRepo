@@ -298,6 +298,14 @@ angular.module('kalafcheFrontendApp')
           admin: true,
           manager: false,
           user: false
+        },
+        {
+          link : 'invoice',
+          title: 'Фактури',
+          icon: 'dashboard',
+          admin: true,
+          manager: false,
+          user: false
         }
       ];
 	});

@@ -196,6 +196,13 @@ angular
                     authorizedRoles: [UserRoles.superAdmin, UserRoles.admin],
                     title: "Рентабилност"
                 }      
+            }).state('invoice', {
+                url: '/invoice',
+                templateUrl: 'views/partials/invoice/invoice-tab.html',
+                data: {
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin],
+                    title: "Фактури"
+                }      
             }).state('login',{
                 url: '/login',
                 templateUrl: 'views/partials/partial-login.html',

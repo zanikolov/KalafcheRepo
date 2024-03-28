@@ -182,7 +182,7 @@ public class DailyStoreReportServiceImpl implements DailyStoreReportService {
 	
 	@Scheduled(cron = "0 0 22 * * *", zone = "EET")
 	public void scheduledFinalizeDailyStoreReports() {
-	    List<StoreDto> stores = storeService.getStores();
+	    List<StoreDto> stores = storeService.getStores(false);
 	    for (StoreDto store : stores) {
 	    	Integer storeId = store.getId();
 	    	if (canDailyStoreReportBeFinalized(storeId, true)) {

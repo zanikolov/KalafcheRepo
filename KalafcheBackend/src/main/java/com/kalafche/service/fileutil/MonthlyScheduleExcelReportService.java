@@ -375,17 +375,18 @@ public class MonthlyScheduleExcelReportService {
 	}
 
 	private void createStoreCell(XSSFSheet sheet, int rowNum, MonthlySchedule monthlySchedule) {
-		CellRangeAddress region = new CellRangeAddress(rowNum, rowNum + monthlySchedule.getEmployeesHours().size() - 1, 0, 0);
-		sheet.addMergedRegion(region);
+		if (monthlySchedule.getEmployeesHours().size() > 1) {
+			CellRangeAddress region = new CellRangeAddress(rowNum, rowNum + monthlySchedule.getEmployeesHours().size() - 1, 0, 0);
+			sheet.addMergedRegion(region);
+			RegionUtil.setBorderTop(BorderStyle.THIN, region, sheet);
+			RegionUtil.setBorderBottom(BorderStyle.THIN, region, sheet);
+			RegionUtil.setBorderLeft(BorderStyle.THIN, region, sheet);
+			RegionUtil.setBorderRight(BorderStyle.THIN, region, sheet);
+		}
 		Row row = sheet.createRow(rowNum);
 		Cell storeCell = row.createCell(0);
 		storeCell.setCellValue(monthlySchedule.getStoreName() + " \n " + monthlySchedule.getCompanyName());
 		storeCell.setCellStyle(storeCellStyle);
-		
-		RegionUtil.setBorderTop(BorderStyle.THIN, region, sheet);
-		RegionUtil.setBorderBottom(BorderStyle.THIN, region, sheet);
-		RegionUtil.setBorderLeft(BorderStyle.THIN, region, sheet);
-		RegionUtil.setBorderRight(BorderStyle.THIN, region, sheet);
 	}
 
 	private static CellStyle initializeStoreCellStyle() {

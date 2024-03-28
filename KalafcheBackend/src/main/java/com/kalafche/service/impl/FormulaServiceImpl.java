@@ -64,7 +64,7 @@ public class FormulaServiceImpl implements FormulaService {
 		List<Attribute> attributes = getAttributes(formula);
 		
 		DoubleEvaluator eval = new DoubleEvaluator();
-		List<StoreDto> stores = storeService.getStores();
+		List<StoreDto> stores = storeService.getStores(false);
 		List<CalculationResponse> resultList = new ArrayList<CalculationResponse>();
 		
 		for (StoreDto store : stores) {

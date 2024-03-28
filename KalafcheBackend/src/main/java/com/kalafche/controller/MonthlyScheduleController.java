@@ -78,9 +78,9 @@ public class MonthlyScheduleController {
 
 	//Only for test purposes till the schedules functionality is fully implemented and approved.
 	@GetMapping("/presentFormReport/{month}/{year}")
-	public ResponseEntity<byte[]> printPresentFormTest(@PathVariable(value = "month") Integer month, @PathVariable(value = "year") Integer year) {
+	public ResponseEntity<byte[]> printPresentFormTest(@PathVariable(value = "month") Integer month, @PathVariable(value = "year") Integer year) throws CommonException {
 		
-		byte[] excelBytes = monthlyScheduleService.getMonthlyScheduleReport(month, year, 10);
+		byte[] excelBytes = monthlyScheduleService.getMonthlyScheduleReport(month, year, 10, 1);
 		
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
@@ -95,9 +95,9 @@ public class MonthlyScheduleController {
 	}	
 	
 	@PostMapping("/presentFormReport")
-	public ResponseEntity<byte[]> printPresentForm(@RequestBody MonthlySchedulePrintRequest presentFormPrintRequest) {
+	public ResponseEntity<byte[]> printPresentForm(@RequestBody MonthlySchedulePrintRequest presentFormPrintRequest) throws CommonException {
 		
-		byte[] excelBytes = monthlyScheduleService.getMonthlyScheduleReport(presentFormPrintRequest.getMonth(), presentFormPrintRequest.getYear(), null);
+		byte[] excelBytes = monthlyScheduleService.getMonthlyScheduleReport(presentFormPrintRequest.getMonth(), presentFormPrintRequest.getYear(), null, presentFormPrintRequest.getCompanyId());
 		
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
@@ -112,9 +112,9 @@ public class MonthlyScheduleController {
 	}
 	
 	@PostMapping("/print")
-	public ResponseEntity<byte[]> printMonthlySchedule(@RequestBody MonthlySchedulePrintRequest presentFormPrintRequest) {
+	public ResponseEntity<byte[]> printMonthlySchedule(@RequestBody MonthlySchedulePrintRequest presentFormPrintRequest) throws CommonException {
 		
-		byte[] excelBytes = monthlyScheduleService.getMonthlyScheduleReport(presentFormPrintRequest.getMonth(), presentFormPrintRequest.getYear(), presentFormPrintRequest.getStoreId());
+		byte[] excelBytes = monthlyScheduleService.getMonthlyScheduleReport(presentFormPrintRequest.getMonth(), presentFormPrintRequest.getYear(), presentFormPrintRequest.getStoreId(), null);
 		
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));

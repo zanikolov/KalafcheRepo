@@ -18,14 +18,16 @@ import com.kalafche.dao.WarehouseDao;
 import com.kalafche.dao.impl.StockDaoImpl;
 import com.kalafche.exceptions.DomainObjectNotFoundException;
 import com.kalafche.model.NewStock;
+import com.kalafche.model.StoreDto;
 import com.kalafche.model.product.Item;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
+import com.kalafche.service.EntityService;
 import com.kalafche.service.NewStockService;
 import com.kalafche.service.RelocationService;
 import com.kalafche.service.fileutil.ExcelItem;
 import com.kalafche.service.fileutil.NewStockExcelReaderService;
-import com.kalafche.service.fileutil.PDFGeneratorService;
+import com.kalafche.service.fileutil.StickerPDFGeneratorService;
 
 @Service
 public class NewStockServiceImpl implements NewStockService {
@@ -52,10 +54,13 @@ public class NewStockServiceImpl implements NewStockService {
 	DateService dateService;
 	
 	@Autowired
-	PDFGeneratorService pdfGeneratorService;
+	StickerPDFGeneratorService pdfGeneratorService;
 	
 	@Autowired
 	RelocationService relocationService;
+	
+	@Autowired
+	EntityService entityService;
 	
 	@Override
 	public List<NewStock> getAllNewStocks() {
@@ -156,11 +161,14 @@ public class NewStockServiceImpl implements NewStockService {
 
 	@Override
 	public void relocateNewStock(Integer storeId) {
-		List<NewStock> newStocks = newStockDao.getNewStockByStoreId(storeId);;
-		relocationService.generateRelocationsForNewStock(newStocks);
-		
-		for (NewStock newStock : newStocks) {
-			deleteNewStock(newStock.getId());
+		StoreDto store = entityService.getStoreById(storeId);
+		if (!"RU_WH".equals(store.getCode())) {
+			List<NewStock> newStocks = newStockDao.getNewStockByStoreId(storeId);
+			relocationService.generateRelocationsForNewStock(newStocks);
+
+			for (NewStock newStock : newStocks) {
+				deleteNewStock(newStock.getId());
+			}
 		}
 	}
 

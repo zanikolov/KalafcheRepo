@@ -34,7 +34,7 @@ public class ProfitReportServiceImpl implements ProfitReportService {
 	
 	@Override
 	public List<ProfitReport> generateProfitReport(Long startDateMilliseconds, Long endDateMilliseconds) {
-		List<StoreDto> stores = storeService.getStores();
+		List<StoreDto> stores = storeService.getStores(false);
 
 		List<ProfitReport> profitReportList = new ArrayList<ProfitReport>();
 		for (StoreDto store : stores) {

@@ -226,15 +226,17 @@ public class MonthlyScheduleServiceImpl implements MonthlyScheduleService {
 	}
 
 	@Override
-	public byte[] getMonthlyScheduleReport(Integer month, Integer year, Integer storeId) {
+	public byte[] getMonthlyScheduleReport(Integer month, Integer year, Integer storeId, Integer companyId) throws CommonException {
 		List<DayDto> days = calendarService.getDaysByMonthAndYear(month, year);
 		List<WorkingShift> workingShifts = workingShiftService.getWorkingShiftsForLegendTableInExcelReport();
 		List<MonthlySchedule> presentForms;
-		if (storeId == null) {
-			presentForms = monthlyScheduleDao.getMonthlySchedules(month, year, true, true);
-		} else {
+		if (storeId == null && companyId != null) {
+			presentForms = monthlyScheduleDao.getMonthlySchedulesByCompanyId(month, year, companyId, true, true);
+		} else if (storeId != null && companyId == null) {
 			MonthlySchedule monthlySchedule = monthlyScheduleDao.getMonthlySchedule(storeId, month, year, false);
 			presentForms = monthlySchedule != null ? List.of(monthlySchedule) : new ArrayList<MonthlySchedule>();
+		} else {
+			throw new CommonException("companyId or storeId should be specified!");
 		}
 		
 		for (MonthlySchedule presentForm : presentForms) {

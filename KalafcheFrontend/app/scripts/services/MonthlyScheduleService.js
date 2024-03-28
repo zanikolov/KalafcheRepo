@@ -99,8 +99,9 @@ angular.module('kalafcheFrontendApp')
                 );
         }
 
-        function printPresentForm(selectedMonth) { 
+        function printPresentForm(companyId, selectedMonth) { 
             var request = {};
+            request.companyId = companyId;
             request.month = selectedMonth.value;
             request.year = selectedMonth.year;
 

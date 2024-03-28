@@ -3,7 +3,17 @@
         <div flex>
             <form>    
                 <div layout="row" layout-xs="column" class="md-inline-form">
-                    <div layout-xs="row" flex-offset="5" flex="15" flex-xs="100" flex-offset="10">
+                    <div ng-if="isAdmin()" layout-xs="row" flex="20" flex-xs="100" flex-offset="10">
+                        <md-input-container style="width:95%">
+                            <label>Фирма</label>
+                            <md-select name="selectCompany" ng-model="selectedCompany.id">
+                                <md-option ng-repeat="company in companies" ng-value="company.id">
+                                    {{company.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                    </div>
+                    <div layout-xs="row" flex="15" flex-xs="100" flex-offset="10">
                         <md-input-container style="width:100%">
                             <label>Месец</label>
                             <md-select name="typeId" ng-model="selectedMonth">
@@ -15,7 +25,7 @@
                     </div>
                     <div layout-xs="row" flex="50" flex-xs="100" flex-offset="10">
                         <md-input-container>
-                            <md-button ng-if="isAdmin()" layout-align="right" ng-click="printPresentForm()" class="md-raised md-primary">Присъствена Форма</md-button>
+                            <md-button ng-if="isAdmin()" ng-disabled="selectedCompany.id == null" layout-align="right" ng-click="printPresentForm()" class="md-raised md-primary">Присъствена Форма</md-button>
                             <md-button ng-if="isUser()" layout-align="right" ng-click="printMonthlySchedule()" class="md-raised md-primary">График</md-button>
                         </md-input-container>
                     </div>

@@ -37,5 +37,6 @@ public class Relocation extends BaseModel {
 	private BigDecimal relocationAmount;
 	private boolean archived;
 	private RelocationStatus status;
+	private BigDecimal itemPrice;
 
 }

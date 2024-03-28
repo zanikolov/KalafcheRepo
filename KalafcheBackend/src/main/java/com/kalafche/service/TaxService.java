@@ -12,7 +12,7 @@ public interface TaxService {
 	
 	public List<Tax> getTaxes(Boolean isApplicableOnExpenses);
 	
-	public BigDecimal calculateDueVAT(BigDecimal bigDecimal);
+	public BigDecimal calculateDueVAT(BigDecimal amount);
 	
 	public BigDecimal calculateRefundVAT(List<Expense> expenses);
 	

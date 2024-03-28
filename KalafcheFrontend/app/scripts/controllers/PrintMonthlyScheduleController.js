@@ -10,7 +10,7 @@ angular.module('kalafcheFrontendApp')
         }
     });
 
-    function PrintMonthlyScheduleController($scope, ApplicationService, MonthlyScheduleService, SessionService, AuthService) {
+    function PrintMonthlyScheduleController($scope, ApplicationService, MonthlyScheduleService, CompanyService, SessionService, AuthService) {
 
         init();
 
@@ -19,6 +19,9 @@ angular.module('kalafcheFrontendApp')
             $scope.turnoverByStorePerPage = 25;
 
             $scope.selectedMonth = {};
+
+            $scope.companies = [];
+            $scope.selectedCompany = {};
 
             var now = new Date();
             var currYear = now.getFullYear();
@@ -44,10 +47,14 @@ angular.module('kalafcheFrontendApp')
             }
 
             $scope.selectedMonth = $scope.months[0];
+
+            if (AuthService.isAdmin()) {
+                getAllCompanies();
+            }
         }
 
         $scope.printPresentForm = function() {
-            MonthlyScheduleService.printPresentForm($scope.selectedMonth).then(
+            MonthlyScheduleService.printPresentForm($scope.selectedCompany.id, $scope.selectedMonth).then(
                 function(response) {
             });           
         }
@@ -57,6 +64,13 @@ angular.module('kalafcheFrontendApp')
                 function(response) {
             });           
         }
+
+        function getAllCompanies() {
+            CompanyService.getAllCompanies().then(function(response) {
+                $scope.companies = response;
+            });
+
+        };
 
         $scope.isAdmin = function() {
             return AuthService.isAdmin();

@@ -2,16 +2,18 @@ package com.kalafche.service;
 
 import java.util.List;
 
-import com.kalafche.model.CompanyDto;
+import com.kalafche.model.Company;
 
 public interface CompanyService {
 
-	List<CompanyDto> getCompanies();
+	List<Company> getCompanies();
 
-	void createCompany(CompanyDto company);
+	void createCompany(Company company);
 
-	void updateCompany(CompanyDto company);
+	void updateCompany(Company company);
 
-	CompanyDto getCompanyById(Integer companyId);
+	Company getCompanyById(Integer companyId);
+
+	Company getCompanyByCode(String string);
 
 }
