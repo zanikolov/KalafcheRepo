@@ -106,7 +106,7 @@
                             <td>{{newStock.importFileName}}</td>
                             <td>{{newStock.quantity}}</td>
                             <td>
-                                <a href="" ng-click="approveNewStock(newStock, $index)" ng-if="isUser() && !newStock.isApproved">
+                                <a href="" ng-click="approveNewStock(newStock, $index)" ng-if="!newStock.isApproved">
                                     <md-icon class="primary-icon" md-svg-src="images/icons/check.svg"></md-icon>
                                 </a>
                                 <a href="" ng-click="deleteNewStock(newStock.id, $index)" ng-if="isAdmin()">

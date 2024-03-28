@@ -25,7 +25,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 import com.kalafche.model.BaseStock;
 
 @Service
-public class PDFGeneratorServiceImpl implements PDFGeneratorService {
+public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorService {
 	
 	public static final String FONT = "fonts/FreeSans.ttf";
 	//public static final String FONT = "C:\\Zahari\\Projects\\FreeSans.ttf";

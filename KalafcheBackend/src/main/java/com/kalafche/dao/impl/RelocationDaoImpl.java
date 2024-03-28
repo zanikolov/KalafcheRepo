@@ -13,14 +13,15 @@ import org.springframework.stereotype.Service;
 import com.kalafche.dao.RelocationDao;
 import com.kalafche.enums.RelocationStatus;
 import com.kalafche.model.Relocation;
+import com.kalafche.model.invoice.InvoiceItem;
 
 @Service
 public class RelocationDaoImpl extends JdbcDaoSupport implements
 		RelocationDao {
 
 	private static final String INSERT_RELOCATION = "insert into relocation "
-			+ "(relocation_request_timestamp, employee_id, item_id, quantity, source_store_id, dest_store_id, status, archived, amount) "
-			+ "values (?, ?, ?, ?, ?, ?, ?, false, ? * (select iv.product_purchase_price from item_vw iv where iv.id = ?))";
+			+ "(relocation_request_timestamp, employee_id, item_id, quantity, source_store_id, dest_store_id, status, archived, amount, item_price) "
+			+ "values (?, ?, ?, ?, ?, ?, ?, false, ? * (select iv.product_purchase_price from item_vw iv where iv.id = ?), (select iv.product_purchase_price from item_vw iv where iv.id = ?))";
 
 	private static final String GET_RELOCATIONS = "select " +
 			"r.id, " +
@@ -33,6 +34,7 @@ public class RelocationDaoImpl extends JdbcDaoSupport implements
 			"r.dest_store_id, " +
 			"r.source_store_id, " +
 			"r.archived, " +
+			"r.item_price, " +
 			"iv.product_price, " +
 			"e.name as employee_name, " +
 			"iv.product_name, " +
@@ -71,7 +73,19 @@ public class RelocationDaoImpl extends JdbcDaoSupport implements
 
 	private static final String GET_RELOCATION_STATUS = "select status from relocation where id = ?";
 	
+	private static final String SELECT_INVOICE_ITEMS = "select concat(iv.product_name, ' - ',iv.product_type_name) as name, sum(r.quantity) as quantity, round(sum(r.amount), 2) as amount, r.item_price from " +
+			"relocation r " +
+			"join store st1 on st1.id = r.dest_store_id " +
+			"join company c1 on c1.id = st1.company_id " +
+			"join store st2 on st2.id = r.source_store_id " +
+			"join company c2 on c2.id = st2.company_id " +
+			"join item_vw iv on iv.id = r.item_id " +
+			"where c1.id = ? and c2.id = ? and RELOCATION_COMPLETE_TIMESTAMP between ? and ? " +
+			"group by iv.product_id, r.item_price ";
+	
 	private BeanPropertyRowMapper<Relocation> rowMapper;
+	
+	private BeanPropertyRowMapper<InvoiceItem> invoiceItemRowMapper;
 
 	@Autowired
 	public RelocationDaoImpl(DataSource dataSource) {
@@ -88,6 +102,15 @@ public class RelocationDaoImpl extends JdbcDaoSupport implements
 		return rowMapper;
 	}
 	
+	private BeanPropertyRowMapper<InvoiceItem> getInvoiceItemRowMapper() {
+		if (invoiceItemRowMapper == null) {
+			invoiceItemRowMapper = new BeanPropertyRowMapper<InvoiceItem>(InvoiceItem.class);
+			invoiceItemRowMapper.setPrimitivesDefaultedForNullValue(true);
+		}
+		
+		return invoiceItemRowMapper;
+	}
+	
 	@Override
 	public void insertRelocation(Relocation relocation) {
 		getJdbcTemplate().update(INSERT_RELOCATION,
@@ -99,6 +122,7 @@ public class RelocationDaoImpl extends JdbcDaoSupport implements
 				relocation.getDestStoreId(),
 				relocation.getStatus().toString(),	
 				relocation.getQuantity(), 
+				relocation.getItemId(), 
 				relocation.getItemId());			
 	}
 	
@@ -148,6 +172,13 @@ public class RelocationDaoImpl extends JdbcDaoSupport implements
 		
 		return getJdbcTemplate().query(query,
 				getRowMapper(), argList.toArray(new Object[argList.size()]));
+	}
+
+	@Override
+	public List<InvoiceItem> selectInvoiceItems(int recipientCompanyId, int issuerCompanyId, long startDate,
+			long endDate) {
+		return getJdbcTemplate().query(SELECT_INVOICE_ITEMS, getInvoiceItemRowMapper(), recipientCompanyId,
+				issuerCompanyId, startDate, endDate);
 	}
 	
 }

@@ -11,8 +11,10 @@ angular.module('kalafcheFrontendApp')
             getAllStoresForSaleReport: getAllStoresForSaleReport
 		});
 
-        function getAllStores() {   
-            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/store')
+        function getAllStores(includingWarehouse) {   
+            var params = {"params" : {"includingWarehouse": includingWarehouse}}
+            console.log(params);
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/store', params)
                 .then(
                     function(response) {
                         return response.data

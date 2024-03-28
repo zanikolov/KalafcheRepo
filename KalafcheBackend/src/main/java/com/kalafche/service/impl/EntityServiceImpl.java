@@ -24,8 +24,12 @@ public class EntityServiceImpl implements EntityService {
 	EmployeeService employeeService;
 	
 	@Override
-	public List<StoreDto> getStores() {
-		return storeDao.selectStores();
+	public List<StoreDto> getStores( boolean includingWarehouse) {
+		List<StoreDto> stores = storeDao.selectStores();
+		if (includingWarehouse) {
+			stores.add(getStoreByCode("RU_WH"));
+		}
+		return stores;
 	}
 
 	@Override

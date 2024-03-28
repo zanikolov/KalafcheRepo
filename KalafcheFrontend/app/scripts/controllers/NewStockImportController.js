@@ -132,6 +132,7 @@ angular.module('kalafcheFrontendApp')
         };
 
         function getNewStocks() {
+            console.log($scope.selectedStore);
             if ($scope.selectedStore) {
                 NewStockService.getNewStocks($scope.selectedStore.id).then(function(response) {
                     $scope.newStocks = response; 
@@ -144,7 +145,7 @@ angular.module('kalafcheFrontendApp')
         }
 
         function getAllStores() {
-            StoreService.getAllStores().then(function(response) {
+            StoreService.getAllStores(true).then(function(response) {
                 $scope.stores = response;
                 $scope.selectedStore = {"id": SessionService.currentUser.employeeStoreId};
                 getNewStocks();

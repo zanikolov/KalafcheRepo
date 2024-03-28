@@ -2,16 +2,18 @@ package com.kalafche.dao;
 
 import java.util.List;
 
-import com.kalafche.model.CompanyDto;
+import com.kalafche.model.Company;
 
 public interface CompanyDao {
 
-	public abstract List<CompanyDto> getAllCompanies();
+	public abstract List<Company> getAllCompanies();
 
-	public abstract void insertCompany(CompanyDto company);
+	public abstract void insertCompany(Company company);
 
-	public abstract CompanyDto selectCompany(String companyId);
+	public abstract Company selectCompanyById(String companyId);
 
-	public abstract void updateCompany(CompanyDto company);
+	public abstract void updateCompany(Company company);
+
+	public abstract Company selectCompanyByCode(String companyCode);
 
 }

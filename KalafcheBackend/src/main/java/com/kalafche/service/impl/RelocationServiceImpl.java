@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kalafche.dao.RelocationDao;
 import com.kalafche.dao.impl.StockDaoImpl;
 import com.kalafche.enums.RelocationStatus;
+import com.kalafche.model.invoice.InvoiceItem;
 import com.kalafche.model.NewStock;
 import com.kalafche.model.Relocation;
 import com.kalafche.service.DateService;
@@ -19,7 +20,6 @@ import com.kalafche.service.RelocationService;
 
 @Service
 public class RelocationServiceImpl implements RelocationService {
-
 
 	@Autowired
 	DateService dateService;
@@ -95,6 +95,13 @@ public class RelocationServiceImpl implements RelocationService {
 				relocationDao.insertRelocation(relocation);
 			}
 		}		
+	}
+
+	@Override
+	public List<InvoiceItem> getInvoiceItems(Integer recipientCompanyId, Integer issuerCompanyId,
+			Long startDateMilliseconds, Long endDateMilliseconds) {
+		return relocationDao.selectInvoiceItems(recipientCompanyId, issuerCompanyId, startDateMilliseconds,
+				endDateMilliseconds);
 	}
 
 }

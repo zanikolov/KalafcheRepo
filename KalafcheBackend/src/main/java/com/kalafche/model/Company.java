@@ -1,42 +1,24 @@
 package com.kalafche.model;
 
-public class CompanyDto {
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class Company {
 
 	private Integer id;
 	private String name;
 	private String code;
-	
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
-		this.id = id;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public CompanyDto() {
-	}
-
-	public CompanyDto(Integer id, String name) {
-		this.id = id;
-		this.name = name;
-	}
+	private String address;
+	private String city;
+	private String country;
+	private String accountablePerson;
+	private String number;
+	private String vatNumber;
+	private String bank;
+	private String iban;
+	private String bic;
 	
 	@Override
 	public int hashCode() {
@@ -54,7 +36,7 @@ public class CompanyDto {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		CompanyDto other = (CompanyDto) obj;
+		Company other = (Company) obj;
 		if (id == null) {
 			if (other.id != null)
 				return false;

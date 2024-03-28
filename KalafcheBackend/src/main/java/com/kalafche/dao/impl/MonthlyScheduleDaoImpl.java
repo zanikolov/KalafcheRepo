@@ -36,6 +36,8 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 	
 	private static final String MONTH_YEAR_CLAUSE = "and month = ? and year = ? ";
 	
+	private static final String COMPANY_ID_CLAUSE = "and s.company_id = ? ";
+	
 	private static final String ID_CLAUSE = "where ms.id = ? ";
 	
 	private static final String ORDER_BY_COMPANY_ID = "order by s.company_id ";
@@ -154,6 +156,15 @@ public class MonthlyScheduleDaoImpl extends JdbcDaoSupport implements MonthlySch
 		return getJdbcTemplate().query(
 				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + IS_FINALIZED_CLAUSE + MONTH_YEAR_CLAUSE + ORDER_BY_COMPANY_ID, new Object[] { isPresentForm, isFinalized, month, year },
 				getRowMapper());
+	}
+
+	@Override
+	public List<MonthlySchedule> getMonthlySchedulesByCompanyId(Integer month, Integer year, Integer companyId,
+			boolean isPresentForm, boolean isFinalized) {
+		return getJdbcTemplate().query(
+				SELECT_MONTHLY_SCHEDULE + IS_PRESENT_CLAUSE + IS_FINALIZED_CLAUSE + MONTH_YEAR_CLAUSE
+						+ COMPANY_ID_CLAUSE + ORDER_BY_COMPANY_ID,
+				new Object[] { isPresentForm, isFinalized, month, year, companyId }, getRowMapper());
 	}
 
 }

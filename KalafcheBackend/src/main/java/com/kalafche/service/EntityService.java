@@ -6,7 +6,7 @@ import com.kalafche.model.StoreDto;
 
 public interface EntityService {
 
-	List<StoreDto> getStores();
+	List<StoreDto> getStores(boolean includingWarehouse);
 
 	String getConcatenatedStoreIdsForFiltering(String storeId);
 

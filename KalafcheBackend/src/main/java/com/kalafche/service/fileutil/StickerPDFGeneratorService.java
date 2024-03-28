@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.kalafche.model.BaseStock;
 
-public interface PDFGeneratorService {
+public interface StickerPDFGeneratorService {
 
 	byte[] generatePdf(List<? extends BaseStock> newStocks);
 

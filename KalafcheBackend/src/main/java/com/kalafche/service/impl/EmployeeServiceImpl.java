@@ -130,7 +130,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 	@Override
 	public HashMap<String, List<Employee>> getAllActiveEmployeesGroupedByStore() {
 		HashMap<String, List<Employee>> employeesGroupedByStore = new HashMap<String, List<Employee>>();
-		List<StoreDto> stores = entityService.getStores();
+		List<StoreDto> stores = entityService.getStores(false);
 		for (StoreDto store : stores) {
 			 employeesGroupedByStore.put(store.getCity() + ", " + store.getName(), getEmployeesByStoreId(store.getId()));
 		}

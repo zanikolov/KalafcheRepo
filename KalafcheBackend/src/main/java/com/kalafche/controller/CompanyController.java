@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.dao.CompanyDao;
-import com.kalafche.model.CompanyDto;
+import com.kalafche.model.Company;
 import com.kalafche.service.CompanyService;
 
 @CrossOrigin
@@ -28,22 +28,22 @@ public class CompanyController {
 	CompanyService companyService;
 
 	@GetMapping
-	public List<CompanyDto> getAllCompanies() {
+	public List<Company> getAllCompanies() {
 		return companyDao.getAllCompanies();
 	}
 
 	@PutMapping
-	public void createCompany(@RequestBody CompanyDto company) {
+	public void createCompany(@RequestBody Company company) {
 		companyService.createCompany(company);
 	}
 	
 	@PostMapping
-	public void updateCompany(@RequestBody CompanyDto company) {
+	public void updateCompany(@RequestBody Company company) {
 		companyService.updateCompany(company);
 	}
 
 	@GetMapping("/{companyId}")
-	public CompanyDto getCompanyById(@PathVariable(value = "companyId") Integer companyId) {
+	public Company getCompanyById(@PathVariable(value = "companyId") Integer companyId) {
 		return companyService.getCompanyById(companyId);
 	}
 	

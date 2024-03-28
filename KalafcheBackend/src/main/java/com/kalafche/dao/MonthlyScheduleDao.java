@@ -20,4 +20,7 @@ public interface MonthlyScheduleDao {
 
 	List<MonthlySchedule> getMonthlySchedules(Integer month, Integer year, boolean isPresentForm, boolean isFinalized);
 
+	List<MonthlySchedule> getMonthlySchedulesByCompanyId(Integer month, Integer year, Integer companyId,
+			boolean isPresentForm, boolean isFinalized);
+
 }

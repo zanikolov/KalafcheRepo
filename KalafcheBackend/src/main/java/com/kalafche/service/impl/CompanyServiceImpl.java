@@ -6,7 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.kalafche.dao.CompanyDao;
-import com.kalafche.model.CompanyDto;
+import com.kalafche.model.Company;
 import com.kalafche.service.CompanyService;
 import com.kalafche.service.EmployeeService;
 
@@ -20,23 +20,28 @@ public class CompanyServiceImpl implements CompanyService {
 	EmployeeService employeeService;
 	
 	@Override
-	public List<CompanyDto> getCompanies() {
+	public List<Company> getCompanies() {
 		return companyDao.getAllCompanies();
 	}
 
 	@Override
-	public void createCompany(CompanyDto company) {
+	public void createCompany(Company company) {
 		companyDao.insertCompany(company);
 	}
 	
 	@Override
-	public void updateCompany(CompanyDto company) {
+	public void updateCompany(Company company) {
 		companyDao.updateCompany(company);
 	}
 
 	@Override
-	public CompanyDto getCompanyById(Integer companyId) {
-		return companyDao.selectCompany(companyId.toString());
+	public Company getCompanyById(Integer companyId) {
+		return companyDao.selectCompanyById(companyId.toString());
+	}
+
+	@Override
+	public Company getCompanyByCode(String companyCode) {
+		return companyDao.selectCompanyByCode(companyCode);
 	}
 
 }

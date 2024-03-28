@@ -10,7 +10,7 @@ import com.kalafche.dao.impl.StockDaoImpl;
 import com.kalafche.exceptions.CommonException;
 import com.kalafche.model.Stock;
 import com.kalafche.model.StockOrder;
-import com.kalafche.service.fileutil.PDFGeneratorService;
+import com.kalafche.service.fileutil.StickerPDFGeneratorService;
 
 @Service
 public class StockService {
@@ -22,7 +22,7 @@ public class StockService {
 	StockOrderDao stockOrderDao;
 	
 	@Autowired
-	PDFGeneratorService pdfGeneratorService;
+	StickerPDFGeneratorService pdfGeneratorService;
 	
 	public void updateTheQuantitiyOfSoldStock(int itemId, int storeId) {				
 		stockDao.updateTheQuantitiyOfSoldStock(itemId, storeId);
