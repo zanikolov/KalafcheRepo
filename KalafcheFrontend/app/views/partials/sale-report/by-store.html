@@ -71,7 +71,13 @@
                     {{report.deviceBrandName}} {{report.deviceModelName}} {{report.productCode}}
                 </div>
                 <div layout="row" flex>
-                    Брой {{report.itemCount}}
+                    Транзакции {{report.transactionCount}}
+                </div>
+                <div layout="row" flex>
+                    Артикули {{report.itemCount}}
+                </div>
+                <div layout="row" flex>
+                    SPT {{report.spt}}
                 </div>
                 <div layout="row" flex>
                     <b>{{report.totalAmount}}лв</b>
@@ -87,7 +93,13 @@
                             <label>Магазин</label>
                         </th>                      
                         <th>
+                            <label>Транзакции</label>
+                        </th>                        
+                        <th>
                             <label>Артикули</label>
+                        </th>
+                        <th>
+                            <label>SPT</label>
                         </th>
                         <th>
                             <label>Сума</label>
@@ -98,7 +110,9 @@
                     <tr dir-paginate="salesByStore in report.salesByStores | itemsPerPage:salesByStorePerPage" current-page="currentPage" pagination-id="store">
                         <td>{{(currentPage - 1) * salesByStorePerPage + $index + 1}}</td>
                         <td>{{salesByStore.storeName}}</td>
+                        <td>{{salesByStore.transactionCount}}</td>
                         <td>{{salesByStore.itemCount}}</td>
+                        <td>{{salesByStore.spt}}</td>
                         <td>{{salesByStore.amount}}лв</td>
                     </tr>
                 </tbody>

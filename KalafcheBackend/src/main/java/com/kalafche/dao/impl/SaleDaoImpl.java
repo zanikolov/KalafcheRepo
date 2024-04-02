@@ -566,6 +566,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 				    	salesByStore.setTransactionCount(rs.getBigDecimal(6));
 				    	if (BigDecimal.ZERO.compareTo(rs.getBigDecimal(5)) < 0) {
 				    		salesByStore.setSpt(rs.getBigDecimal(5).divide(rs.getBigDecimal(6), 2, RoundingMode.HALF_UP));
+				    	} else {
+				    		salesByStore.setSpt(BigDecimal.ZERO);
 				    	}
 				        return salesByStore;
 				    }

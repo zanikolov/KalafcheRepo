@@ -5,7 +5,8 @@ angular.module('kalafcheFrontendApp')
 		angular.extend(this, {
             getInStock: getInStock,
             getAllInStockForReport: getAllInStockForReport,
-            printStickersForStocks: printStickersForStocks
+            printStickersForStocks: printStickersForStocks,
+            printStickersForStocksV2: printStickersForStocksV2
 
 		});
 
@@ -41,7 +42,18 @@ angular.module('kalafcheFrontendApp')
               function(response) {
                 console.log(response.data);
                   var blob = new Blob([response.data], {type: "application/pdf"});
-                  FileSaver.saveAs(blob, 'Етикети за нова стока.pdf')
+                  FileSaver.saveAs(blob, 'Етикети наличност.pdf')
+              }
+          ); 
+    }
+
+    function printStickersForStocksV2(storeId) {
+      return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock/printStickers/v2/' + storeId, {responseType: "blob"})
+          .then(
+              function(response) {
+                console.log(response.data);
+                  var blob = new Blob([response.data], {type: "application/pdf"});
+                  FileSaver.saveAs(blob, 'Етикети наличност V2.pdf')
               }
           ); 
     }

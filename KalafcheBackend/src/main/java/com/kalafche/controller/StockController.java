@@ -64,4 +64,23 @@ public class StockController {
 	    return response;
 	}
 	
+	@GetMapping("/printStickers/v2/{storeId}")
+	public ResponseEntity<byte[]> printStockStickersV2ByStoreId(@PathVariable(value = "storeId") Integer storeId) {
+		
+		byte[] pdfBytes = new byte[1];
+		
+		if (storeId != null && storeId != 0) {
+			pdfBytes = stockService.printStockStickersV2ByStoreId(storeId);
+		}
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType("application/pdf"));
+		String filename = "stickers.pdf";
+		headers.setContentDispositionFormData(filename, filename);
+		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+		ResponseEntity<byte[]> response = new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+		
+		return response;
+	}
+	
 }

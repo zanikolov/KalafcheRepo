@@ -6,6 +6,8 @@ import com.kalafche.model.BaseStock;
 
 public interface StickerPDFGeneratorService {
 
-	byte[] generatePdf(List<? extends BaseStock> newStocks);
+	byte[] generateFullStickers(List<? extends BaseStock> newStocks);
+
+	byte[] generatePartialStickers(List<? extends BaseStock> newStocks);
 
 }

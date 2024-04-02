@@ -151,7 +151,7 @@ public class NewStockServiceImpl implements NewStockService {
 	@Override
 	public byte[] printNewStockStickers(Integer storeId) {
 		List<NewStock> newStocks = getNewStockByStoreId(storeId);
-		return pdfGeneratorService.generatePdf(newStocks);
+		return pdfGeneratorService.generateFullStickers(newStocks);
 	}
 
 	@Override
@@ -170,6 +170,12 @@ public class NewStockServiceImpl implements NewStockService {
 				deleteNewStock(newStock.getId());
 			}
 		}
+	}
+
+	@Override
+	public byte[] printNewStockPartialStickers(Integer storeId) {
+		List<NewStock> newStocks = getNewStockByStoreId(storeId);
+		return pdfGeneratorService.generatePartialStickers(newStocks);
 	}
 
 }

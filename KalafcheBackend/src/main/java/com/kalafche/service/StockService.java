@@ -62,11 +62,16 @@ public class StockService {
 
 	public byte[] printStockStickersByStoreId(Integer storeId) {
 		List<Stock> stocks = stockDao.getAllApprovedStocksForStickerPrinting(storeId);
-		return pdfGeneratorService.generatePdf(stocks);
+		return pdfGeneratorService.generateFullStickers(stocks);
 	}
 
 	public List<Stock> getAllApprovedStocks(Integer userStoreId, Integer selectedStoreId, Integer deviceBrandId, Integer deviceModelId, String productCodes, String barcode, Boolean showZeroInStocks) {
 		return stockDao.getAllApprovedStocks(userStoreId, selectedStoreId, deviceBrandId, deviceModelId, productCodes, barcode, showZeroInStocks);
+	}
+
+	public byte[] printStockStickersV2ByStoreId(Integer storeId) {
+		List<Stock> stocks = stockDao.getAllApprovedStocksForStickerPrinting(storeId);
+		return pdfGeneratorService.generatePartialStickers(stocks);
 	}
 	
 }

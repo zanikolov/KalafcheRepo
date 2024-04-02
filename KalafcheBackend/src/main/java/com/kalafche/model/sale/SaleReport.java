@@ -15,6 +15,7 @@ public class SaleReport extends DataReport {
 	private Integer companyQuantity;
 	private Integer itemCount;
 	private Integer transactionCount;
+	private BigDecimal spt;
 	private String storeName;
 	private Long startDate;
 	private Long endDate;
@@ -152,6 +153,20 @@ public class SaleReport extends DataReport {
 
 	public void setProductCode(String productCode) {
 		this.productCode = productCode;
+	}
+
+	/**
+	 * @return the spt
+	 */
+	public BigDecimal getSpt() {
+		return spt;
+	}
+
+	/**
+	 * @param spt the spt to set
+	 */
+	public void setSpt(BigDecimal spt) {
+		this.spt = spt;
 	}
 
 }

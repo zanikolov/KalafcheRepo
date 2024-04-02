@@ -93,4 +93,18 @@ public class NewStockController {
 	    return response;
 	}
 	
+	@GetMapping("/print/v2/{storeId}")
+	public ResponseEntity<byte[]> printNewStockPartialStickers(@PathVariable(value = "storeId") Integer storeId) {
+		byte[] pdfBytes = newStockService.printNewStockPartialStickers(storeId);
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType("application/pdf"));
+		String filename = "stickers.pdf";
+		headers.setContentDispositionFormData(filename, filename);
+		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+		ResponseEntity<byte[]> response = new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+		
+		return response;
+	}
+	
 }

@@ -80,7 +80,9 @@ public class RelocationDaoImpl extends JdbcDaoSupport implements
 			"join store st2 on st2.id = r.source_store_id " +
 			"join company c2 on c2.id = st2.company_id " +
 			"join item_vw iv on iv.id = r.item_id " +
-			"where c1.id = ? and c2.id = ? and RELOCATION_COMPLETE_TIMESTAMP between ? and ? " +
+			"where c1.id = ? and c2.id = ? " +
+			"and r.status = 'DELIVERED' " +
+			"and r.RELOCATION_COMPLETE_TIMESTAMP between ? and ? " +
 			"group by iv.product_id, r.item_price ";
 	
 	private BeanPropertyRowMapper<Relocation> rowMapper;
