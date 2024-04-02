@@ -12,6 +12,7 @@ angular.module('kalafcheFrontendApp')
             approveNewStock: approveNewStock,
             approveAllNewStocks: approveAllNewStocks,
             printStickersForNewStocks: printStickersForNewStocks,
+            printStickersForNewStocksV2: printStickersForNewStocksV2,
             relocateNewStocks: relocateNewStocks
 		});
 
@@ -76,6 +77,16 @@ angular.module('kalafcheFrontendApp')
                     function(response) {
                         var blob = new Blob([response.data], {type: "application/pdf"});
                         FileSaver.saveAs(blob, 'Етикети за нова стока.pdf')
+                    }
+                ); 
+        }
+
+        function printStickersForNewStocksV2(storeId) {
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/newStock/print/v2/' + storeId, {responseType: "arraybuffer"})
+                .then(
+                    function(response) {
+                        var blob = new Blob([response.data], {type: "application/pdf"});
+                        FileSaver.saveAs(blob, 'Етикети за нова стока V2.pdf')
                     }
                 ); 
         }

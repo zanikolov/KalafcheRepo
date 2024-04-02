@@ -398,7 +398,9 @@ public class SaleServiceImpl implements SaleService {
 	
 	private void calculateTotalAmountAndCountSaleByStore(List<SalesByStore> saleByStores, SaleReport saleReport) {
 		BigDecimal totalAmount = BigDecimal.ZERO;	
-		BigDecimal totalCount = BigDecimal.ZERO;	
+		BigDecimal totalTransactionCount = BigDecimal.ZERO;	
+		BigDecimal totalItemCount = BigDecimal.ZERO;	
+		BigDecimal totalSPT = BigDecimal.ZERO;	
 		
 		if (saleByStores != null && !saleByStores.isEmpty()) {
 			totalAmount = saleByStores.stream()
@@ -407,19 +409,35 @@ public class SaleServiceImpl implements SaleService {
 							.map(amount -> amount != null)
 							.orElse(false))
 			        .map(saleByStore -> saleByStore.getAmount())	        
-			        .reduce(BigDecimal.ZERO, BigDecimal::add);	
+			        .reduce(BigDecimal.ZERO, BigDecimal::add);
 			
-			totalCount = saleByStores.stream()
+			totalTransactionCount = saleByStores.stream()
+					.filter(saleByStore -> Optional.ofNullable(saleByStore)
+							.map(SalesByStore::getTransactionCount)
+							.map(count -> count != null)
+							.orElse(false))
+					.map(saleByStore -> saleByStore.getTransactionCount())	        
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
+			
+			totalItemCount = saleByStores.stream()
 					.filter(saleByStore -> Optional.ofNullable(saleByStore)
 							.map(SalesByStore::getItemCount)
 							.map(count -> count != null)
 							.orElse(false))
 					.map(saleByStore -> saleByStore.getItemCount())	        
-					.reduce(BigDecimal.ZERO, BigDecimal::add);	
+					.reduce(BigDecimal.ZERO, BigDecimal::add);
+			
+	    	if (BigDecimal.ZERO.compareTo(totalItemCount) < 0) {
+	    		totalSPT = totalItemCount.divide(totalTransactionCount, 2, RoundingMode.HALF_UP);
+	    	} else {
+	    		totalSPT = BigDecimal.ZERO;
+	    	}
 		}
 		
-		saleReport.setTotalAmount(totalAmount);	
-		saleReport.setItemCount(totalCount.intValue());
+		saleReport.setTotalAmount(totalAmount);
+		saleReport.setTransactionCount(totalTransactionCount.intValue());
+		saleReport.setItemCount(totalItemCount.intValue());
+		saleReport.setSpt(totalSPT);
 	}
 	
 	private void calculateTotalAmountAndCountForSales(List<Sale> sales, SaleReport saleReport) {

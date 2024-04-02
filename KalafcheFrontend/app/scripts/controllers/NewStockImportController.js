@@ -104,6 +104,13 @@ angular.module('kalafcheFrontendApp')
                 );     
         };
 
+        $scope.printStickersForNewStocksV2 = function() {
+            NewStockService.printStickersForNewStocksV2($scope.selectedStore.id).then(
+                    function(response) {
+                    }
+                );     
+        };
+
         $scope.relocateNewStocks = function() {
             NewStockService.relocateNewStocks($scope.selectedStore.id).then(
                     function(response) {

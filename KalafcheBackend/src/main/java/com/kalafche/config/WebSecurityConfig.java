@@ -35,6 +35,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 					.antMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 					.antMatchers("/logout-success").permitAll()
 					.anyRequest().authenticated()
+//					.anyRequest().permitAll()
 					.and()
 //					.addFilterBefore(corsFilter, CorsFilter.class)
 					.httpBasic().authenticationEntryPoint(new RestAuthenticationEntryPoint())

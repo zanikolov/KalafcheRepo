@@ -142,5 +142,9 @@
             <md-button type="submit" class="md-raised md-primary" ng-click="printStickersStocks()">Принтирай</md-button>
         </div>
 
+        <div flex ng-if="selectedStore.id != 0 && inStockList.length > 0">
+            <md-button type="submit" class="md-raised md-primary" ng-click="printStickersStocksV2()">Принтирай V2</md-button>
+        </div>
+
     </md-content>
 </div>

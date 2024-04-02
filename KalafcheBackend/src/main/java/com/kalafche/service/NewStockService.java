@@ -31,5 +31,7 @@ public interface NewStockService {
 	List<NewStock> getNewStockByStoreId(Integer storeId);
 
 	void relocateNewStock(Integer storeId);
+
+	byte[] printNewStockPartialStickers(Integer storeId);
 	
 }
