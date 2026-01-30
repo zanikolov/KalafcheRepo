@@ -14,7 +14,15 @@
         <md-content layout-padding layout="column">
             <div flex>           
                 <div layout="row">
-                    <md-input-container>
+                    <md-input-container style="width:40%">
+                        <label>Търговец</label>
+                        <md-select name="selectEmployee" ng-model="sale.employeeId" required>
+                            <md-option ng-repeat="employee in employees" ng-value="employee.id">
+                                {{employee.name}}
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container style="width:15%">
                         <label>Плащане</label>
                         <md-select name="selectPayment" ng-model="sale.isCashPayment" required>
                             <md-option ng-repeat="type in [{ name: 'С карта', value: false }, { name: 'В брой', value: true }]" ng-value="type.value">
@@ -59,7 +67,7 @@
                                     <span ng-if="stock.discountCode.discountCampaignCode == 'LOYAL'">{{stock.discountCode.discountCampaignName}} {{stock.discountCode.discountValue}}{{stock.discountCode.discountTypeSign}} - {{stock.discountCode.loyalCustomerName}}</span>
                                     <span ng-if="stock.discountCode.discountCampaignCode != 'LOYAL' && stock.discountCode.discountCampaignCode != 'PARTNER'">{{stock.discountCode.discountCampaignName}} {{stock.discountCode.discountValue}}{{stock.discountCode.discountTypeSign}}</span>
                                 </td>
-                                <td>{{stock.productPrice}}</td>
+                                <td>{{stock.productPrice}}лв / {{stock.productPriceEur}}€</td>
                                 <td>
                                     <a href="" ng-click="removeStock($index, stock)">
                                         <md-icon class="primary-icon" md-svg-src="images/icons/close.svg"></md-icon>
@@ -71,13 +79,60 @@
                 </div> 
                 <hr/>
                 <div layout="row">  
-                    <span>Цена: <b>{{totalSumReport.totalSum}}лв</b></span>
+                    <span>Цена: <b>{{totalSumReport.totalSum}}лв / {{totalSumReport.totalSumEuro}} €</b></span>
                 </div>
                 <div layout="row">  
-                    <span>Отстъпка: <b>{{totalSumReport.discount}}лв</b></span>
+                    <span>Отстъпка: <b>{{totalSumReport.discount}}лв / {{totalSumReport.discountEuro}} €</b></span>
                 </div>
                 <div layout="row">  
-                    <span>Тотал: <b>{{totalSumReport.totalSumAfterDiscount}}лв</b></span>
+                    <span>Тотал: <b>{{totalSumReport.totalSumAfterDiscount}}лв / {{totalSumReport.totalSumAfterDiscountEuro}} €</b></span>
+                </div>
+            </div>
+            <div flex>           
+                <div layout="row">
+                    <md-input-container style="width:10%">
+                        <label>Платено</label>
+                        <input type="number" min="0" step="0.01" name="paid" ng-model="sale.paid" ng-blur="onChangePaidAmount()" required>
+                    </md-input-container>
+                    <md-input-container style="width:10%">
+                        <label>Валута</label>
+                        <md-select name="selectCurrency" ng-model="sale.currency" ng-change="onChangePaidAmount()" required>
+                            <md-option ng-value="'EUR'">EUR</md-option>
+                            <md-option ng-value="'BGN'">BGN</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container>
+                        <span>Ресто: <b>{{totalSumReport.change}}лв / {{totalSumReport.changeEuro}} €</b></span>
+                    </md-input-container>
+                </div>   
+            </div>
+            <div flex>           
+                <div layout="row">
+                    <md-input-container style="width:10%">
+                        <md-checkbox ng-model="sale.isReplacement" ng-change="onIsReplacementChanged()">
+                            Замяна
+                        </md-checkbox>
+                    </md-input-container>
+                    <md-input-container ng-if="sale.isReplacement">
+                        <label>УНП</label>
+                        <input name="replacementSaleUSI" ng-model="sale.replacementSaleUSI" ng-blur="onChangeReplacementSaleUSI()" ng-maxlength="22" required>
+                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.replacementSaleUSI}}</span>
+                        <!-- ng-blur="getProductProperties(newNewStock)" ng-focus="resetProductProperties(newNewStock)" -->
+                    </md-input-container>
+                    <md-input-container>
+                        <div ng-if="sale.isReplacement && replacementSale != null">
+                            <span>{{getSaleTimestamp(replacementSale.saleTimestamp)}} <b>|</b> {{replacementSale.storeName}} <b>|</b> {{replacementSale.employeeName}}</span>
+                            <table class="table table-hover table-condensed">
+                                <tbody>               
+                                    <tr ng-repeat="saleItem in replacementSale.saleItems track by $index" class="item-row">
+                                        <td>{{saleItem.deviceModelName}}</td>
+                                        <td>{{saleItem.productCode}} {{saleItem.productName}}</td> 
+                                        <td><span ng-if="saleItem.isRefunded"><b>Върнат</b></span></td> 
+                                    </tr>
+                                </tbody>
+                            </table>   
+                        </div>
+                    </md-input-container>
                 </div>
             </div>
         </md-content>

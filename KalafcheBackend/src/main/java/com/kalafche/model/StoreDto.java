@@ -1,5 +1,10 @@
 package com.kalafche.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class StoreDto {
 
 	private Integer id;
@@ -9,69 +14,12 @@ public class StoreDto {
 	private Integer companyId;
 	private String companyName;
 	private String companyCode;
-
-	public Integer getId() {
-		return id;
-	}
-
-	public void setId(Integer id) {
+	private String fdSerialNo;
+	
+	public StoreDto() {}
+	
+	public StoreDto(Integer id) {
 		this.id = id;
-	}
-
-	public String getCity() {
-		return city;
-	}
-
-	public void setCity(String city) {
-		this.city = city;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public StoreDto() {
-	}
-
-	public StoreDto(Integer id, String name) {
-		this.id = id;
-		this.name = name;
-	}
-
-	public Integer getCompanyId() {
-		return companyId;
-	}
-
-	public void setCompanyId(Integer companyId) {
-		this.companyId = companyId;
-	}
-
-	public String getCompanyName() {
-		return companyName;
-	}
-
-	public void setCompanyName(String companyName) {
-		this.companyName = companyName;
-	}
-
-	public String getCompanyCode() {
-		return companyCode;
-	}
-
-	public void setCompanyCode(String companyCode) {
-		this.companyCode = companyCode;
 	}
 
 	@Override

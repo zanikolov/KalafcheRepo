@@ -35,6 +35,11 @@ public class CalendarServiceImpl implements CalendarService {
 		calendarDao.insertDays(generateDaysForDBCalendar(13, 1));
 	}	
 
+	@Override
+	public void insertCalendar() {
+		calendarDao.insertDays(generateDaysForDBCalendar(1, 2));
+	}
+	
 	private List<DayDto> generateDaysForDBCalendar(Integer offsetInMonths, Integer periodInMonths) {
 		ZoneId zoneId = ZoneId.of("Europe/Sofia");
 		ZonedDateTime now = ZonedDateTime.of(LocalDateTime.now(), zoneId);

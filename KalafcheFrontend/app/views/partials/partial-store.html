@@ -18,6 +18,11 @@
                     <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>
                 </md-input-container>
                 <md-input-container class="md-block">
+                    <label>ФУ Сериен №</label>
+                    <input ng-model="store.fdSerialNo" name="fdSerialNo" ng-change="resetServerErrorMessages()" required>
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.fdSerialNo}}</span>
+                </md-input-container>
+                <md-input-container class="md-block">
                     <label>Фирма</label>
                     <md-select name="storeId" ng-model="store.companyId" required>
                         <md-option value="" selected></md-option>
@@ -42,6 +47,7 @@
                         <th>Град</th>
                         <th>Име</th>
                         <th>Код</th>
+                        <th>ФУ Сериен №</th>
                         <th>Фирма</th>
                         <th></th>
                     </tr>
@@ -52,6 +58,7 @@
                         <td>{{store.city}}</td>
                         <td>{{store.name}}</td>
                         <td>{{store.code}}</td>
+                        <td>{{store.fdSerialNo}}</td>
                         <td>{{store.companyName}}</td>
                         <td>
                             <a href="" ng-click="openStoreForEdit(store)">

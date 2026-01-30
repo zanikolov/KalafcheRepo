@@ -16,7 +16,7 @@ angular.module('kalafcheFrontendApp')
 
         function init() {
             $scope.currentPage = 1;  
-            $scope.salesByStorePerPage = 25;
+            $scope.salesByStorePerPage = 50;
             $scope.saleItems = []; 
             $scope.stores = [];
             $scope.brands = [];

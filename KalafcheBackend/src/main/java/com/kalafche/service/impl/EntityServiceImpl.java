@@ -67,6 +67,8 @@ public class EntityServiceImpl implements EntityService {
 				return storeDao.selectStoreIdsByManager(null);
 			} else if (employeeService.isLoggedInEmployeeManager()) {
 				return storeDao.selectStoreIdsByManager(employeeService.getLoggedInEmployeeUsername());
+			} else {
+				return employeeService.getLoggedInEmployee().getStoreId().toString();
 			}
 		}
 		

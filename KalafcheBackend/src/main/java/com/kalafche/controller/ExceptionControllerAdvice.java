@@ -19,6 +19,7 @@ import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.exceptions.ErrorResponse;
 import com.kalafche.exceptions.ExcelInvalidFormatException;
 import com.kalafche.exceptions.ImageUploadException;
+import com.kalafche.exceptions.NoRefundedItemException;
 
 /**
  * Exception handler controller advice
@@ -69,6 +70,14 @@ public class ExceptionControllerAdvice extends  ResponseEntityExceptionHandler {
 		Map<String, String> errors = Maps.newHashMap();
 		errors.put(exception.getField(), exception.getMessage());
 		ErrorResponse errorResponse = new ErrorResponse(errors);
+		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), HttpStatus.BAD_REQUEST);
+	}
+	
+	@ExceptionHandler(NoRefundedItemException.class)
+	public ResponseEntity<String> handleNoRefundedItemException(NoRefundedItemException exception) throws JsonProcessingException {
+		Map<String, String> errors = Maps.newHashMap();
+		errors.put(exception.getField(), exception.getMessage());
+		ErrorResponse errorResponse = new ErrorResponse(errors);		
 		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), HttpStatus.BAD_REQUEST);
 	}
 

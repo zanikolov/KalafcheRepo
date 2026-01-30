@@ -24,4 +24,8 @@ public class CalendarController {
 		return calendarService.getPublicHolidays();
 	}
 	
+	@GetMapping("/insertCalendar")
+	public void insertCalendar() {
+		calendarService.insertCalendar();
+	}
 }

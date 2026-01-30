@@ -3,6 +3,9 @@
 		<md-tab ng-if="isAdmin() || isManager()" label="Магазини">
   			<sale-report-by-store></sale-report-by-store>
   		</md-tab>
+		<md-tab ng-if="isUser()" label="Магазин">
+			<sale-report-by-store></sale-report-by-store>
+		</md-tab>
   		<md-tab label="Артикули">
   			<sale-report-by-item></sale-report-by-item>
   		</md-tab>

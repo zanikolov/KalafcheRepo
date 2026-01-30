@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -64,13 +65,18 @@ public class FormulaServiceImpl implements FormulaService {
 		List<Attribute> attributes = getAttributes(formula);
 		
 		DoubleEvaluator eval = new DoubleEvaluator();
-		List<StoreDto> stores = storeService.getStores(false);
+		List<StoreDto> stores = new ArrayList<StoreDto>(Arrays.asList(new StoreDto(0)));			
+		stores.addAll(storeService.getStores(false));	
 		List<CalculationResponse> resultList = new ArrayList<CalculationResponse>();
 		
 		for (StoreDto store : stores) {
 			CalculationResponse result = new CalculationResponse();
 			result.setStoreId(store.getId());
-			result.setStoreName(store.getCity() + ", " + store.getName());
+			if (store.getCity() != null) {
+				result.setStoreName(store.getCity() + ", " + store.getName());
+			} else {
+				result.setStoreName("Всички магазини");
+			}
 			StaticVariableSet<Double> variablesSet = new StaticVariableSet<Double>();
 			List<Attribute> storeAttributes = new ArrayList<Attribute>();
 			for (Attribute attribute : attributes) {

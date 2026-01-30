@@ -279,44 +279,49 @@ public class RevisionServiceImpl implements RevisionService {
 	@Transactional
 	@Override
 	public Revision finalizeRevision(Revision revision) {
-		List<RevisionItem> revisionItems = revisionDao.getRevisionItemsByRevisionId(revision.getId(), false);
-		
-		BigDecimal shortageAmount = BigDecimal.ZERO;
-		Integer shortageCount = 0;
-		BigDecimal surplusAmount = BigDecimal.ZERO;
-		Integer surplusCount = 0;
-		for (RevisionItem revisionItem : revisionItems) {
-			int discrepancy = revisionItem.getActual() - revisionItem.getExpected();
-			
-			if (discrepancy < 0) {
-				shortageCount += discrepancy;
-				shortageAmount = shortageAmount.add(revisionItem.getProductPrice().multiply(new BigDecimal(discrepancy)));
+		revision = revisionDao.getRevision(revision.getId());
+		if (!revision.getIsFinalized()) {
+			List<RevisionItem> revisionItems = revisionDao.getRevisionItemsByRevisionId(revision.getId(), false);
+
+			BigDecimal shortageAmount = BigDecimal.ZERO;
+			Integer shortageCount = 0;
+			BigDecimal surplusAmount = BigDecimal.ZERO;
+			Integer surplusCount = 0;
+			for (RevisionItem revisionItem : revisionItems) {
+				int discrepancy = revisionItem.getActual() - revisionItem.getExpected();
+
+				if (discrepancy < 0) {
+					shortageCount += discrepancy;
+					shortageAmount = shortageAmount
+							.add(revisionItem.getProductPrice().multiply(new BigDecimal(discrepancy)));
+				}
+
+				if (discrepancy > 0) {
+					surplusCount += discrepancy;
+					surplusAmount = surplusAmount
+							.add(revisionItem.getProductPrice().multiply(new BigDecimal(discrepancy)));
+				}
 			}
-			
-			if (discrepancy > 0) {
-				surplusCount += discrepancy;
-				surplusAmount = surplusAmount.add(revisionItem.getProductPrice().multiply(new BigDecimal(discrepancy)));
-			}
+
+			revision.setShortageAmount(shortageAmount);
+			revision.setShortageCount(shortageCount);
+			revision.setSurplusAmount(surplusAmount);
+			revision.setSurplusCount(surplusCount);
+			revision.setAbsoluteAmountBalance(surplusAmount.add(shortageAmount.abs()));
+			revision.setAbsoluteCountBalance(surplusCount + Math.abs(shortageCount));
+			revision.setTotalAmount(surplusAmount.add(shortageAmount));
+
+			Long currentMillis = dateService.getCurrentMillisBGTimezone();
+			revision.setLastUpdateTimestamp(currentMillis);
+			revision.setSubmitTimestamp(currentMillis);
+			revision.setUpdatedByEmployeeId(employeeService.getLoggedInEmployee().getId());
+
+			syncRevisionItemsActualWithStockQuantities(revision);
+			revision.setIsFinalized(true);
+			revision.setActualSynced(true);
+			revisionDao.finalizeRevision(revision);
 		}
-		
-		revision.setShortageAmount(shortageAmount);
-		revision.setShortageCount(shortageCount);
-		revision.setSurplusAmount(surplusAmount);
-		revision.setSurplusCount(surplusCount);
-		revision.setAbsoluteAmountBalance(surplusAmount.add(shortageAmount.abs()));
-		revision.setAbsoluteCountBalance(surplusCount + Math.abs(shortageCount));
-		revision.setTotalAmount(surplusAmount.add(shortageAmount));
-		
-		Long currentMillis = dateService.getCurrentMillisBGTimezone();
-		revision.setLastUpdateTimestamp(currentMillis);
-		revision.setSubmitTimestamp(currentMillis);
-		revision.setUpdatedByEmployeeId(employeeService.getLoggedInEmployee().getId());
-		
-		syncRevisionItemsActualWithStockQuantities(revision);
-		revision.setIsFinalized(true);
-		revision.setActualSynced(true);
-		revisionDao.finalizeRevision(revision);
-		
+
 		return revision;
 	}
 

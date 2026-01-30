@@ -38,18 +38,21 @@
                 <md-input-container class="md-block" flex="25">
                     <label>Доставна цена</label>
                     <input type="number" min="0" step="0.01" ng-model="product.purchasePrice" name="purchasePrice">
-                    <!-- <span ng-message="serverError" class="label label-error">{{serverErrorMessages.price}}</span> -->
+                </md-input-container>
+                <md-input-container class="md-block" flex="25">
+                    <label>Бонус точки</label>
+                    <input type="number" min="0" step="0.1" ng-model="product.bonusPts" name="bonusPts">
                 </md-input-container>
             </form>
         </div>
-<!--         <div layout="column" flex-offset="5" flex="45" style="margin-top:5px">
+        <div layout="column" flex-offset="5" flex="45" style="margin-top:5px">
             <div layout="row" ng-repeat="specificPrice in product.specificPrices">
                 <md-input-container class="md-block" style="margin:0">
                     <label>{{specificPrice.storeName}}</label>
                     <input type="number" min="0" step="0.01" ng-model="specificPrice.price">
                 </md-input-container>
             </div>
-        </div> -->
+        </div>
     </md-content>
     <md-content layout-padding layout="row">
         <md-button ng-disabled="productForm.$invalid" ng-click="submitProduct()" class="md-raised md-primary">Запази</md-button>
@@ -74,6 +77,7 @@
                         <th><label>Състав</label></th>
                         <th><label>Доставна цена</label></th>
                         <th><label>Цена</label></th>
+                        <th><label>Бонус точки</label></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -85,6 +89,7 @@
                         <td>{{product.fabric}}</td>
                         <td>{{product.purchasePrice}}</td>
                         <td>{{product.price}}</td>
+                        <td>{{product.bonusPts}}</td>
                         <td>
                             <a href="" ng-click="editProduct(product)">
                                 <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>

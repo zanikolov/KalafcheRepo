@@ -13,4 +13,6 @@ public interface CalendarService {
 	List<DayDto> getPublicHolidays();
 
 	Integer getWorkingHoursInMinutesForMonth(Integer month, Integer year);
+
+	void insertCalendar();
 }

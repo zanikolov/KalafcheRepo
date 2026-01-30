@@ -79,7 +79,8 @@ module.exports = function (grunt) {
         constants: {
           Environment: {
             name: 'development',
-            apiEndpoint: 'http://localhost:8080'
+            apiEndpoint: 'http://localhost:8080',
+            fiscalMiddlewareEndpoint: 'http://localhost:8001'
           }
         }
       },
@@ -90,7 +91,8 @@ module.exports = function (grunt) {
         constants: {
           Environment: {
             name: 'production',
-            apiEndpoint: 'http://3.76.142.154:8080'
+            apiEndpoint: 'http://3.76.142.154:8080',
+            fiscalMiddlewareEndpoint: 'http://localhost:8001'
           }
         }
       }

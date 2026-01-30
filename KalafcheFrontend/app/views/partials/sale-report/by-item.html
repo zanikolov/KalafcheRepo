@@ -153,6 +153,9 @@
                         <th>
                             <label>Продажна</label>
                         </th>
+                        <th>
+                            <label>Бонус точки</label>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -165,8 +168,9 @@
                         <td>{{saleItem.employeeName}}</td>
                         <td>{{getSaleTimestamp(saleItem.saleTimestamp)}}</td>
                         <td>{{saleItem.discountCode}}</td>
-                        <td>{{saleItem.itemPrice}}лв</td>
-                        <td>{{saleItem.salePrice}}лв</td>
+                        <td>{{saleItem.itemPrice}}лв / {{saleItem.itemPriceEuro}}€</td>
+                        <td>{{saleItem.salePrice}}лв / {{saleItem.salePriceEuro}}€</td>
+                        <td>{{saleItem.bonusPts}}т.</td>
                     </tr>
                 </tbody>
             </table>

@@ -10,6 +10,7 @@ import lombok.Setter;
 public class DataReport {
 
 	private BigDecimal totalAmount;
+	private BigDecimal totalAmountEuro;
 	private Integer count;
 	
 }

@@ -30,6 +30,12 @@ angular.module('kalafcheFrontendApp')
             $scope.monthNames = ["Януари", "Февруари", "Март", "Април", "Май", "Юни", "Юли", "Август", "Септември", "Октомври", "Ноември", "Декември"];
             var year = currYear;
             var month = currMonth + 1;
+            if (month === 12) {
+                month = 0;
+                year += 1;
+            }
+
+            console.log(month + ", " + year);
 
             while ($scope.months.length < 12) {
                 if (month == -1) {

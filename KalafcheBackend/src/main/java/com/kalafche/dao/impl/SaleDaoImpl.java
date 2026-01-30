@@ -21,27 +21,153 @@ import org.springframework.util.StringUtils;
 
 import com.kalafche.dao.SaleDao;
 import com.kalafche.model.DataReport;
+import com.kalafche.model.PeriodInMillis;
 import com.kalafche.model.sale.Sale;
 import com.kalafche.model.sale.SaleItem;
 import com.kalafche.model.sale.SalesByStore;
 import com.kalafche.model.sale.SalesByStoreByDayByProductType;
+import com.kalafche.model.sale.Transaction;
 import com.kalafche.model.sale.TransactionsByStoreByDay;
+import com.kalafche.service.CurrencyService;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 
 @Service
 public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
-	
+
 	@Autowired
 	EmployeeService employeeService;
 	
+	@Autowired
+	CurrencyService currencyService;
+	
+	private static final BigDecimal ONE_HUNDRED = new BigDecimal(100);
+	
+	private final class SalesByStoreRowMapper implements RowMapper<SalesByStore> {
+		@Override
+		public SalesByStore mapRow(ResultSet rs, int rowNum) throws SQLException {
+			SalesByStore salesByStore = new SalesByStore();
+			salesByStore.setStoreId(rs.getInt(1));
+			salesByStore.setStoreCode(rs.getString(2));
+			salesByStore.setStoreName(rs.getString(3));
+			salesByStore.setAmount(rs.getBigDecimal(4));
+			salesByStore.setItemCount(rs.getBigDecimal(5));
+			salesByStore.setSaleCount(rs.getBigDecimal(6));
+			salesByStore.setTransactionCount(rs.getBigDecimal(7));
+			salesByStore.setBonusPts(rs.getBigDecimal(8));
+			salesByStore.setProtectorCount(rs.getBigDecimal(9));
+			salesByStore.setProtectorPlusCount(rs.getBigDecimal(10));
+			if (BigDecimal.ZERO.compareTo(rs.getBigDecimal(5)) < 0 && BigDecimal.ZERO.compareTo(rs.getBigDecimal(7)) < 0) {
+				salesByStore.setSpt(rs.getBigDecimal(5).divide(rs.getBigDecimal(7), 2, RoundingMode.HALF_UP));
+			} else {
+				salesByStore.setSpt(BigDecimal.ZERO);
+			}
+			if (BigDecimal.ZERO.compareTo(rs.getBigDecimal(8)) < 0 && BigDecimal.ZERO.compareTo(rs.getBigDecimal(5)) < 0) {
+				salesByStore.setSqs(rs.getBigDecimal(8).divide(rs.getBigDecimal(5), 2, RoundingMode.HALF_UP));
+			} else {
+				salesByStore.setSqs(BigDecimal.ZERO);
+			}
+			if (BigDecimal.ZERO.compareTo(rs.getBigDecimal(9)) < 0 && BigDecimal.ZERO.compareTo(rs.getBigDecimal(10)) < 0) {
+				salesByStore.setAttachRate(rs.getBigDecimal(10).divide(rs.getBigDecimal(9), 2, RoundingMode.HALF_UP).multiply(ONE_HUNDRED));
+			} else {
+				salesByStore.setAttachRate(BigDecimal.ZERO);
+			}
+		    return salesByStore;
+		}
+	}
+	
+	private final class SaleItemRowMapper implements RowMapper<SaleItem> {
+		@Override
+		public SaleItem mapRow(ResultSet rs, int rowNum) throws SQLException {
+			SaleItem saleItem = new SaleItem();
+			saleItem.setId(rs.getInt("ID"));
+			saleItem.setSaleId(rs.getInt("SALE_ID"));
+			saleItem.setItemId(rs.getInt("ITEM_ID"));
+			saleItem.setIsRefunded(rs.getBoolean("IS_REFUNDED"));
+			saleItem.setSaleTimestamp(rs.getLong("SALE_TIMESTAMP"));
+			saleItem.setBonusPts(rs.getInt("BONUS_PTS"));
+			saleItem.setProductId(rs.getInt("PRODUCT_ID"));
+			saleItem.setProductCode(rs.getString("PRODUCT_CODE"));
+			saleItem.setProductName(rs.getString("PRODUCT_NAME"));
+			saleItem.setProductTypeId(rs.getInt("PRODUCT_TYPE_ID"));
+			saleItem.setProductTypeName(rs.getString("PRODUCT_TYPE_NAME"));
+			saleItem.setProductMasterTypeId(rs.getInt("PRODUCT_MASTER_TYPE_ID"));
+			saleItem.setProductMasterTypeName(rs.getString("PRODUCT_MASTER_TYPE_NAME"));
+			saleItem.setDeviceModelId(rs.getInt("DEVICE_MODEL_ID"));
+			saleItem.setDeviceModelName(rs.getString("DEVICE_MODEL_NAME"));
+			saleItem.setDeviceBrandId(rs.getInt("DEVICE_BRAND_ID"));
+			saleItem.setEmployeeId(rs.getInt("EMPLOYEE_ID"));
+			saleItem.setEmployeeName(rs.getString("EMPLOYEE_NAME"));
+			saleItem.setStoreId(rs.getInt("STORE_ID"));
+			saleItem.setStoreName(rs.getString("STORE_NAME"));
+			saleItem.setDiscountCampaignCode(rs.getString("discountCampaignCode"));
+			saleItem.setDiscountCode(rs.getInt("discountCode"));
+			saleItem.setSalePrice(rs.getBigDecimal("SALE_PRICE"));
+			saleItem.setItemPrice(rs.getBigDecimal("ITEM_PRICE"));
+			saleItem.setSalePriceEuro(currencyService.convertToEuro(rs.getBigDecimal("SALE_PRICE")));		
+			saleItem.setItemPriceEuro(currencyService.convertToEuro(rs.getBigDecimal("ITEM_PRICE")));	
+			
+			return saleItem;
+		}
+	}
+		
+	private final class SaleItemBySaleRowMapper implements RowMapper<SaleItem> {
+		@Override
+		public SaleItem mapRow(ResultSet rs, int rowNum) throws SQLException {
+			SaleItem saleItem = new SaleItem();
+			saleItem.setId(rs.getInt("ID"));
+			saleItem.setSaleId(rs.getInt("SALE_ID"));
+			saleItem.setItemId(rs.getInt("ITEM_ID"));
+			saleItem.setIsRefunded(rs.getBoolean("IS_REFUNDED"));
+			saleItem.setBonusPts(rs.getInt("BONUS_PTS"));
+			saleItem.setProductId(rs.getInt("PRODUCT_ID"));
+			saleItem.setProductCode(rs.getString("PRODUCT_CODE"));
+			saleItem.setProductName(rs.getString("PRODUCT_NAME"));
+			saleItem.setDeviceModelId(rs.getInt("DEVICE_MODEL_ID"));
+			saleItem.setDeviceModelName(rs.getString("DEVICE_MODEL_NAME"));
+			saleItem.setDeviceBrandId(rs.getInt("DEVICE_BRAND_ID"));
+			saleItem.setDeviceBrandName(rs.getString("DEVICE_BRAND_NAME"));
+			saleItem.setSalePrice(rs.getBigDecimal("SALE_PRICE"));
+			saleItem.setItemPrice(rs.getBigDecimal("ITEM_PRICE"));
+			saleItem.setSalePriceEuro(currencyService.convertToEuro(rs.getBigDecimal("SALE_PRICE")));		
+			saleItem.setItemPriceEuro(currencyService.convertToEuro(rs.getBigDecimal("ITEM_PRICE")));	
+			
+			return saleItem;
+		}
+	}
+	
+	private final class SaleRowMapper implements RowMapper<Sale> {
+		@Override
+		public Sale mapRow(ResultSet rs, int rowNum) throws SQLException {
+			Sale sale = new Sale();
+			sale.setId(rs.getInt("ID"));
+			sale.setUniqueSaleId(rs.getString("UNIQUE_SALE_ID"));
+			sale.setTransactionId(rs.getInt("TRANSACTION_ID"));
+			sale.setSaleTimestamp(rs.getLong("SALE_TIMESTAMP"));
+			sale.setEmployeeId(rs.getInt("EMPLOYEE_ID"));
+			sale.setEmployeeName(rs.getString("EMPLOYEE_NAME"));
+			sale.setStoreId(rs.getInt("STORE_ID"));
+			sale.setStoreName(rs.getString("STORE_NAME"));
+			sale.setIsCashPayment(rs.getBoolean("IS_CASH_PAYMENT"));
+			sale.setBonusPts(rs.getInt("bonusPts"));
+			sale.setAmount(rs.getBigDecimal("AMOUNT"));		
+			sale.setAmountEuro(currencyService.convertToEuro(rs.getBigDecimal("AMOUNT")));	
+		
+			return sale;
+		}
+	}
+	
 	private static final String GET_ALL_SALES_QUERY = "select " +
 			"s.id, " +
+			"s.unique_sale_id, " +
+			"s.transaction_id, " +
 			"s.sale_timestamp, " +
 			"s.employee_id, " +
 			"s.store_id, " +
 			"s.is_cash_payment, " +
+			"s.bonus_pts, " +			
 			"sum(si.sale_price) as amount, " +
+			"sum(si.bonus_pts) as bonusPts, " +
 			"e.name as employee_name, " +
 			"CONCAT(ks.city, \", \", ks.name) as store_name " +
 			"from sale s " +
@@ -68,6 +194,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"iv.device_brand_id, " +
 			"si.sale_price, " +
 			"si.item_price, " +
+			"si.bonus_pts, " +
 			"e.id as employee_id, " +
 			"e.name as employee_name, " +
 			"ks.id as store_id, " +
@@ -84,7 +211,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	
 	private static final String GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY = "select " +
 			"count(si.id) as count, " +
-			"sum(si.sale_price) as totalAmount " +
+			"sum(si.sale_price) as totalAmount, " +
+			"sum(si.bonus_pts) as totalBonusPts " +
 			"from sale_item si " +
 			"join sale s on si.sale_id = s.id " +
 			"where s.sale_timestamp between ? and ? ";
@@ -99,25 +227,45 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"CONCAT(ks.city,\",\",ks.name) as store_name, " +
 			"coalesce(sum(si.sale_price), 0.00) as amount, " +
 			"coalesce(count(si.id), 0) as item_count, " +
-			"coalesce(count(distinct(s.id)), 0) as transaction_count " +
+			"coalesce(count(distinct(s.id)), 0) as sale_count, " +
+			"coalesce(count(distinct(t.id)), 0) as transaction_count, " +
+			"coalesce(sum(si.bonus_pts), 0) as bonus_pts, " +
+			"coalesce(sum(case when (pmt.name = 'PROTECTOR' and (dc.code != 500 or si.discount_code_id is null)) then 1 else 0 end), 0) as protector_count, " +
+			"coalesce(count(case when p.code = '0500' then 1 end), 0) as protector_plus_count " +
 			"from store ks " +
 			"left join sale s on s.store_id = ks.id and s.sale_timestamp between ? and ? " +
-			"%s join sale_item si on si.sale_id = s.id and si.is_refunded <> true and si.sale_price > 0 " +
+			"left join transaction t on s.transaction_id = t.id " +
+			"left join sale_item si on si.sale_id = s.id and si.is_refunded <> true and si.sale_price > 0 " +
+			"left join item i on i.id = si.item_id " +
+			"left join product p on p.id = i.product_id " +
+			"left join product_type pt on pt.id = p.type_id " +
+			"left join product_master_type pmt on pmt.id = pt.master_type_id " +
+			"left join discount_code dc on si.discount_code_id = dc.id " +
 			"where ks.is_store is true ";
 	
-	private static final String GET_SALES_DATA_FOR_THE_COMPANY = "union " +
-			"select " +
+	private static final String GET_SALES_DATA_FOR_THE_COMPANY = "select " +
 			"0 as storeId, " +
 			"'COMPANY' as storeCode, " +
 			"'Всички магазини' as store_name, " +
 			"coalesce(sum(si.sale_price), 0.00) as amount, " +
 			"coalesce(count(si.id), 0) as item_count, " +
-			"coalesce(count(distinct(s.id)), 0) as transaction_count " +
+			"coalesce(count(distinct(s.id)), 0) as sale_count, " +
+			"coalesce(count(distinct(t.id)), 0) as transaction_count, " +
+			"coalesce(sum(si.bonus_pts), 0) as bonus_pts, " +
+			"coalesce(sum(case when (pmt.name = 'PROTECTOR' and (dc.code != 500 or si.discount_code_id is null)) then 1 else 0 end), 0) as protector_count, " +
+			"coalesce(count(case when p.code = '0500' then 1 end), 0) as protector_plus_count " +
 			"from store ks " +
 			"left join sale s on s.store_id = ks.id and s.sale_timestamp between ? and ? " +
+			"join transaction t on s.transaction_id = t.id " +
 			"join sale_item si on si.sale_id = s.id and si.is_refunded <> true and si.sale_price > 0 " +
+			"left join item i on i.id = si.item_id " +
+			"left join product p on p.id = i.product_id " +
+			"left join product_type pt on pt.id = p.type_id " +
+			"left join product_master_type pmt on pmt.id = pt.master_type_id " +
+			"left join discount_code dc on si.discount_code_id = dc.id " +
 			"where ks.is_store is true ";
 	
+	private static final String USI_CRITERIA_QUERY = " where unique_sale_id = ?";
 	private static final String PERIOD_CRITERIA_QUERY = " where sale_timestamp between ? and ?";
 	private static final String STORE_CRITERIA_QUERY = " and ks.id in (%s)";
 	private static final String NOT_REFUND_QUERY = " and si.is_refunded <> true";
@@ -130,10 +278,11 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	private static final String MASTER_PRODUCT_TYPE_QUERY = " and iv.product_master_type_id = ?";
 	private static final String PRODUCT_TYPE_QUERY = " and iv.product_type_id = ?";
 	private static final String PRICE_QUERY = " and si.sale_price between ? and ?";
-	private static final String INSERT_SALE = "insert into sale (employee_id, store_id, sale_timestamp, is_cash_payment)"
-			+ " values (?, ?, ?, ?)";
+	private static final String INSERT_SALE = "insert into sale (employee_id, store_id, sale_timestamp, is_cash_payment, transaction_id, is_initial)"
+			+ " values (?, ?, ?, ?, ?, ?)";
+	private static final String INSERT_TRANSACTION = "insert into transaction (create_timestamp, created_by, store_id)"
+			+ " values (?, ?, ?)";
 	private static final String ORDER_BY_SALE = " order by s.sale_timestamp";
-	private static final String ORDER_BY_STORE = " order by ks.id";
 	private static final String ORDER_BY_STOREID = " order by storeId";
 	private static final String GROUP_BY_SALE = " group by s.id";
 	private static final String GROUP_BY_STORE = " group by ks.id ";
@@ -142,6 +291,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"si.sale_id, " +
 			"si.item_id, " +
 			"si.is_refunded, " +
+			"si.bonus_pts, " + 
 			"p.id as product_id, " +
 			"p.code as product_code, " +
 			"p.name as product_name, " +
@@ -150,18 +300,26 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"db.id as device_brand_id, " +
 			"db.name as device_brand_name, " +
 			"si.sale_price, " +
-			"si.item_price " +
+			"si.item_price, " +
+			"si.bonus_pts " +
 			"from sale_item si " +
 			"join item i on si.item_id = i.id " +
 			"join product p on i.product_id = p.id " +
 			"join device_model dm on i.device_model_id = dm.id " +
 			"join device_brand db on dm.device_brand_id = db.id " +
 			"where si.sale_id = ?";
-	private static final String INSERT_SALE_ITEM = "insert into sale_item(sale_id, item_id, item_price, sale_price, discount_code_id) values (?, ?, ?, ?, ?)";
+	
+	private static final String INSERT_SALE_ITEM = "insert into sale_item(sale_id, item_id, item_price, sale_price, discount_code_id, bonus_pts) values (?, ?, ?, ?, ?, ?)";
 	
 	private static final String UPDATE_REFUNDED_SALE_ITEM = "update sale_item set is_refunded = true where id = ?";
+	
+	private static final String UPDATE_TRANSACTION = "update transaction set updated_by = ?, last_update_timestamp = ? where id = ?";
+	
+	private static final String UPDATE_SALE = "update sale set unique_sale_id = ? where id = ?";
 
 	private static final String GET_SALE_ITEM_PRICE = "select sale_price from sale_item where id = ?";
+	
+	private static final String GET_SALE_TRANSACTION_ID = "select transaction_id from sale where unique_sale_id = ?";
 	
 	private static final String GET_PRODUCT_TYPE_SPLIT_REPORT = "select " +
 			"t1.store_id, " +
@@ -332,12 +490,17 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	private static final String FILTER_SPLIT_REPORT_BY_STORE = "where t1.store_id = %s "; 
 	private static final String ORDER_PRODUCT_TYPE_SPLIT_REPORT = "order by store_id, day, master_type_id, product_type_id; ";
 	private static final String ORDER_TRANSACTION_SPLIT_REPORT = "order by store_id, day; ";
+
+	private static final String SELECT_STORE_IDS_BY_SALE_TIMESTAMP_PERIODS = "select GROUP_CONCAT(s.store_id) from ( " +
+			"select distinct(store_id) from sale where sale_timestamp between ? and ? " +
+			"intersect " +
+			"select distinct(store_id) from sale where sale_timestamp between ? and ? " +
+			"intersect " +
+			"select distinct(store_id) from sale where sale_timestamp between ? and ?) s ";
 	
 	@Autowired
 	private DateService dateService;
 	
-	private BeanPropertyRowMapper<Sale> saleRowMapper;
-	private BeanPropertyRowMapper<SaleItem> saleItemRowMapper;
 	private BeanPropertyRowMapper<SalesByStoreByDayByProductType> saleByStoreByDayByProductTypeRowMapper;
 	private BeanPropertyRowMapper<TransactionsByStoreByDay> transactionsByStoreByDayRowMapper;
 	private BeanPropertyRowMapper<DataReport> dailyReportDataRowMapper;
@@ -346,24 +509,6 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	public SaleDaoImpl(DataSource dataSource) {
 		super();
 		setDataSource(dataSource);
-	}
-	
-	private BeanPropertyRowMapper<Sale> getSaleRowMapper() {
-		if (saleRowMapper == null) {
-			saleRowMapper = new BeanPropertyRowMapper<Sale>(Sale.class);
-			saleRowMapper.setPrimitivesDefaultedForNullValue(true);
-		}
-
-		return saleRowMapper;
-	}
-	
-	private BeanPropertyRowMapper<SaleItem> getSaleItemRowMapper() {
-		if (saleItemRowMapper == null) {
-			saleItemRowMapper = new BeanPropertyRowMapper<SaleItem>(SaleItem.class);
-			saleItemRowMapper.setPrimitivesDefaultedForNullValue(true);
-		}
-		
-		return saleItemRowMapper;
 	}
 	
 	private BeanPropertyRowMapper<SalesByStoreByDayByProductType> getSalesByStoreByDayByProductTypeRowMapper() {
@@ -402,6 +547,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			statement.setInt(2, sale.getStoreId());
 			statement.setLong(3, sale.getSaleTimestamp());
 			statement.setBoolean(4, sale.getIsCashPayment());
+			statement.setInt(5, sale.getTransactionId());
+			statement.setBoolean(6, sale.getIsInitial());
 
 			int affectedRows = statement.executeUpdate();
 
@@ -414,6 +561,31 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 					return generatedKeys.getInt(1);
 				} else {
 					throw new SQLException("Creating sale failed, no ID obtained.");
+				}
+			}
+		}
+	}
+	
+	@Override
+	public Integer insertTransaction(Transaction transaction) throws SQLException {		
+		try (Connection connection = getDataSource().getConnection();
+				PreparedStatement statement = connection.prepareStatement(
+						INSERT_TRANSACTION, Statement.RETURN_GENERATED_KEYS);) {
+			statement.setLong(1, transaction.getCreateTimestamp());
+			statement.setInt(2, transaction.getCreatedByEmployeeId());
+			statement.setInt(3, transaction.getStoreId());
+			
+			int affectedRows = statement.executeUpdate();
+			
+			if (affectedRows == 0) {
+				throw new SQLException("Creating new transaction failed, no rows affected.");
+			}
+			
+			try (ResultSet generatedKeys = statement.getGeneratedKeys()) {
+				if (generatedKeys.next()) {
+					return generatedKeys.getInt(1);
+				} else {
+					throw new SQLException("Creating transaction failed, no ID obtained.");
 				}
 			}
 		}
@@ -434,7 +606,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		argsArr = argsList.toArray(argsArr);
 
 		return getJdbcTemplate().query(
-				searchQuery, argsArr, getSaleRowMapper());
+				searchQuery, argsArr, new SaleRowMapper());
 	}
 	
 	@Override
@@ -454,7 +626,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		argsArr = argsList.toArray(argsArr);
 				
 		return getJdbcTemplate().query(
-				searchQuery, argsArr, getSaleItemRowMapper());
+				searchQuery, argsArr, new SaleItemRowMapper());
 	}
 
 	private String addDetailedSearch(String productCode, Integer deviceBrandId, Integer deviceModelId,
@@ -506,13 +678,13 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 
 	@Override
 	public List<SaleItem> getSaleItemsBySaleId(Integer saleId) {
-		return getJdbcTemplate().query(GET_SALE_ITEMS_PER_SALE, getSaleItemRowMapper(), saleId);
+		return getJdbcTemplate().query(GET_SALE_ITEMS_PER_SALE, new SaleItemBySaleRowMapper(), saleId);
 	}
 
 	@Override
 	public void insertSaleItem(SaleItem saleItem) {
 		getJdbcTemplate().update(INSERT_SALE_ITEM, saleItem.getSaleId(), saleItem.getItemId(), saleItem.getItemPrice(),
-				saleItem.getSalePrice(), saleItem.getDiscountCodeId());
+				saleItem.getSalePrice(), saleItem.getDiscountCodeId(), saleItem.getBonusPts());
 	}
 	
 	@Override
@@ -521,8 +693,23 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	}
 	
 	@Override
+	public void udpateTransaction(Integer transactionId, long updateTimestamp, Integer updateEmployeeId) {
+		getJdbcTemplate().update(UPDATE_TRANSACTION, updateEmployeeId, updateTimestamp, transactionId);
+	}
+	
+	@Override
+	public void updateSaleUSI(Integer saleId, String usi) {
+		getJdbcTemplate().update(UPDATE_SALE, usi, saleId);
+	}
+	
+	@Override
 	public BigDecimal getSaleItemPrice(Integer saleItemId) {
 		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_PRICE, BigDecimal.class, saleItemId);
+	}
+	
+	@Override
+	public Integer getSaleTransactionId(String uniqueSaleId) {
+		return getJdbcTemplate().queryForObject(GET_SALE_TRANSACTION_ID, Integer.class, uniqueSaleId);
 	}
 
 	@Override
@@ -537,16 +724,11 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		}
 		searchQuery += GROUP_BY_STORE;
 		
-		if (monthlyReportGeneration) {
-			searchQuery = String.format(searchQuery, "left");
-		} else {
-			searchQuery = String.format(searchQuery, "");
-			if (employeeService.isLoggedInEmployeeAdmin()) {
-				searchQuery += GET_SALES_DATA_FOR_THE_COMPANY;
-				argsList.add(startDateMilliseconds);
-				argsList.add(endDateMilliseconds);
-			}
-		}
+//		if (monthlyReportGeneration) {
+//			searchQuery = String.format(searchQuery, "left");
+//		} else {
+//			searchQuery = String.format(searchQuery, "");
+//		}
 
 		searchQuery += ORDER_BY_STOREID;
 		
@@ -554,24 +736,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 		argsArr = argsList.toArray(argsArr);
 
 		return getJdbcTemplate().query(
-				searchQuery, argsArr,  new RowMapper<SalesByStore>() {
-				    @Override
-				    public SalesByStore mapRow(ResultSet rs, int rowNum) throws SQLException {
-				    	SalesByStore salesByStore = new SalesByStore();
-				    	salesByStore.setStoreId(rs.getInt(1));
-				    	salesByStore.setStoreCode(rs.getString(2));
-				    	salesByStore.setStoreName(rs.getString(3));
-				    	salesByStore.setAmount(rs.getBigDecimal(4));
-				    	salesByStore.setItemCount(rs.getBigDecimal(5));
-				    	salesByStore.setTransactionCount(rs.getBigDecimal(6));
-				    	if (BigDecimal.ZERO.compareTo(rs.getBigDecimal(5)) < 0) {
-				    		salesByStore.setSpt(rs.getBigDecimal(5).divide(rs.getBigDecimal(6), 2, RoundingMode.HALF_UP));
-				    	} else {
-				    		salesByStore.setSpt(BigDecimal.ZERO);
-				    	}
-				        return salesByStore;
-				    }
-				});
+				searchQuery, argsArr,  new SalesByStoreRowMapper());
 	}
 
 	@Override
@@ -641,6 +806,41 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	@Override
 	public DataReport selectSaleItemWithCardPaymentTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId) {
 		return getJdbcTemplate().queryForObject(GET_SALE_ITEM_TOTAL_AND_COUNT_QUERY + STORE_ID_CRITERIA + CARD_PAYMENT_CRITERIA, getDailyReportDataRowMapper(), startDateTime, endDateTime, storeId);
+	}
+
+	@Override
+	public String selectStoreIdsForAllSalesInThePeriods(PeriodInMillis previousYearPeriodInMillis,
+			PeriodInMillis previousMonthPeriodInMillis, PeriodInMillis selectedMonthPeriodInMillis) {
+		return getJdbcTemplate().queryForObject(SELECT_STORE_IDS_BY_SALE_TIMESTAMP_PERIODS, String.class,
+				previousYearPeriodInMillis.getStartDateTime(), previousYearPeriodInMillis.getEndDateTime(),
+				previousMonthPeriodInMillis.getStartDateTime(), previousMonthPeriodInMillis.getEndDateTime(),
+				selectedMonthPeriodInMillis.getStartDateTime(), selectedMonthPeriodInMillis.getEndDateTime());
+	}
+	
+
+	@Override
+	public List<SalesByStore> searchSaleTurnoverForCompany(Long startDateMilliseconds, Long endDateMilliseconds,
+			String storeIds) {
+		String searchQuery = GET_SALES_DATA_FOR_THE_COMPANY;
+		List<Object> argsList = new ArrayList<Object>();
+		argsList.add(startDateMilliseconds);
+		argsList.add(endDateMilliseconds);
+
+		if (storeIds != null) {
+			searchQuery += String.format(STORE_CRITERIA_QUERY, storeIds);
+		}
+
+		Object[] argsArr = new Object[argsList.size()];
+		argsArr = argsList.toArray(argsArr);
+
+		return getJdbcTemplate().query(searchQuery, argsArr, new SalesByStoreRowMapper());
+	}
+
+	@Override
+	public Sale selectSaleByUniqueSaleId(String uniqueSaleId) {
+		List<Sale> result = getJdbcTemplate().query(GET_ALL_SALES_QUERY + USI_CRITERIA_QUERY + GROUP_BY_SALE, new SaleRowMapper(), uniqueSaleId);
+		
+		return result.isEmpty() ? null : result.get(0);
 	}
 	
 }

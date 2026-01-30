@@ -23,6 +23,7 @@ public class RefundDaoImpl extends JdbcDaoSupport implements RefundDao {
 			"r.id, " +
 			"r.sale_item_id, " +
 			"si.sale_price as price, " +
+			"si.bonus_pts as bonus_pts, " +
 			"r.description, " +
 			"r.create_timestamp as timestamp, " +
 			"s.sale_timestamp as saleTimestamp, " +

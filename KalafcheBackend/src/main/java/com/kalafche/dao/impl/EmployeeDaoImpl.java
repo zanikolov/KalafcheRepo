@@ -162,6 +162,7 @@ public class EmployeeDaoImpl extends JdbcDaoSupport implements EmployeeDao {
 	public List<Employee> getEmployeesByIds(List<Integer> employeeIds) {
 		String commaSeparatedEmployeeIds = employeeIds.stream().map(id -> id.toString())
 				.collect(Collectors.joining(","));
+		System.out.println(">>>>>>>> commaSeparatedEmployeeIds: " + commaSeparatedEmployeeIds);
 		return getJdbcTemplate().query(GET_ALL_EMPLOYEE + ENABLED_CLAUSE + String.format(IN_CLAUSE, commaSeparatedEmployeeIds) + ORDER_BY_ID_CLAUSE, getEmployeeRowMapper());
 	}
 	

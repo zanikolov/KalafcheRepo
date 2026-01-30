@@ -5,10 +5,12 @@ import java.sql.SQLException;
 import java.util.List;
 
 import com.kalafche.model.DataReport;
+import com.kalafche.model.PeriodInMillis;
 import com.kalafche.model.sale.Sale;
 import com.kalafche.model.sale.SaleItem;
 import com.kalafche.model.sale.SalesByStore;
 import com.kalafche.model.sale.SalesByStoreByDayByProductType;
+import com.kalafche.model.sale.Transaction;
 import com.kalafche.model.sale.TransactionsByStoreByDay;
 
 public abstract interface SaleDao {
@@ -45,5 +47,21 @@ public abstract interface SaleDao {
 	public abstract DataReport selectRefundedSaleItemTotalAndCount(Long startDateTime, Long endDateTime, Integer storeId);
 
 	public abstract DataReport selectSaleItemTotalAndCountWithoutRefundByStoreId(Long startDateTime, Long endDateTime, Integer storeId);
+
+	public abstract String selectStoreIdsForAllSalesInThePeriods(PeriodInMillis previousYearPeriodInMillis,
+			PeriodInMillis previousMonthPeriodInMillis, PeriodInMillis selectedMonthPeriodInMillis);
+
+	public abstract List<SalesByStore> searchSaleTurnoverForCompany(Long startDateMilliseconds, Long endDateMilliseconds,
+			String storeIds);
+
+	public abstract Integer insertTransaction(Transaction transaction) throws SQLException;
+
+	public abstract void udpateTransaction(Integer transactionId, long updateTimestamp, Integer updateEmployeeId);
+
+	public abstract Integer getSaleTransactionId(String referenceSaleUniqueSaleId);
+
+	public abstract void updateSaleUSI(Integer saleId, String usi);
+	
+	public abstract Sale selectSaleByUniqueSaleId(String uniqueSaleId);
 
 }

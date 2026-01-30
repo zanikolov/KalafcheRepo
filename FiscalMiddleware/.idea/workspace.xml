@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="Datecs JSDK_DemoV1" />
+    </artifacts-to-build>
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="4b4cf855-5ca2-4290-98e4-22c0fcefd6b3" name="Default" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/DialogPrintConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/DialogPrintConfig.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/untitled245$Main.ic" NAME="Main Coverage Results" MODIFIED="1550669293974" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+  </component>
+  <component name="CoverageViewManager">
+    <option name="myElementSize" value="268" />
+  </component>
+  <component name="DefaultGradleProjectSettings">
+    <option name="isMigrated" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JavaFXApplication" />
+        <option value="FxmlFile" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectId" id="1PgqoGImj7fyz1XW1HRCQZSppT3" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="SearchEverywhereHistoryKey" value="pane&#9;PSI&#9;JAVA://javafx.scene.layout.Pane" />
+    <property name="UI_DESIGNER_EDITOR_MODE.PaletteManager.SHOW" value="true" />
+    <property name="UI_DESIGNER_EDITOR_MODE.PaletteManager.WIDTH" value="224" />
+    <property name="UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.SHOW" value="true" />
+    <property name="UI_DESIGNER_EDITOR_MODE.UIDesignerToolWindowManager.WIDTH" value="424" />
+    <property name="com.android.tools.idea.instantapp.provision.ProvisionBeforeRunTaskProvider.myTimeStamp" value="1552407660504" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../DevicesGroup_C" />
+    <property name="project.structure.last.edited" value="Project" />
+    <property name="project.structure.proportion" value="0.15" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\Java_SE\DemoProjects\DevicesGroup_AB" />
+      <recent name="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\Java_SE\DemoProjects\DevicesGroup_AB\src" />
+      <recent name="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\DatecsJavaSDK_Demo\JavaDemoV1\src" />
+      <recent name="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\DatecsJavaSDK_Demo\JavaDemoV1" />
+      <recent name="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\DatecsJavaSDK_Demo\DemoV1\src" />
+    </key>
+    <key name="CopyClassDialog.RECENTS_KEY">
+      <recent name="" />
+      <recent name="connectivity" />
+      <recent name="tools" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\Java_SE\DemoProjects\DevicesGroup_AB\src" />
+      <recent name="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\Java_SE\DemoProjects\DevicesGroup_AB" />
+      <recent name="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\DatecsJavaSDK_Demo\JavaDemoV1\src" />
+      <recent name="D:\ANDRO_TEST\109\DatecSDK_WindowsDemo\untitled245\src" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true">
+      <option name="MAIN_CLASS_NAME" value="Main" />
+      <module name="DevicesGroup_AB" />
+      <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Run" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SvnConfiguration" cleanupOnStartRun="true">
+    <configuration>C:\Users\ddenkov\AppData\Roaming\Subversion</configuration>
+    <supportedVersion>125</supportedVersion>
+  </component>
+  <component name="SvnFileUrlMappingImpl">
+    <option name="myMappingRoots">
+      <list>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\Java_SE\DemoProjects\DevicesGroup_AB" />
+          <option name="myCopyRoot" value="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\Java_SE\DemoProjects\DevicesGroup_AB" />
+        </SvnCopyRootSimple>
+      </list>
+    </option>
+    <option name="myMoreRealMappingRoots">
+      <list>
+        <SvnCopyRootSimple>
+          <option name="myVcsRoot" value="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\Java_SE\DemoProjects\DevicesGroup_AB" />
+          <option name="myCopyRoot" value="D:\SOFTWARE_DEPARTMENT\PROJECTS\Bulgaria\ANDROID\Install\Java_SE\DemoProjects\DevicesGroup_AB" />
+        </SvnCopyRootSimple>
+      </list>
+    </option>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="4b4cf855-5ca2-4290-98e4-22c0fcefd6b3" name="Default" comment="" />
+      <created>1550648403954</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1550648403954</updated>
+    </task>
+    <servers />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="120" y="66" key="#Project_Structure" timestamp="1590497113902">
+      <screen x="0" y="0" width="1280" height="984" />
+    </state>
+    <state x="120" y="66" key="#Project_Structure/0.0.1280.984@0.0.1280.984" timestamp="1590497113902" />
+    <state x="210" y="202" key="FileChooserDialogImpl" timestamp="1590500693171">
+      <screen x="0" y="0" width="1280" height="984" />
+    </state>
+    <state x="210" y="202" key="FileChooserDialogImpl/0.0.1280.984@0.0.1280.984" timestamp="1590500693171" />
+    <state x="315" y="213" key="FileChooserDialogImpl/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1590057907291" />
+    <state width="1236" height="42" key="GridCell.Tab.0.bottom" timestamp="1590500694776">
+      <screen x="0" y="0" width="1280" height="984" />
+    </state>
+    <state width="1236" height="42" key="GridCell.Tab.0.bottom/0.0.1280.984@0.0.1280.984" timestamp="1590500694776" />
+    <state width="1876" height="342" key="GridCell.Tab.0.bottom/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1586422403238" />
+    <state width="1236" height="42" key="GridCell.Tab.0.center" timestamp="1590500694776">
+      <screen x="0" y="0" width="1280" height="984" />
+    </state>
+    <state width="1236" height="42" key="GridCell.Tab.0.center/0.0.1280.984@0.0.1280.984" timestamp="1590500694776" />
+    <state width="1876" height="342" key="GridCell.Tab.0.center/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1586422403238" />
+    <state width="1236" height="42" key="GridCell.Tab.0.left" timestamp="1590500694776">
+      <screen x="0" y="0" width="1280" height="984" />
+    </state>
+    <state width="1236" height="42" key="GridCell.Tab.0.left/0.0.1280.984@0.0.1280.984" timestamp="1590500694776" />
+    <state width="1876" height="342" key="GridCell.Tab.0.left/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1586422403238" />
+    <state width="1236" height="42" key="GridCell.Tab.0.right" timestamp="1590500694776">
+      <screen x="0" y="0" width="1280" height="984" />
+    </state>
+    <state width="1236" height="42" key="GridCell.Tab.0.right/0.0.1280.984@0.0.1280.984" timestamp="1590500694776" />
+    <state width="1876" height="342" key="GridCell.Tab.0.right/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1586422403238" />
+    <state width="1876" height="342" key="GridCell.Tab.1.bottom" timestamp="1586422403239">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1237" height="320" key="GridCell.Tab.1.bottom/0.0.1280.984@0.0.1280.984" timestamp="1585229346345" />
+    <state width="1876" height="342" key="GridCell.Tab.1.bottom/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1586422403239" />
+    <state width="1876" height="342" key="GridCell.Tab.1.center" timestamp="1586422403239">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1237" height="320" key="GridCell.Tab.1.center/0.0.1280.984@0.0.1280.984" timestamp="1585229346345" />
+    <state width="1876" height="342" key="GridCell.Tab.1.center/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1586422403239" />
+    <state width="1876" height="342" key="GridCell.Tab.1.left" timestamp="1586422403238">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1237" height="320" key="GridCell.Tab.1.left/0.0.1280.984@0.0.1280.984" timestamp="1585229346345" />
+    <state width="1876" height="342" key="GridCell.Tab.1.left/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1586422403238" />
+    <state width="1876" height="342" key="GridCell.Tab.1.right" timestamp="1586422403239">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state width="1237" height="320" key="GridCell.Tab.1.right/0.0.1280.984@0.0.1280.984" timestamp="1585229346345" />
+    <state width="1876" height="342" key="GridCell.Tab.1.right/1920.0.1920.1040/0.0.1920.1040@0.0.1920.1040" timestamp="1586422403239" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint type="java-line">
+          <url>jar://$PROJECT_DIR$/../../fiscalprinterSDK.jar!/com/datecs/fiscalprinter/SDK/FiscalPrinterV1.class</url>
+          <line>73</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$PROJECT_DIR$/../fiscalprinterSDK.jar!/com/datecs/fiscalprinter/SDK/model/UserLayerV1/cmdService.class</url>
+          <line>336</line>
+          <option name="timeStamp" value="47" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$PROJECT_DIR$/../fiscalprinterSDK.jar!/com/datecs/fiscalprinter/SDK/model/UserLayerV1/cmdService.class</url>
+          <line>310</line>
+          <option name="timeStamp" value="49" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$PROJECT_DIR$/../fiscalprinterSDK.jar!/com/datecs/fiscalprinter/SDK/model/UserLayerV1/cmdConfig.class</url>
+          <line>320</line>
+          <option name="timeStamp" value="55" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>jar://$PROJECT_DIR$/../fiscalprinterSDK.jar!/com/datecs/fiscalprinter/SDK/model/UserLayerV1/cmdReceipt.class</url>
+          <line>1322</line>
+          <option name="timeStamp" value="65" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/cmdEJStructInfo.java</url>
+          <line>192</line>
+          <option name="timeStamp" value="79" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/cmdEJStructInfo.java</url>
+          <line>209</line>
+          <option name="timeStamp" value="80" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/StructuredInfoRegister_DeviceGroup_B.java</url>
+          <line>335</line>
+          <option name="timeStamp" value="90" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/StructuredInfoRegister_DeviceGroup_B.java</url>
+          <line>359</line>
+          <option name="timeStamp" value="91" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/StructuredInfoRegister_DeviceGroup_B.java</url>
+          <line>394</line>
+          <option name="timeStamp" value="92" />
+        </line-breakpoint>
+        <line-breakpoint type="java-line">
+          <url>file://$PROJECT_DIR$/src/StructuredInfoRegister_DeviceGroup_B.java</url>
+          <line>447</line>
+          <option name="timeStamp" value="93" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>jar://$PROJECT_DIR$/../Lib/fiscalprinterSDK.jar!/com/datecs/fiscalprinter/SDK/model/BGR/DP25_BGR.class</url>
+          <line>3178</line>
+          <option name="timeStamp" value="98" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>jar://$PROJECT_DIR$/../Lib/fiscalprinterSDK.jar!/com/datecs/fiscalprinter/SDK/model/BGR/DP15_BGR.class</url>
+          <option name="timeStamp" value="110" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+  <component name="antWorkspaceConfiguration">
+    <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
+    <option name="FILTER_TARGETS" value="false" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/JavaDemoV1$Main.ic" NAME="Main Coverage Results" MODIFIED="1558024036468" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/DevicesGroup_AB$Main.ic" NAME="Main Coverage Results" MODIFIED="1573736727534" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+  </component>
+  <component name="debuggerHistoryManager">
+    <expressions id="evaluateExpression">
+      <expression>
+        <expression-string>queue</expression-string>
+        <language-id>JAVA</language-id>
+        <evaluation-mode>EXPRESSION</evaluation-mode>
+      </expression>
+    </expressions>
+  </component>
+</project>

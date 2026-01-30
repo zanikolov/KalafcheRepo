@@ -16,6 +16,8 @@ public class PastPeriodTurnover {
 	private BigDecimal prevYearAmountDelta;
 	private BigDecimal prevYearTransactionCount;
 	private BigDecimal prevYearTransactionCountDelta;
+	private BigDecimal prevYearSaleCount;
+	private BigDecimal prevYearSaleCountDelta;
 	private BigDecimal prevYearItemCount;
 	private BigDecimal prevYearItemCountDelta;
 	private BigDecimal prevYearSpt;
@@ -24,12 +26,15 @@ public class PastPeriodTurnover {
 	private BigDecimal prevMonthAmountDelta;
 	private BigDecimal prevMonthTransactionCount;
 	private BigDecimal prevMonthTransactionCountDelta;
+	private BigDecimal prevMonthSaleCount;
+	private BigDecimal prevMonthSaleCountDelta;
 	private BigDecimal prevMonthItemCount;
 	private BigDecimal prevMonthItemCountDelta;
 	private BigDecimal prevMonthSpt;
 	private BigDecimal prevMonthSptDelta;
 	private BigDecimal selectedMonthAmount;
 	private BigDecimal selectedMonthTransactionCount;
+	private BigDecimal selectedMonthSaleCount;
 	private BigDecimal selectedMonthItemCount;
 	private BigDecimal selectedMonthSpt;
 

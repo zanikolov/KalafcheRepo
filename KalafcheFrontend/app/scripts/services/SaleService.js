@@ -12,10 +12,12 @@ angular.module('kalafcheFrontendApp')
             generateExcel: generateExcel,
             getMonthlyTurnover: getMonthlyTurnover,
             getProductTypeSplitReport: getProductTypeSplitReport,
-            getTransactionSplitReport: getTransactionSplitReport
+            getTransactionSplitReport: getTransactionSplitReport,
+            getSaleByUSI: getSaleByUSI
 		});
 
-        function getTotalSum(items) {
+        function getTotalSum(sale) {
+            var items = sale.selectedStocks;
             var selectedSaleItems = [];
             angular.forEach(items, function(item) {
                 var selectedSaleItem = {};
@@ -28,7 +30,12 @@ angular.module('kalafcheFrontendApp')
                 selectedSaleItems.push(selectedSaleItem);
             })
 
-            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/totalSum', selectedSaleItems)
+            var totalSumRequest = {}
+            totalSumRequest.paid = sale.paid;
+            totalSumRequest.currency = sale.currency;
+            totalSumRequest.selectedSaleItems = selectedSaleItems;
+
+            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/totalSum', totalSumRequest)
                 .then(
                     function(response) {
                         return response.data
@@ -141,6 +148,15 @@ angular.module('kalafcheFrontendApp')
                     function(response) {
                         var blob = new Blob([response.data], {type: "application/vnd.openxmlformat-officedocument.spreadsheetml.sheet;"});
                         FileSaver.saveAs(blob, 'Справка продажби артикули.xlsx')
+                    }
+                );
+        }
+
+        function getSaleByUSI(usi) {  
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/usi/' + usi)
+                .then(
+                    function(response) {
+                        return response.data
                     }
                 );
         }

@@ -52,6 +52,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			"iv.product_name, " +
 			"iv.barcode, " +
 			"coalesce(psp.specific_price, iv.product_price) as product_price, " +
+			"coalesce(psp.specific_price_euro, iv.product_price_eur) as product_price_eur, " +
 			"ks.ID as store_id, " +
 			"CONCAT(ks.CITY,',',ks.NAME) as store_name, " +
 			"s.QUANTITY, " +
@@ -98,6 +99,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			"iv.product_name, " +
 			"iv.barcode, " +
 			"coalesce(psp.specific_price, iv.product_price) as product_price, " +
+			"iv.product_price_eur as product_price_eur, " +
 			"ks.ID as store_id, " + 
 			"CONCAT(ks.CITY,\",\",ks.NAME) as store_name, " + 
 			"s.QUANTITY, " + 

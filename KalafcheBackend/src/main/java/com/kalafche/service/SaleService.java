@@ -9,12 +9,12 @@ import com.kalafche.model.sale.Sale;
 import com.kalafche.model.sale.SaleItem;
 import com.kalafche.model.sale.SaleReport;
 import com.kalafche.model.sale.SaleSplitReportRequest;
-import com.kalafche.model.sale.TotalSumReport;
 import com.kalafche.model.sale.TotalSumRequest;
+import com.kalafche.service.impl.TotalSumReport;
 
 public interface SaleService {
 
-	public void submitSale(Sale sale) throws SQLException;
+	public Sale submitSale(Sale sale) throws SQLException;
 
 	public SaleReport searchSales(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds);
 
@@ -23,7 +23,7 @@ public interface SaleService {
 	public SaleReport searchSaleItems(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
 			String productCode, Integer deviceBrandId, Integer deviceModelId, Integer productTypeId, Integer masterProductTypeId, Float priceFrom, Float priceTo, String discountCampaignCode);
 
-	public TotalSumReport calculateTotalSum(TotalSumRequest totalSumRequest);
+	//public TotalSumReport calculateTotalSum(TotalSumRequest totalSumRequest);
 
 	public SaleReport searchSalesByStores(Long startDateMilliseconds, Long endDateMilliseconds, String productCode,
 			Integer deviceBrandId, Integer deviceModelId, Integer productTypeId);
@@ -34,7 +34,7 @@ public interface SaleService {
 
 	public byte[] getTransactionSplitReport(SaleSplitReportRequest saleSplitReportRequest);
 
-	public TotalSumReport calculateTotalSum(List<SaleItem> selectedSaleItems);
+	public TotalSumReport calculateTotalSum(TotalSumRequest totalSumRequest);
 
 	public DataReport getSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
 
@@ -43,5 +43,7 @@ public interface SaleService {
 	public DataReport getRefundedSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId);
 
 	public DataReport getSaleItemTotalAndCountWithoutRefundByStoreId(Long startDateTime, Long endDateTime, Integer storeId);
+	
+	public Sale getSaleByUSI(String uniqueSaleId);
 	
 }

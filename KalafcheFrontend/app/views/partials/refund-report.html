@@ -83,6 +83,9 @@
                         <th>
                             <label>Цена</label>
                         </th>
+                        <th>
+                            <label>Бонус точки</label>
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -95,6 +98,7 @@
                         <td>{{refund.employeeName}}</td>
                         <td>{{convertEpochToDate(refund.timestamp)}}</td>
                         <td>{{refund.price}}лв</td>
+                        <td>{{refund.bonusPts}}т.</td>
                     </tr>
                     <tr dir-paginate-end ng-show="refund.expanded" class="sale-details">
                         <!-- <td></td> -->

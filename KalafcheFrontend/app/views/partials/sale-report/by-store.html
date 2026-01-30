@@ -74,10 +74,19 @@
                     Транзакции {{report.transactionCount}}
                 </div>
                 <div layout="row" flex>
+                    Продажби {{report.saleCount}}
+                </div>
+                <div layout="row" flex>
                     Артикули {{report.itemCount}}
                 </div>
                 <div layout="row" flex>
                     SPT {{report.spt}}
+                </div>
+                <div layout="row" flex>
+                    SQS {{report.sqs}}
+                </div>
+                <div layout="row" flex>
+                    Attach Rate {{report.attachRate}}%
                 </div>
                 <div layout="row" flex>
                     <b>{{report.totalAmount}}лв</b>
@@ -93,16 +102,25 @@
                             <label>Магазин</label>
                         </th>                      
                         <th>
-                            <label>Транзакции</label>
+                            <label>SPT</label>
                         </th>                        
                         <th>
-                            <label>Артикули</label>
+                            <label>SQS</label>
                         </th>
                         <th>
-                            <label>SPT</label>
+                            <label>Attach Rate</label>
                         </th>
                         <th>
                             <label>Сума</label>
+                        </th>
+                        <th>
+                            <label>Транзакции</label>
+                        </th>   
+                        <th>
+                            <label>Продажби</label>
+                        </th>                     
+                        <th>
+                            <label>Артикули</label>
                         </th>
                     </tr>
                 </thead>
@@ -110,10 +128,13 @@
                     <tr dir-paginate="salesByStore in report.salesByStores | itemsPerPage:salesByStorePerPage" current-page="currentPage" pagination-id="store">
                         <td>{{(currentPage - 1) * salesByStorePerPage + $index + 1}}</td>
                         <td>{{salesByStore.storeName}}</td>
-                        <td>{{salesByStore.transactionCount}}</td>
-                        <td>{{salesByStore.itemCount}}</td>
                         <td>{{salesByStore.spt}}</td>
-                        <td>{{salesByStore.amount}}лв</td>
+                        <td>{{salesByStore.sqs}}</td>
+                        <td>{{salesByStore.attachRate}}%</td>
+                        <td>{{salesByStore.amount}}лв / {{salesByStore.amountEuro}} €</td>
+                        <td>{{salesByStore.transactionCount}}</td>
+                        <td>{{salesByStore.saleCount}}</td>
+                        <td>{{salesByStore.itemCount}}</td>
                     </tr>
                 </tbody>
             </table>

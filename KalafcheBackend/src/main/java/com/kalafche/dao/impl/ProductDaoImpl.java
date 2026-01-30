@@ -14,13 +14,17 @@ import com.kalafche.model.product.Product;
 import com.kalafche.model.product.ProductMasterType;
 import com.kalafche.model.product.ProductSpecificPrice;
 import com.kalafche.model.product.ProductType;
+import com.kalafche.service.CurrencyService;
 
 @Service
 public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 	
-	private static final String GET_ALL_PRODUCTS_QUERY = "select p.id, p.name, p.code, p.price, p.purchase_price, p.fabric, p.type_id, pt.name as type_name, pmt.id as master_type_id, pmt.name as master_type_name from product p left join product_type pt on p.type_id = pt.id left join product_master_type pmt on pmt.id = pt.master_type_id order by code desc";
-	private static final String INSERT_PRODUCT = "insert into product(name, code, description, price, purchase_price, fabric, type_id) values (?, ?, ?, ?, ?, ?, ?)";
-	private static final String UPDATE_PRODUCT = "update product set name = ?, description = ?, fabric = ?, price = ?, purchase_price = ?, type_id = ? where id = ?";
+	@Autowired
+	private CurrencyService currencyService;
+	
+	private static final String GET_ALL_PRODUCTS_QUERY = "select p.id, p.name, p.code, p.price, p.price_eur, p.purchase_price, p.fabric, p.type_id, p.bonus_pts, pt.name as type_name, pmt.id as master_type_id, pmt.name as master_type_name from product p left join product_type pt on p.type_id = pt.id left join product_master_type pmt on pmt.id = pt.master_type_id order by code desc";
+	private static final String INSERT_PRODUCT = "insert into product(name, code, description, price, purchase_price, fabric, type_id, bonus_pts, price_eur) values (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+	private static final String UPDATE_PRODUCT = "update product set name = ?, description = ?, fabric = ?, price = ?, purchase_price = ?, type_id = ?, bonus_pts = ?, price_eur = ? where id = ?";
 	private static final String GET_PRODUCT_BY_CODE_QUERY = "select * from product where code = ?";
 	private static final String CHECK_IF_PRODUCT_NAME_EXISTS = "select count(*) from product where name = ?";
 	private static final String CHECK_IF_PRODUCT_CODE_EXISTS = "select count(*) from product where code = ?";
@@ -36,9 +40,9 @@ public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 			"where ks.is_store is true ";
 	private static final String STORE_ID_CLAUSE = "and ks.id = ? ";
 	private static final String UPSERT_PRODUCT_SPECIFIC_PRICE = "insert into product_specific_price "
-			+ "(product_id, store_id, specific_price) values "
-			+ "(?, ?, ?) "
-			+ "on duplicate key update specific_price = ?";
+			+ "(product_id, store_id, specific_price, specific_price_euro) values "
+			+ "(?, ?, ?, ?) "
+			+ "on duplicate key update specific_price = ?, specific_price_euro = ?";
 	
 	private static final String DELETE_PRODUCT_SPECIFIC_PRICE = "delete from product_specific_price "
 			+ " where product_id = ? ";
@@ -103,12 +107,12 @@ public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 
 	@Override
 	public void insertProduct(Product product) {
-		getJdbcTemplate().update(INSERT_PRODUCT, product.getName(), product.getCode(), product.getDescription(), product.getPrice(), product.getPurchasePrice(), product.getFabric(), product.getTypeId());	
+		getJdbcTemplate().update(INSERT_PRODUCT, product.getName(), product.getCode(), product.getDescription(), product.getPrice(), product.getPurchasePrice(), product.getFabric(), product.getTypeId(), product.getBonusPts(), currencyService.convertToEuro(product.getPrice()));	
 	}
 	
 	@Override
 	public void updateProduct(Product product) {
-		getJdbcTemplate().update(UPDATE_PRODUCT, product.getName(), product.getDescription(), product.getFabric(), product.getPrice(), product.getPurchasePrice(), product.getTypeId(), product.getId());
+		getJdbcTemplate().update(UPDATE_PRODUCT, product.getName(), product.getDescription(), product.getFabric(), product.getPrice(), product.getPurchasePrice(), product.getTypeId(), product.getBonusPts(), currencyService.convertToEuro(product.getPrice()), product.getId());
 	}
 
 	@Override
@@ -148,8 +152,10 @@ public class ProductDaoImpl extends JdbcDaoSupport implements ProductDao {
 
 	@Override
 	public void updateProductSpecificPrice(ProductSpecificPrice specificPrice) {
-		getJdbcTemplate().update(UPSERT_PRODUCT_SPECIFIC_PRICE, 
-				specificPrice.getProductId(), specificPrice.getStoreId(), specificPrice.getPrice(), specificPrice.getPrice());
+		getJdbcTemplate().update(UPSERT_PRODUCT_SPECIFIC_PRICE, specificPrice.getProductId(),
+				specificPrice.getStoreId(), specificPrice.getPrice(),
+				currencyService.convertToEuro(specificPrice.getPrice()), specificPrice.getPrice(),
+				currencyService.convertToEuro(specificPrice.getPrice()));
 	}
 	
 	@Override

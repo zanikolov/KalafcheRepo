@@ -24,9 +24,10 @@ import com.kalafche.model.sale.SaleItem;
 import com.kalafche.model.sale.SaleItemExcelReportRequest;
 import com.kalafche.model.sale.SaleReport;
 import com.kalafche.model.sale.SaleSplitReportRequest;
-import com.kalafche.model.sale.TotalSumReport;
+import com.kalafche.model.sale.TotalSumRequest;
 import com.kalafche.service.SaleService;
 import com.kalafche.service.fileutil.SaleItemExcelReportService;
+import com.kalafche.service.impl.TotalSumReport;
 
 @CrossOrigin
 @RestController
@@ -75,8 +76,8 @@ public class SaleController {
 	}
 	
 	@PutMapping
-	public void insertSale(@RequestBody Sale sale) throws SQLException, InterruptedException {
-		saleService.submitSale(sale);
+	public Sale insertSale(@RequestBody Sale sale) throws SQLException, InterruptedException {
+		return saleService.submitSale(sale);
 	}
 	
 	@GetMapping("/{saleId}")
@@ -84,9 +85,14 @@ public class SaleController {
 		return saleService.getSaleItems(saleId);
 	}
 	
+	@GetMapping("/usi/{uniqueSaleId}")
+	public Sale getSaleByUSI(@PathVariable(value = "uniqueSaleId") String uniqueSaleId) {
+		return saleService.getSaleByUSI(uniqueSaleId);
+	}
+	
 	@PostMapping("/totalSum")
-	public TotalSumReport getTotalSum(@RequestBody List<SaleItem> selectedSaleItems) {
-		return saleService.calculateTotalSum(selectedSaleItems);
+	public TotalSumReport getTotalSum(@RequestBody TotalSumRequest totalSumRequest) {
+		return saleService.calculateTotalSum(totalSumRequest);
 	}
 	
 	@PostMapping("/productTypeSplit")
