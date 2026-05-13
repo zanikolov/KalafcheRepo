@@ -20,7 +20,6 @@ public class BaseStock {
 	private String deviceModelName;
 	private Integer quantity;
 	private BigDecimal productPrice;
-	private BigDecimal productPriceEur;
 	private String barcode;
 	private String productFabric;
 	private Integer productTypeId;

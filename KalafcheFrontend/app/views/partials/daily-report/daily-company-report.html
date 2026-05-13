@@ -56,7 +56,7 @@
                         <td></td>
                         <td>{{dailyCompanyReport.companyName}}</td>
                         <td>{{getDate(dailyCompanyReport.createDate)}}</td>
-                        <td>{{dailyCompanyReport.cardPayment}}лв</td>
+                        <td>{{dailyCompanyReport.cardPayment}}€</td>
                         <td>{{dailyCompanyReport.finalBalance}}</td>
                         <td>
                             <span ng-if="dailyCompanyReport.isFinalized">Приключен</span>
@@ -72,7 +72,7 @@
                                 <div flex="80"><span>Дата: {{getDate(dailyCompanyReport.createDate)}}</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Старт каса: {{dailyCompanyReport.initialBalance}}лв</span></div>
+                                <div flex="80"><span>Старт каса: {{dailyCompanyReport.initialBalance}}€</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80"><span>Продадени Артикули: {{dailyCompanyReport.soldItemsCount}}</span></div>
@@ -81,17 +81,17 @@
                                 <div flex="80"><span>Върнати артикули: {{dailyCompanyReport.refundedItemsCount}}</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>ПОС: {{dailyCompanyReport.cardPayment}}лв</span></div>
+                                <div flex="80"><span>ПОС: {{dailyCompanyReport.cardPayment}}€</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Инкасо: {{dailyCompanyReport.collected}}лв</span></div>
+                                <div flex="80"><span>Инкасо: {{dailyCompanyReport.collected}}€</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Разходи: {{dailyCompanyReport.expense}}лв</span></div>
+                                <div flex="80"><span>Разходи: {{dailyCompanyReport.expense}}€</span></div>
                             </div>
                             <hr/>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span><strong>Каса: {{dailyCompanyReport.finalBalance}}лв</strong></span></div>
+                                <div flex="80"><span><strong>Каса: {{dailyCompanyReport.finalBalance}}€</strong></span></div>
                             </div>
                         </td>
                     </tr>

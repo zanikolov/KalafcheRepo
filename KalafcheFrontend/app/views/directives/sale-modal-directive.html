@@ -4,7 +4,7 @@
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button> 
 				<label><h4 class="modal-title">{{ title }}</h4></label><br/>
-				<label>на {{getNameById(products, selectedStcok.productId)}} за {{getNameById(brands, selectedStcok.deviceBrandId)}} {{getNameById(models, selectedStcok.deviceModelId)}}, цена {{selectedStcok.productPrice}}лв</label>
+				<label>на {{getNameById(products, selectedStcok.productId)}} за {{getNameById(brands, selectedStcok.deviceBrandId)}} {{getNameById(models, selectedStcok.deviceModelId)}}, цена {{selectedStcok.productPrice}}€</label>
 			</div>
 			<div class="modal-body">				
 				<form name="saleForm" class="form-horizontal">
@@ -19,7 +19,7 @@
 					<div class="form-group">
 				 		<label for="inputId" class="col-xs-5">Намалена цена:</label>
 					  	<div class="col-xs-7">
-				      		<input style="width:40%" class="form-control" type="number" min="0" max="{{selectedStcok.cost}}" name="inputDiscount" placeholder=".лв" ng-model="salePrice">
+				      		<input style="width:40%" class="form-control" type="number" min="0" max="{{selectedStcok.cost}}" name="inputDiscount" placeholder="€" ng-model="salePrice">
 						    <span class="error-message" ng-if="saleForm.inputDiscount.$error.number || saleForm.inputDiscount.$error.max || saleForm.inputDiscount.$error.min">Невалидно намаление!</span>
 					  	</div>
 					</div>

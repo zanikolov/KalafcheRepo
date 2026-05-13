@@ -105,7 +105,7 @@
                         <td>{{inStock.deviceModelName}}</td>
                         <td>{{inStock.productCode}} {{inStock.productName}}</td>
                         <td ng-if="selectedStore.id == 0">{{inStock.storeName}}</td>
-                        <td>{{inStock.productPrice}}лв / {{inStock.productPriceEur}}€</td>
+                        <td>{{inStock.productPrice}}€</td>
 
                         <td>{{inStock.quantity}} <span ng-if="selectedStore.id!=4 && inStock.orderedQuantity && inStock.orderedQuantity > 0" class="ordered-stock-quantity"> + {{inStock.orderedQuantity}}</span></td>
                         <td  ng-show="!(selectedStore.id==4 && isAdmin())">{{inStock.extraQuantity}}<span ng-if="selectedStore.id==4 && inStock.orderedQuantity && inStock.orderedQuantity > 0" class="ordered-stock-quantity"> + {{inStock.orderedQuantity}}</span></td>

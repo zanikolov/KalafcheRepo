@@ -50,16 +50,16 @@
                     {{getReportDate(report.startDate)}}
                 </div>
                 <div layout="row" flex>
-                    Липси: {{report.totalShortageCount}}, {{report.totalShortageAmount}}лв
+                    Липси: {{report.totalShortageCount}}, {{report.totalShortageAmount}}€
                 </div>
                 <div layout="row" flex>
-                    Екстра: {{report.totalSurplusCount}}, {{report.totalSurplusAmount}}лв
+                    Екстра: {{report.totalSurplusCount}}, {{report.totalSurplusAmount}}€
                 </div>
                 <div layout="row" flex>
-                    Абсолютна стойност: {{report.totalAbsoluteAmountBalance}}лв
+                    Абсолютна стойност: {{report.totalAbsoluteAmountBalance}}€
                 </div>
                 <div layout="row" flex>
-                    Обща стойност: {{report.totalAmount}}лв
+                    Обща стойност: {{report.totalAmount}}€
                 </div>  
             </div>
         </div>
@@ -79,13 +79,13 @@
                             <label>Липси</label>
                         </th>
                         <th>
-                            <label>В лв.</label>
+                            <label>В €</label>
                         </th>
                         <th>
                             <label>Екстра</label>
                         </th>
                         <th>
-                            <label>В лв.</label>
+                            <label>В €</label>
                         </th>
                         <th>
                             <label>Абс. стойност</label>
@@ -202,7 +202,7 @@
                                             <td style="width:20%;">{{revisionItem.productCode}} {{revisionItem.productName}}</td>          
                                             <td style="width:8%;">{{revisionItem.expected}}</td>
                                             <td style="width:8%;">{{revisionItem.actual}}</td>
-                                            <td style="width:8%;">{{revisionItem.productPrice}}лв</td>
+                                            <td style="width:8%;">{{revisionItem.productPrice}}€</td>
                                             <td style="width:20%;">{{revisionItem.shortageInfo}}</td>
 <!--                                             <td ng-if="!revisionItem.synced" style="width:8%;">
                                                 <a href="" ng-click="syncRevisionItem(revisionItem)">

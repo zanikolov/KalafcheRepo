@@ -55,7 +55,7 @@
                         <td>{{dailyStoreReport.storeName}}</td>
                         <td>{{dailyStoreReport.employeeName}}</td>
                         <td>{{getTimestamp(dailyStoreReport.createTimestamp)}}</td>
-                        <td>{{dailyStoreReport.finalBalance}}лв</td>
+                        <td>{{dailyStoreReport.finalBalance}}€</td>
                     </tr>
                     <tr dir-paginate-end ng-show="dailyStoreReport.expanded">
                         <td colspan="5" class="detailed-daily-store-report" style="padding-left:50px; border:#dbdfe5 solid">
@@ -78,7 +78,7 @@
                                 <div flex="80"><span>Причина за промяна: <strong>{{dailyStoreReport.description}}</strong></span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Старт каса: {{dailyStoreReport.initialBalance}}лв</span></div>
+                                <div flex="80"><span>Старт каса: {{dailyStoreReport.initialBalance}}€</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80"><span>Продадени Артикули: {{dailyStoreReport.soldItemsCount}}</span></div>
@@ -87,20 +87,20 @@
                                 <div flex="80"><span>Върнати артикули: {{dailyStoreReport.refundedItemsCount}}</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Приход: {{dailyStoreReport.income}}лв</span></div>
+                                <div flex="80"><span>Приход: {{dailyStoreReport.income}}€</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>ПОС: {{dailyStoreReport.cardPayment}}лв</span></div>
+                                <div flex="80"><span>ПОС: {{dailyStoreReport.cardPayment}}€</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Инкасо: {{dailyStoreReport.collected}}лв</span></div>
+                                <div flex="80"><span>Инкасо: {{dailyStoreReport.collected}}€</span></div>
                             </div>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span>Разходи: {{dailyStoreReport.expense}}лв</span></div>
+                                <div flex="80"><span>Разходи: {{dailyStoreReport.expense}}€</span></div>
                             </div>
                             <hr/>
                             <div layout="row" layout-xs="column">
-                                <div flex="80"><span><strong>Каса: {{dailyStoreReport.finalBalance}}лв</strong></span></div>
+                                <div flex="80"><span><strong>Каса: {{dailyStoreReport.finalBalance}}€</strong></span></div>
                             </div>
                         </td>
                     </tr>

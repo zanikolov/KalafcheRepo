@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.time.YearMonth;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,7 +18,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.api.client.util.Lists;
 import com.kalafche.dao.DeviceBrandDao;
@@ -48,7 +46,6 @@ import com.kalafche.model.sale.SalesByStoreByDayByProductType;
 import com.kalafche.model.sale.TotalSumRequest;
 import com.kalafche.model.sale.Transaction;
 import com.kalafche.model.sale.TransactionsByStoreByDay;
-import com.kalafche.service.CurrencyService;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.EntityService;
@@ -73,9 +70,6 @@ public class SaleServiceImpl implements SaleService {
 	
 	@Autowired
 	SplitReportExcelWriterService splitReportExcelWriterService;
-	
-	@Autowired
-	CurrencyService currencyService;
 	
 	@Autowired
 	SaleDao saleDao;
@@ -563,7 +557,6 @@ public class SaleServiceImpl implements SaleService {
 		
 		saleReport.setTransactionCount(count);
 		saleReport.setTotalAmount(totalAmount);
-		saleReport.setTotalAmountEuro(currencyService.convertToEuro(totalAmount));
 	}
 
 	@Override
@@ -688,15 +681,9 @@ public class SaleServiceImpl implements SaleService {
 	private void calculateChange(BigDecimal paid, String currency, TotalSumReport totalSumReport) {
 		BigDecimal change = ZERO;
 		if (paid != null && paid.compareTo(ZERO) > 0) {
-			if ("BGN".equals(currency) && paid.compareTo(totalSumReport.getTotalSumAfterDiscount()) > 0) {
+			if (paid.compareTo(totalSumReport.getTotalSumAfterDiscount()) > 0) {
 				change = paid.subtract(totalSumReport.getTotalSumAfterDiscount());
 				totalSumReport.setChange(change);
-				totalSumReport.setChangeEuro(currencyService.convertToEuro(change));
-			}
-			if ("EUR".equals(currency) && paid.compareTo(totalSumReport.getTotalSumAfterDiscountEuro()) > 0) {
-				change = paid.subtract(totalSumReport.getTotalSumAfterDiscountEuro());
-				totalSumReport.setChangeEuro(change);
-				totalSumReport.setChange(currencyService.convertToBgn(change));
 			}
 		}
 	}

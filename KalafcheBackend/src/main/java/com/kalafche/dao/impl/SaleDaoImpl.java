@@ -28,7 +28,6 @@ import com.kalafche.model.sale.SalesByStore;
 import com.kalafche.model.sale.SalesByStoreByDayByProductType;
 import com.kalafche.model.sale.Transaction;
 import com.kalafche.model.sale.TransactionsByStoreByDay;
-import com.kalafche.service.CurrencyService;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
 
@@ -37,9 +36,6 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 
 	@Autowired
 	EmployeeService employeeService;
-	
-	@Autowired
-	CurrencyService currencyService;
 	
 	private static final BigDecimal ONE_HUNDRED = new BigDecimal(100);
 	
@@ -103,9 +99,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			saleItem.setDiscountCampaignCode(rs.getString("discountCampaignCode"));
 			saleItem.setDiscountCode(rs.getInt("discountCode"));
 			saleItem.setSalePrice(rs.getBigDecimal("SALE_PRICE"));
-			saleItem.setItemPrice(rs.getBigDecimal("ITEM_PRICE"));
-			saleItem.setSalePriceEuro(currencyService.convertToEuro(rs.getBigDecimal("SALE_PRICE")));		
-			saleItem.setItemPriceEuro(currencyService.convertToEuro(rs.getBigDecimal("ITEM_PRICE")));	
+			saleItem.setItemPrice(rs.getBigDecimal("ITEM_PRICE"));	
 			
 			return saleItem;
 		}
@@ -129,8 +123,6 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			saleItem.setDeviceBrandName(rs.getString("DEVICE_BRAND_NAME"));
 			saleItem.setSalePrice(rs.getBigDecimal("SALE_PRICE"));
 			saleItem.setItemPrice(rs.getBigDecimal("ITEM_PRICE"));
-			saleItem.setSalePriceEuro(currencyService.convertToEuro(rs.getBigDecimal("SALE_PRICE")));		
-			saleItem.setItemPriceEuro(currencyService.convertToEuro(rs.getBigDecimal("ITEM_PRICE")));	
 			
 			return saleItem;
 		}
@@ -151,7 +143,6 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			sale.setIsCashPayment(rs.getBoolean("IS_CASH_PAYMENT"));
 			sale.setBonusPts(rs.getInt("bonusPts"));
 			sale.setAmount(rs.getBigDecimal("AMOUNT"));		
-			sale.setAmountEuro(currencyService.convertToEuro(rs.getBigDecimal("AMOUNT")));	
 		
 			return sale;
 		}

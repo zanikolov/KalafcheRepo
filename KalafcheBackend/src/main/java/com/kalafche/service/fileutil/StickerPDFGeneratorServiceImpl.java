@@ -34,7 +34,8 @@ public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorServic
 	
 	public static final String FONT = "fonts/FreeSans.ttf";
 	public static final Font NORMAL_7 = FontFactory.getFont(FONT, BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED, 7);
-	private static final BigDecimal EURO_BGN_RATE = new BigDecimal(1.95583);
+	
+	private static final BigDecimal EUR_TO_BGN_RATE = new BigDecimal("1.95583");
 	
 	@Override
 	public byte[] generateFullStickers(List<? extends BaseStock> newStocks) {
@@ -94,13 +95,13 @@ public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorServic
 		        	stockTable.addCell(configureCell("Произход", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
 		        	stockTable.addCell(configureCell("Китай", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
 		        	
-		        	//Price in BGN
+		        	//Price BGN
 		        	stockTable.addCell(configureCell("Цена в лв", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
-		        	stockTable.addCell(configureCell(stock.getProductPrice() + "лв", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
+		        	stockTable.addCell(configureCell(convertEurToBgn(stock.getProductPrice()) + "лв", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
 		        	
-		        	//Price in EUR
+		        	//Price EUR
 		        	stockTable.addCell(configureCell("Цена в EUR", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
-		        	stockTable.addCell(configureCell(convertToEuro(stock.getProductPrice()) + " EUR", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
+		        	stockTable.addCell(configureCell(stock.getProductPrice() + "€", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
 		        	
 		        	if (!StringUtils.isEmpty(stock.getBarcode())) {
 			        	try {
@@ -137,10 +138,13 @@ public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorServic
 	    
 	    return pdfBytes;		
 	}
+	
+	public static BigDecimal convertEurToBgn(BigDecimal eur) {
+		if (eur == null) {
+			return null;
+		}
 
-	private BigDecimal convertToEuro(BigDecimal productPrice) {
-		
-		return productPrice.divide(EURO_BGN_RATE, 2, RoundingMode.HALF_UP);
+		return eur.multiply(EUR_TO_BGN_RATE).setScale(2, RoundingMode.HALF_UP);
 	}
 
 	private PdfPCell configureCell(String text, Font font, Integer colspan, Float fixedHeight, Integer padding, Integer horizontalAlignment, Integer verticalAlignment) {
@@ -213,26 +217,30 @@ public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorServic
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
 		byte[] pdfBytes = null;
 
-		Document document = new Document(rect, Utilities.millimetersToPoints(9.25f), Utilities.millimetersToPoints(9.25f),
-				Utilities.millimetersToPoints(13), Utilities.millimetersToPoints(13));
+		Document document = new Document(rect, Utilities.millimetersToPoints(9.25f),
+				Utilities.millimetersToPoints(9.25f), Utilities.millimetersToPoints(13),
+				Utilities.millimetersToPoints(13));
 		try {
 			PdfWriter writer = PdfWriter.getInstance(document, byteArrayOutputStream);
 			document.open();
 
-			PdfPTable table = configureTable(5,
-					new float[] { 2f, 2f, 2f, 2f, 2f });
-			
+			PdfPTable table = configureTable(5, new float[] { 2f, 2f, 2f, 2f, 2f });
+
 			newStocks.forEach(stock -> {
 				for (int i = 0; i < stock.getQuantity(); i++) {
 					PdfPTable stockTable = new PdfPTable(1);
-					
-					stockTable.addCell(configureItemCell(stock.getProductCode(),  stock.getDeviceModelName()));
-					stockTable.addCell(configureCell("Цена: " + stock.getProductPrice() + "лв / " + convertToEuro(stock.getProductPrice()) + "EUR", NORMAL_7, null, null, 1,
-							Element.ALIGN_CENTER, Element.ALIGN_MIDDLE));
+
+					stockTable.addCell(configureItemCell(stock.getProductCode(), stock.getDeviceModelName()));
+					stockTable
+							.addCell(configureCell(
+									"Цена: " + convertEurToBgn(stock.getProductPrice()) + "лв / "
+											+ stock.getProductPrice() + "€",
+									NORMAL_7, null, null, 1, Element.ALIGN_CENTER, Element.ALIGN_MIDDLE));
 
 					if (!StringUtils.isEmpty(stock.getBarcode())) {
 						try {
-							stockTable.addCell(createBarcode(writer, stock.getBarcode(), null, null, PageSize.A4.getHeight() / 24, null));
+							stockTable.addCell(createBarcode(writer, stock.getBarcode(), null, null,
+									PageSize.A4.getHeight() / 24, null));
 						} catch (DocumentException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -243,7 +251,7 @@ public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorServic
 					}
 
 					PdfPCell cell = new PdfPCell();
-					//cell.setPadding(0);
+					// cell.setPadding(0);
 					cell.setPaddingLeft(Utilities.millimetersToPoints(1.25f));
 					cell.setPaddingRight(Utilities.millimetersToPoints(1.25f));
 					cell.addElement(stockTable);

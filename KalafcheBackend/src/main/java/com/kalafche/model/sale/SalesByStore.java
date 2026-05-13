@@ -1,7 +1,6 @@
 package com.kalafche.model.sale;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,14 +8,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SalesByStore {
-
-	private static final BigDecimal BGN_TO_EUR_RATE = new BigDecimal("1.95583");
 	
 	private Integer storeId;
 	private String storeName;
 	private String storeCode;
 	private BigDecimal amount;
-	private BigDecimal amountEuro;
 	private BigDecimal itemCount;
 	private BigDecimal saleCount;
 	private BigDecimal transactionCount;
@@ -37,17 +33,6 @@ public class SalesByStore {
 		empty.setSqs(BigDecimal.ZERO);
 		
 		return empty;
-	}
-
-	public void setAmount(BigDecimal amount) {
-		this.amount = amount;
-		if (amount != null) {
-			this.amountEuro = convertToEuro(amount);
-		}
-	}
-	
-	private BigDecimal convertToEuro(BigDecimal totalSum) {
-		return totalSum.divide(BGN_TO_EUR_RATE, 2, RoundingMode.HALF_UP);
 	}
 	
 }

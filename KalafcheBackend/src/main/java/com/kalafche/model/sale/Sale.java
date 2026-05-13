@@ -26,7 +26,6 @@ public class Sale {
 	private Integer employeeId;
 	private String employeeName;
 	private BigDecimal amount;
-	private BigDecimal amountEuro;
 	private String partnerCode;
 	private List<SaleItem> saleItems;
 	private Boolean isCashPayment;

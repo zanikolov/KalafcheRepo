@@ -24,7 +24,6 @@ public class Product extends BaseModel {
 	private Integer masterTypeId;
 	private String masterTypeName;
 	private BigDecimal price;
-	private BigDecimal priceEuro;
 	private BigDecimal purchasePrice;
 	private int bonusPts;
 	private List<ProductSpecificPrice> specificPrices;

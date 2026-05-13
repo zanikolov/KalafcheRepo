@@ -45,7 +45,7 @@
                     Брой {{report.transactionCount}}
                 </div>
                 <div layout="row" flex>
-                    <b>{{report.totalAmount}}лв / {{report.totalAmountEuro}}€</b>
+                    <b>{{report.totalAmount}}€</b>
                 </div>
             </div>
         </div>
@@ -89,7 +89,7 @@
                             <span ng-if="!sale.isCashPayment">С карта</span>
                         </td>
                         <td>{{getSaleTimestamp(sale.saleTimestamp)}}</td>
-                        <td>{{sale.amount}}лв / {{sale.amountEuro}}€</td>
+                        <td>{{sale.amount}}€</td>
                         <td>{{sale.bonusPts}}т.</td>
                     </tr>
                     <tr dir-paginate-end ng-show="sale.expanded" class="sale-details" pagination-id="sale">
@@ -101,7 +101,7 @@
                                         <td style="width:2%;">{{$index + 1}}</td>                                        
                                         <td style="width:15%;">{{saleItem.deviceBrandName}} {{saleItem.deviceModelName}}</td>
                                         <td style="width:20%;">{{saleItem.productCode}} {{saleItem.productName}}</td>
-                                        <td style="width:8%;">{{saleItem.salePrice}}лв / {{saleItem.salePriceEuro}}€</td>
+                                        <td style="width:8%;">{{saleItem.salePrice}}€</td>
                                         <td style="width:8%;">{{saleItem.bonusPts}}т.</td>
                                         <td style="width:8%;">
                                             <a href="" ng-if="!saleItem.isRefunded" ng-click="openRefundModal(saleItem)">

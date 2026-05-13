@@ -67,7 +67,7 @@
                                     <span ng-if="stock.discountCode.discountCampaignCode == 'LOYAL'">{{stock.discountCode.discountCampaignName}} {{stock.discountCode.discountValue}}{{stock.discountCode.discountTypeSign}} - {{stock.discountCode.loyalCustomerName}}</span>
                                     <span ng-if="stock.discountCode.discountCampaignCode != 'LOYAL' && stock.discountCode.discountCampaignCode != 'PARTNER'">{{stock.discountCode.discountCampaignName}} {{stock.discountCode.discountValue}}{{stock.discountCode.discountTypeSign}}</span>
                                 </td>
-                                <td>{{stock.productPrice}}лв / {{stock.productPriceEur}}€</td>
+                                <td>{{stock.productPrice}}€</td>
                                 <td>
                                     <a href="" ng-click="removeStock($index, stock)">
                                         <md-icon class="primary-icon" md-svg-src="images/icons/close.svg"></md-icon>
@@ -79,13 +79,13 @@
                 </div> 
                 <hr/>
                 <div layout="row">  
-                    <span>Цена: <b>{{totalSumReport.totalSum}}лв / {{totalSumReport.totalSumEuro}} €</b></span>
+                    <span>Цена: <b>{{totalSumReport.totalSum}}€</b></span>
                 </div>
                 <div layout="row">  
-                    <span>Отстъпка: <b>{{totalSumReport.discount}}лв / {{totalSumReport.discountEuro}} €</b></span>
+                    <span>Отстъпка: <b>{{totalSumReport.discount}}€</b></span>
                 </div>
                 <div layout="row">  
-                    <span>Тотал: <b>{{totalSumReport.totalSumAfterDiscount}}лв / {{totalSumReport.totalSumAfterDiscountEuro}} €</b></span>
+                    <span>Тотал: <b>{{totalSumReport.totalSumAfterDiscount}}€</b></span>
                 </div>
             </div>
             <div flex>           
@@ -94,15 +94,8 @@
                         <label>Платено</label>
                         <input type="number" min="0" step="0.01" name="paid" ng-model="sale.paid" ng-blur="onChangePaidAmount()" required>
                     </md-input-container>
-                    <md-input-container style="width:10%">
-                        <label>Валута</label>
-                        <md-select name="selectCurrency" ng-model="sale.currency" ng-change="onChangePaidAmount()" required>
-                            <md-option ng-value="'EUR'">EUR</md-option>
-                            <md-option ng-value="'BGN'">BGN</md-option>
-                        </md-select>
-                    </md-input-container>
                     <md-input-container>
-                        <span>Ресто: <b>{{totalSumReport.change}}лв / {{totalSumReport.changeEuro}} €</b></span>
+                        <span>Ресто: <b>{{totalSumReport.change}}€</b></span>
                     </md-input-container>
                 </div>   
             </div>

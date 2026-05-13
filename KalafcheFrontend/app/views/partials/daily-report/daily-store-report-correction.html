@@ -54,7 +54,7 @@
                         <td>{{report.storeName}}</td>
                         <td>{{report.employeeName}}</td>
                         <td>{{getTimestamp(report.createTimestamp)}}</td>
-                        <td>{{report.finalBalance}}лв</td>
+                        <td>{{report.finalBalance}}€</td>
                     </tr>
                     <tr dir-paginate-end ng-show="report.expanded">
                         <td colspan="5" class="detailed-daily-store-report" style="padding-left:50px; border:#dbdfe5 solid">
@@ -76,42 +76,42 @@
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80">
-                                    Старт каса: <input type="number" min="0" name="initialBalance" ng-model="report.initialBalance" required>лв
+                                    Старт каса: <input type="number" min="0" name="initialBalance" ng-model="report.initialBalance" required>€
                                 </div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80">
-                                    Продадени артикули: <input type="number" min="0" name="soldItemsCount" ng-model="report.soldItemsCount" required>лв
+                                    Продадени артикули: <input type="number" min="0" name="soldItemsCount" ng-model="report.soldItemsCount" required>€
                                 </div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80">
-                                    Върнати артикули: <input type="number" min="0" name="refundedItemsCount" ng-model="report.refundedItemsCount" required>лв
+                                    Върнати артикули: <input type="number" min="0" name="refundedItemsCount" ng-model="report.refundedItemsCount" required>€
                                 </div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80">
-                                    Приход: <input type="number" min="0" name="income" ng-model="report.income" required>лв
+                                    Приход: <input type="number" min="0" name="income" ng-model="report.income" required>€
                                 </div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80">
-                                    ПОС: <input type="number" min="0" name="cardPayment" ng-model="report.cardPayment" required>лв
+                                    ПОС: <input type="number" min="0" name="cardPayment" ng-model="report.cardPayment" required>€
                                 </div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80">
-                                    Инкасо: <input type="number" min="0" name="collected" ng-model="report.collected" required>лв
+                                    Инкасо: <input type="number" min="0" name="collected" ng-model="report.collected" required>€
                                 </div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80">
-                                    Разходи: <input type="number" min="0" name="expense" ng-model="report.expense" required>лв
+                                    Разходи: <input type="number" min="0" name="expense" ng-model="report.expense" required>€
                                 </div>
                             </div>
                             <div layout="row" layout-xs="column">
                                 <div flex="80">
-                                    <strong>Каса: </strong><input type="number" min="0" name="finalBalance" ng-model="report.finalBalance" required>лв
+                                    <strong>Каса: </strong><input type="number" min="0" name="finalBalance" ng-model="report.finalBalance" required>€
                                 </div>
                             </div>
                             <div layout="row" layout-xs="column">
