@@ -21,6 +21,7 @@ angular.module('kalafcheFrontendApp')
             var selectedSaleItems = [];
             angular.forEach(items, function(item) {
                 var selectedSaleItem = {};
+                selectedSaleItem.itemId = item.itemId;
                 selectedSaleItem.itemPrice = item.productPrice;
                 if (item.discountCode) {
                     selectedSaleItem.discountValue = item.discountCode.discountValue;
@@ -34,6 +35,7 @@ angular.module('kalafcheFrontendApp')
             totalSumRequest.paid = sale.paid;
             totalSumRequest.currency = sale.currency;
             totalSumRequest.selectedSaleItems = selectedSaleItems;
+            totalSumRequest.protectPlusCertificateId = sale.protectPlusCertificateId;
 
             return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/totalSum', totalSumRequest)
                 .then(

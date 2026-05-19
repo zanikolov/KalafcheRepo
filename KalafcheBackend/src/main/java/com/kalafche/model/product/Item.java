@@ -21,6 +21,8 @@ public class Item {
 	private int productBonusPts;
 	private Integer productTypeId;
 	private String productTypeName;
+	private Integer productMasterTypeId;
+	private String productMasterTypeName;
 	private String barcode;
 
 }

@@ -38,6 +38,10 @@ public class GoogleDriveService implements ImageUploadService {
     private static final String WASTE_FOLDER_ID = "1IXDUStO44muwe9UDkaRe3-gOqv01VRD4";
 
 	private static final String EXPENSE_FOLDER_ID = "1_LR6mwNh5mjiuyryJC8EeaHVGEMXdiUH";
+
+	private static final String PROTECT_PLUS_GDPR_CONSENT_FOLDER_ID = "1wkD9HCpsV2ynsM43lge6gltwS1lqt8od";
+
+	private static final String PROTECT_PLUS_CALL_RECORDING_FOLDER_ID = "1PdqdnRBgw1vcZrOWvOcZIgRFbrJD3yC8";
 	
     private static Credential getAPICredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
     	InputStream in = GoogleDriveService.class.getResourceAsStream(CLIENT_SECRET_FILE_PATH);    	
@@ -135,7 +139,7 @@ public class GoogleDriveService implements ImageUploadService {
 	}
 	
 	private java.io.File multipartToFile(MultipartFile multipart) throws IllegalStateException, IOException {
-	    java.io.File convFile = new java.io.File(multipart.getOriginalFilename());
+	    java.io.File convFile = java.io.File.createTempFile("keysoo-upload-", "-" + multipart.getOriginalFilename());
 	    multipart.transferTo(convFile);
 	    return convFile;
 	}
@@ -145,17 +149,37 @@ public class GoogleDriveService implements ImageUploadService {
 		List<String> parents = Lists.newArrayList(parentFolder);
 		fileMetadata.setParents(parents);
 
-		FileContent mediaContent = new FileContent(wasteImage.getContentType(), imageResizeService.resizeImage(multipartToFile(wasteImage)));
+		java.io.File file = multipartToFile(wasteImage);
+		java.io.File resizedFile = imageResizeService.resizeImage(file);
+		FileContent mediaContent = new FileContent(wasteImage.getContentType(), resizedFile);
 		
 		Drive service = createService();
 		File uploadedFile = service.files().create(fileMetadata, mediaContent).setFields("id").execute();
+		file.delete();
+		resizedFile.delete();
 		
+		return uploadedFile.getId();
+	}
+
+	private String uploadFile(MultipartFile file, String parentFolder) throws IllegalStateException, IOException, GeneralSecurityException {
+		File fileMetadata = new File();
+		List<String> parents = Lists.newArrayList(parentFolder);
+		fileMetadata.setParents(parents);
+		fileMetadata.setName(file.getOriginalFilename());
+
+		java.io.File convertedFile = multipartToFile(file);
+		FileContent mediaContent = new FileContent(file.getContentType(), convertedFile);
+
+		Drive service = createService();
+		File uploadedFile = service.files().create(fileMetadata, mediaContent).setFields("id").execute();
+		convertedFile.delete();
+
 		return uploadedFile.getId();
 	}
 	
 	private String uploadImageHandleExceptions(MultipartFile image, String parentFolder) {
 		try {
-			if (image.getContentType().startsWith("image/")) {
+			if (image != null && image.getContentType() != null && image.getContentType().startsWith("image/")) {
 				return uploadImage(image, parentFolder);
 			} else {
 				throw new ImageUploadException("image", "Incorrect file type.");
@@ -163,6 +187,19 @@ public class GoogleDriveService implements ImageUploadService {
 		} catch (IllegalStateException | IOException | GeneralSecurityException e) {
 			e.printStackTrace();
 			throw new ImageUploadException("image", "Error during image upload.");
+		}
+	}
+
+	private String uploadAudioHandleExceptions(MultipartFile audio, String parentFolder) {
+		try {
+			if (audio != null && audio.getContentType() != null && audio.getContentType().startsWith("audio/")) {
+				return uploadFile(audio, parentFolder);
+			} else {
+				throw new ImageUploadException("audio", "Incorrect file type.");
+			}
+		} catch (IllegalStateException | IOException | GeneralSecurityException e) {
+			e.printStackTrace();
+			throw new ImageUploadException("audio", "Error during audio upload.");
 		}
 	}
 	
@@ -174,6 +211,16 @@ public class GoogleDriveService implements ImageUploadService {
 	@Override
 	public String uploadExpenseImage(MultipartFile image) {
 		return uploadImageHandleExceptions(image, EXPENSE_FOLDER_ID);
+	}
+
+	@Override
+	public String uploadProtectPlusGdprConsentImage(MultipartFile image) {
+		return uploadImageHandleExceptions(image, PROTECT_PLUS_GDPR_CONSENT_FOLDER_ID);
+	}
+
+	@Override
+	public String uploadProtectPlusCallRecording(MultipartFile audio) {
+		return uploadAudioHandleExceptions(audio, PROTECT_PLUS_CALL_RECORDING_FOLDER_ID);
 	}
 	
 }

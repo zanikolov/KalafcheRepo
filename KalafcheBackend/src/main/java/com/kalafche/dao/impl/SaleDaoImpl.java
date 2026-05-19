@@ -98,6 +98,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			saleItem.setStoreName(rs.getString("STORE_NAME"));
 			saleItem.setDiscountCampaignCode(rs.getString("discountCampaignCode"));
 			saleItem.setDiscountCode(rs.getInt("discountCode"));
+			saleItem.setProtectPlusApplied(rs.getBoolean("PROTECT_PLUS_APPLIED"));
 			saleItem.setSalePrice(rs.getBigDecimal("SALE_PRICE"));
 			saleItem.setItemPrice(rs.getBigDecimal("ITEM_PRICE"));	
 			
@@ -123,6 +124,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			saleItem.setDeviceBrandName(rs.getString("DEVICE_BRAND_NAME"));
 			saleItem.setSalePrice(rs.getBigDecimal("SALE_PRICE"));
 			saleItem.setItemPrice(rs.getBigDecimal("ITEM_PRICE"));
+			saleItem.setProtectPlusApplied(rs.getBoolean("PROTECT_PLUS_APPLIED"));
 			
 			return saleItem;
 		}
@@ -141,6 +143,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			sale.setStoreId(rs.getInt("STORE_ID"));
 			sale.setStoreName(rs.getString("STORE_NAME"));
 			sale.setIsCashPayment(rs.getBoolean("IS_CASH_PAYMENT"));
+			sale.setProtectPlusCertificateId(rs.getInt("PROTECT_PLUS_CERTIFICATE_ID"));
 			sale.setBonusPts(rs.getInt("bonusPts"));
 			sale.setAmount(rs.getBigDecimal("AMOUNT"));		
 		
@@ -156,6 +159,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"s.employee_id, " +
 			"s.store_id, " +
 			"s.is_cash_payment, " +
+			"s.protect_plus_certificate_id, " +
 			"s.bonus_pts, " +			
 			"sum(si.sale_price) as amount, " +
 			"sum(si.bonus_pts) as bonusPts, " +
@@ -185,6 +189,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"iv.device_brand_id, " +
 			"si.sale_price, " +
 			"si.item_price, " +
+			"si.protect_plus_applied, " +
 			"si.bonus_pts, " +
 			"e.id as employee_id, " +
 			"e.name as employee_name, " +
@@ -269,8 +274,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	private static final String MASTER_PRODUCT_TYPE_QUERY = " and iv.product_master_type_id = ?";
 	private static final String PRODUCT_TYPE_QUERY = " and iv.product_type_id = ?";
 	private static final String PRICE_QUERY = " and si.sale_price between ? and ?";
-	private static final String INSERT_SALE = "insert into sale (employee_id, store_id, sale_timestamp, is_cash_payment, transaction_id, is_initial)"
-			+ " values (?, ?, ?, ?, ?, ?)";
+	private static final String INSERT_SALE = "insert into sale (employee_id, store_id, sale_timestamp, is_cash_payment, transaction_id, is_initial, protect_plus_certificate_id)"
+			+ " values (?, ?, ?, ?, ?, ?, ?)";
 	private static final String INSERT_TRANSACTION = "insert into transaction (create_timestamp, created_by, store_id)"
 			+ " values (?, ?, ?)";
 	private static final String ORDER_BY_SALE = " order by s.sale_timestamp";
@@ -292,6 +297,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"db.name as device_brand_name, " +
 			"si.sale_price, " +
 			"si.item_price, " +
+			"si.protect_plus_applied, " +
 			"si.bonus_pts " +
 			"from sale_item si " +
 			"join item i on si.item_id = i.id " +
@@ -300,7 +306,7 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"join device_brand db on dm.device_brand_id = db.id " +
 			"where si.sale_id = ?";
 	
-	private static final String INSERT_SALE_ITEM = "insert into sale_item(sale_id, item_id, item_price, sale_price, discount_code_id, bonus_pts) values (?, ?, ?, ?, ?, ?)";
+	private static final String INSERT_SALE_ITEM = "insert into sale_item(sale_id, item_id, item_price, sale_price, discount_code_id, protect_plus_applied, bonus_pts) values (?, ?, ?, ?, ?, ?, ?)";
 	
 	private static final String UPDATE_REFUNDED_SALE_ITEM = "update sale_item set is_refunded = true where id = ?";
 	
@@ -540,6 +546,11 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			statement.setBoolean(4, sale.getIsCashPayment());
 			statement.setInt(5, sale.getTransactionId());
 			statement.setBoolean(6, sale.getIsInitial());
+			if (sale.getProtectPlusCertificateId() == null) {
+				statement.setNull(7, java.sql.Types.INTEGER);
+			} else {
+				statement.setInt(7, sale.getProtectPlusCertificateId());
+			}
 
 			int affectedRows = statement.executeUpdate();
 
@@ -675,7 +686,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	@Override
 	public void insertSaleItem(SaleItem saleItem) {
 		getJdbcTemplate().update(INSERT_SALE_ITEM, saleItem.getSaleId(), saleItem.getItemId(), saleItem.getItemPrice(),
-				saleItem.getSalePrice(), saleItem.getDiscountCodeId(), saleItem.getBonusPts());
+				saleItem.getSalePrice(), saleItem.getDiscountCodeId(), Boolean.TRUE.equals(saleItem.getProtectPlusApplied()),
+				saleItem.getBonusPts());
 	}
 	
 	@Override

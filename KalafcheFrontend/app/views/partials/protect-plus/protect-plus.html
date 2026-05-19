@@ -1,0 +1,191 @@
+<div ng-controller="ProtectPlusCertificateController" layout="column" ng-cloak>
+    <md-tabs md-dynamic-height md-border-bottom>
+        <md-tab label="Неактивни">
+            <md-content layout-padding layout="column">
+                <table class="table table-hover table-condensed" ng-if="inactiveCertificates.length > 0">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th><label>Сертификат</label></th>
+                            <th><label>Магазин</label></th>
+                            <th><label>Продаден от</label></th>
+                            <th><label>Създаден</label></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-click="selectCertificateForActivation(certificate)" dir-paginate-start="certificate in inactiveCertificates | itemsPerPage: certificatesPerPage track by certificate.id" pagination-id="inactiveCertificatesPagination" current-page="inactiveCurrentPage" class="item-row protect-plus-certificate-row">
+                            <td>{{(inactiveCurrentPage - 1) * certificatesPerPage + $index + 1}}</td>
+                            <td>{{certificate.certificateNumber}}</td>
+                            <td>{{certificate.soldStoreName}}</td>
+                            <td>{{certificate.soldByEmployeeName}}</td>
+                            <td>{{convertEpochToDate(certificate.createdTimestamp)}}</td>
+                        </tr>
+                        <tr dir-paginate-end ng-show="certificate.expanded" class="sale-details">
+                            <td colspan="5">
+                                <div class="protect-plus-activation-container">
+                                    <form name="protectPlusActivationForm" server-validation novalidate>
+                                        <md-input-container class="md-block protect-plus-form-control">
+                                            <label>Имена</label>
+                                            <input ng-model="activationRequest.loyalCustomer.name" name="name" required>
+                                            <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                                        </md-input-container>
+
+                                        <md-input-container class="md-block protect-plus-form-control">
+                                            <label>Телефонен номер</label>
+                                            <input ng-model="activationRequest.loyalCustomer.phoneNumber" name="phoneNumber" required>
+                                            <span ng-message="serverError" class="label label-error">{{serverErrorMessages.phoneNumber}}</span>
+                                        </md-input-container>
+
+                                        <md-input-container class="md-block protect-plus-form-control">
+                                            <label>Имейл</label>
+                                            <input type="email" ng-model="activationRequest.loyalCustomer.email" name="email" required>
+                                            <span ng-message="serverError" class="label label-error">{{serverErrorMessages.email}}</span>
+                                        </md-input-container>
+
+                                        <div layout="row" layout-xs="column" class="protect-plus-form-row">
+                                            <md-input-container flex="30" flex-xs="100">
+                                                <label>Марка</label>
+                                                <md-select ng-model="activationRequest.deviceBrandId" ng-change="onActivationBrandChanged()" required>
+                                                    <md-option value="" selected></md-option>
+                                                    <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                                                        {{brand.name}}
+                                                    </md-option>
+                                                </md-select>
+                                            </md-input-container>
+                                            <md-input-container flex="30" flex-xs="100">
+                                                <label>Модел</label>
+                                                <md-select name="deviceModelId" ng-model="activationRequest.deviceModelId"
+                                                           md-on-close="clearModelSearchTerm()"
+                                                           data-md-container-class="selectSearchTermHeader"
+                                                           ng-disabled="!activationRequest.deviceBrandId" required>
+                                                    <md-select-header class="select-header">
+                                                        <input id="protectPlusModelSearchTerm" ng-model="modelSearchTerm"
+                                                               type="search"
+                                                               placeholder="Търси модел.."
+                                                               class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+                                                    </md-select-header>
+                                                    <md-option value="" selected></md-option>
+                                                    <md-option ng-repeat="model in models | filter: {deviceBrandId : activationRequest.deviceBrandId} : true |
+                                                      filter:modelSearchTerm" ng-value="model.id">
+                                                        {{model.name}}
+                                                    </md-option>
+                                                </md-select>
+                                                <span ng-message="serverError" class="label label-error">{{serverErrorMessages.deviceModelId}}</span>
+                                            </md-input-container>
+                                        </div>
+
+                                        <div class="protect-plus-file-row">
+                                            <label class="protect-plus-file-label">GDPR декларация *</label>
+                                            <input type="file" file-model="selectedCertificate.gdprConsentImage" ng-model="selectedCertificate.gdprConsentImage" name="gdprConsentImage" required>
+                                            <span class="protect-plus-file-name" ng-if="selectedCertificate.gdprConsentImage">{{selectedCertificate.gdprConsentImage.name}}</span>
+                                            <span ng-message="serverError" class="label label-error">{{serverErrorMessages.gdprConsentImage}}</span>
+                                        </div>
+                                    </form>
+                                    <div layout="row" class="protect-plus-activation-actions">
+                                        <md-button ng-disabled="protectPlusActivationForm.$invalid || !selectedCertificate.gdprConsentImage" ng-click="activateCertificate()" class="md-raised md-primary">Активирай</md-button>
+                                        <md-button class="md-raised md-primary" ng-click="resetActivationForm()">Отмени</md-button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div ng-if="inactiveCertificates.length == 0" class="protect-plus-empty-result">
+                    Няма сертификати, чакащи активация.
+                </div>
+
+                <div layout="row" layout-align="center center" class="centered-pagination" ng-if="inactiveCertificates.length > 0">
+                    <dir-pagination-controls pagination-id="inactiveCertificatesPagination" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+                </div>
+            </md-content>
+        </md-tab>
+
+        <md-tab label="Активни">
+            <md-content layout-padding layout="column">
+                <form name="protectPlusSearchForm" server-validation novalidate>
+                    <div layout="row" layout-xs="column">
+                        <md-input-container flex="20" flex-xs="100">
+                            <label>Номер сертификат</label>
+                            <input type="number" ng-model="activeSearch.certificateNumber" name="certificateNumber">
+                        </md-input-container>
+                        <md-input-container flex="20" flex-xs="100">
+                            <label>Телефон</label>
+                            <input ng-model="activeSearch.phoneNumber" name="phoneNumber">
+                        </md-input-container>
+                        <md-input-container flex="20" flex-xs="100" ng-if="isAdmin()">
+                            <label>Магазин</label>
+                            <md-select ng-model="activeSearch.storeId">
+                                <md-option value="" selected></md-option>
+                                <md-option ng-repeat="store in stores" ng-value="store.id">
+                                    {{store.city}}, {{store.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <md-input-container flex="20" flex-xs="100" ng-if="isAdmin()">
+                            <label>Марка</label>
+                            <md-select ng-model="activeSearch.deviceBrandId" ng-change="onActiveSearchBrandChanged()">
+                                <md-option value="" selected></md-option>
+                                <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                                    {{brand.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <md-input-container flex="20" flex-xs="100" ng-if="isAdmin()">
+                            <label>Модел</label>
+                            <md-select ng-model="activeSearch.deviceModelId"
+                                       md-on-close="clearModelSearchTerm()"
+                                       data-md-container-class="selectSearchTermHeader"
+                                       ng-disabled="!activeSearch.deviceBrandId">
+                                <md-select-header class="select-header">
+                                    <input id="protectPlusActiveModelSearchTerm" ng-model="modelSearchTerm"
+                                           type="search"
+                                           placeholder="Търси модел.."
+                                           class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+                                </md-select-header>
+                                <md-option value="" selected></md-option>
+                                <md-option ng-repeat="model in models | filter: {deviceBrandId : activeSearch.deviceBrandId} : true |
+                                  filter:modelSearchTerm" ng-value="model.id">
+                                    {{model.name}}
+                                </md-option>
+                            </md-select>
+                        </md-input-container>
+                        <md-input-container flex="15" flex-xs="100">
+                            <md-button class="md-raised md-primary" ng-disabled="!canSearchActiveCertificates()" ng-click="searchActiveCertificates()">Търси</md-button>
+                        </md-input-container>
+                    </div>
+                </form>
+
+                <table class="table table-hover table-condensed" ng-if="activeCertificates.length > 0">
+                    <thead>
+                        <tr>
+                            <th ng-if="isAdmin()"></th>
+                            <th><label>Сертификат</label></th>
+                            <th><label>Клиент</label></th>
+                            <th><label>Телефон</label></th>
+                            <th><label>Модел</label></th>
+                            <th ng-if="isAdmin()"><label>Магазин</label></th>
+                            <th><label>Валиден до</label></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr dir-paginate="certificate in activeCertificates | itemsPerPage: certificatesPerPage track by certificate.id" pagination-id="activeCertificatesPagination" current-page="activeCurrentPage" class="item-row">
+                            <td ng-if="isAdmin()">{{(activeCurrentPage - 1) * certificatesPerPage + $index + 1}}</td>
+                            <td>{{certificate.certificateNumber}}</td>
+                            <td>{{certificate.customerName}}</td>
+                            <td>{{certificate.phoneNumber}}</td>
+                            <td>{{certificate.deviceModelName}}</td>
+                            <td ng-if="isAdmin()">{{certificate.soldStoreName}}</td>
+                            <td>{{convertEpochToDate(certificate.validUntilTimestamp)}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div layout="row" layout-align="center center" class="centered-pagination" ng-if="isAdmin() && activeCertificates.length > 0">
+                    <dir-pagination-controls pagination-id="activeCertificatesPagination" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+                </div>
+            </md-content>
+        </md-tab>
+    </md-tabs>
+
+</div>

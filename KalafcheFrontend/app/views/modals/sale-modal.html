@@ -12,6 +12,9 @@
 
     <md-dialog-content>
         <md-content layout-padding layout="column">
+            <div class="sale-submit-error-message" style="color: red !important;" ng-show="submitSaleErrorMessage">
+                {{submitSaleErrorMessage}}
+            </div>
             <div flex>           
                 <div layout="row">
                     <md-input-container style="width:40%">
@@ -77,6 +80,48 @@
                         </tbody>
                     </table>  
                 </div> 
+                <hr/>
+                <div class="protect-plus-sale-section sale-modal-protect-plus-section">
+                    <div layout="row" layout-align="start center">
+                        <span class="protect-plus-section-text" ng-if="selectedProtectPlusCertificate">
+                            Избран сертификат {{selectedProtectPlusCertificate.certificateNumber}} за {{selectedProtectPlusCertificate.customerName}}
+                        </span>
+                    </div>
+                    <div layout="row" layout-xs="column" layout-align="start center" class="protect-plus-search-row" ng-if="!selectedProtectPlusCertificate">
+                        <md-input-container flex="30" flex-xs="100">
+                            <label>Protect+</label>
+                            <input ng-model="protectPlusSearch.query" ng-blur="searchProtectPlusCertificates()">
+                        </md-input-container>
+                    </div>
+                    <div ng-if="protectPlusSearchPerformed && protectPlusSearch.query && protectPlusSearch.query.length >= 5 && protectPlusCertificates.length == 0 && !selectedProtectPlusCertificate" class="protect-plus-empty-result">
+                        Няма намерени сертификати.
+                    </div>
+                    <table class="table table-hover table-condensed protect-plus-results-table" ng-if="protectPlusCertificates.length > 0 && !selectedProtectPlusCertificate">
+                        <thead>
+                            <tr>
+                                <th>Сертификат</th>
+                                <th>Клиент</th>
+                                <th>Модел</th>
+                                <th>Статус</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="certificate in protectPlusCertificates track by certificate.id">
+                                <td>{{certificate.certificateNumber}}</td>
+                                <td>{{certificate.customerName}} {{certificate.phoneNumber}}</td>
+                                <td>{{certificate.deviceModelName}}</td>
+                                <td>{{certificate.status}}</td>
+                                <td>
+                                    <md-button class="md-primary protect-plus-select-button" ng-disabled="certificate.status != 'ACTIVE'" ng-click="selectProtectPlusCertificate(certificate)">Избери</md-button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div layout="row" layout-align="start center" ng-if="selectedProtectPlusCertificate">
+                        <md-button class="md-raised md-primary" ng-click="clearSelectedProtectPlusCertificate()">Премахни сертификата</md-button>
+                    </div>
+                </div>
                 <hr/>
                 <div layout="row">  
                     <span>Цена: <b>{{totalSumReport.totalSum}}€</b></span>

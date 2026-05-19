@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.api.client.util.Lists;
 import com.kalafche.dao.DeviceBrandDao;
@@ -35,6 +36,7 @@ import com.kalafche.model.comparator.SalesByStoreByStoreIdComparator;
 import com.kalafche.model.discount.DiscountCode;
 import com.kalafche.model.employee.Employee;
 import com.kalafche.model.product.Item;
+import com.kalafche.model.protectplus.ProtectPlusCertificate;
 import com.kalafche.model.sale.PastPeriodSaleReport;
 import com.kalafche.model.sale.PastPeriodTurnover;
 import com.kalafche.model.sale.Sale;
@@ -51,6 +53,7 @@ import com.kalafche.service.EmployeeService;
 import com.kalafche.service.EntityService;
 import com.kalafche.service.SaleService;
 import com.kalafche.service.StockService;
+import com.kalafche.service.ProtectPlusCertificateService;
 import com.kalafche.service.fileutil.SplitReportExcelWriterService;
 
 @Service
@@ -58,43 +61,52 @@ public class SaleServiceImpl implements SaleService {
 
 	@Autowired
 	EmployeeService employeeService;
-	
+
 	@Autowired
 	EntityService entityService;
-	
+
 	@Autowired
 	StockService stockService;
-	
+
 	@Autowired
 	DateService dateService;
-	
+
 	@Autowired
 	SplitReportExcelWriterService splitReportExcelWriterService;
-	
+
 	@Autowired
 	SaleDao saleDao;
-	
+
 	@Autowired
 	ItemDao itemDao;
-	
+
 	@Autowired
 	StoreDao storeDao;
-	
+
 	@Autowired
 	DeviceBrandDao deviceBrandDao;
-	
+
 	@Autowired
 	DeviceModelDao deviceModelDao;
-	
+
 	@Autowired
 	DiscountDao discountDao;
-	
+
+	@Autowired
+	ProtectPlusCertificateService protectPlusCertificateService;
+
 	private static final TimeZone timeZone = TimeZone.getTimeZone("Europe/Sofia");
 
 	private static final BigDecimal ZERO = BigDecimal.ZERO;
 	private static final BigDecimal ONE_HUNDRED = new BigDecimal(100);
-	
+	private static final BigDecimal PROTECT_PLUS_DISCOUNT_PERCENT = new BigDecimal(50);
+	private static final BigDecimal PROTECT_PLUS_OTHER_PRODUCTS_DISCOUNT_PERCENT = new BigDecimal(15);
+	private static final BigDecimal PROTECT_PLUS_FREE_PROTECTOR_DISCOUNT_PERCENT = new BigDecimal(100);
+	private static final String PROTECTOR_MASTER_TYPE = "PROTECTOR";
+	private static final String PROTECT_PLUS_PRODUCT_CODE = "0500";
+
 	@Override
+	@Transactional
 	public Sale submitSale(Sale sale) throws SQLException {
 		Integer saleEmployeeId;
 		if (sale.getEmployeeId() != null) {
@@ -104,33 +116,50 @@ public class SaleServiceImpl implements SaleService {
 			saleEmployeeId = loggedInEmployee.getId();
 		}
 		long currentMillis = dateService.getCurrentMillisBGTimezone();
-		
+
 		if (sale.getReplacementSaleUSI() == null) {
 			Transaction transaction = new Transaction(currentMillis, saleEmployeeId, sale.getStoreId());
 			Integer transactionId = saleDao.insertTransaction(transaction);
 			sale.setTransactionId(transactionId);
-			sale.setIsInitial(true);		
+			sale.setIsInitial(true);
 		} else {
 			Integer transactionId = saleDao.getSaleTransactionId(sale.getReplacementSaleUSI());
 			saleDao.udpateTransaction(transactionId, currentMillis, saleEmployeeId);
 			sale.setTransactionId(transactionId);
 			sale.setIsInitial(false);
 		}
-		
+
 		sale.setEmployeeId(saleEmployeeId);
 		sale.setStoreId(sale.getStoreId());
 		sale.setSaleTimestamp(dateService.getCurrentMillisBGTimezone());
-		
+
+		Map<Integer, Item> itemsById = getItemsById(sale.getSaleItems());
+		boolean containsProtectPlusProduct = containsProtectPlusProduct(itemsById);
+		validateProtectPlusSaleRequest(itemsById, containsProtectPlusProduct);
+
+		ProtectPlusCertificate protectPlusCertificate = null;
+		if (sale.getProtectPlusCertificateId() != null) {
+			protectPlusCertificate = protectPlusCertificateService.validateActiveCertificate(sale.getProtectPlusCertificateId());
+		}
+
 		Integer saleId = saleDao.insertSale(sale);
 		StoreDto store = entityService.getStoreById(sale.getStoreId());
 		String usi = generateUSI(store.getFdSerialNo(), saleEmployeeId, saleId);
 		saleDao.updateSaleUSI(saleId, usi);
-		
-		saveSaleItems(sale, saleId);
-		
+
+		ProtectPlusDiscountUsage protectPlusDiscountUsage = saveSaleItems(sale, saleId, protectPlusCertificate, itemsById);
+		if (protectPlusCertificate != null && protectPlusDiscountUsage.isProtectPlusApplied()) {
+			protectPlusCertificateService.registerCertificateUsage(protectPlusCertificate,
+					protectPlusDiscountUsage.isFreeProtectorUsed());
+		}
+
+		if (containsProtectPlusProduct) {
+			protectPlusCertificateService.createPendingCertificateForSale(saleId, sale.getStoreId(), saleEmployeeId);
+		}
+
 		Sale insertedSale = saleDao.selectSaleByUniqueSaleId(usi);
 		insertedSale.setSaleItems(saleDao.getSaleItemsBySaleId(insertedSale.getId()));
-		
+
 		return insertedSale;
 	}
 
@@ -148,8 +177,38 @@ public class SaleServiceImpl implements SaleService {
                   .append(paddedEmployeeId)
                   .append("-")
                   .append(paddedSaleId);
-        
+
         return usiBuilder.toString();
+	}
+
+	private Map<Integer, Item> getItemsById(List<SaleItem> saleItems) {
+		return saleItems.stream()
+				.map(saleItem -> itemDao.getItem(saleItem.getItemId()))
+				.collect(Collectors.toMap(Item::getId, Function.identity(), (first, second) -> first));
+	}
+
+	private Item getItem(Integer itemId, Map<Integer, Item> itemsById) {
+		Item item = itemsById.get(itemId);
+		if (item == null) {
+			throw new DomainObjectNotFoundException("itemId", "Несъществуващ артикул.");
+		}
+
+		return item;
+	}
+
+	private boolean containsProtectPlusProduct(Map<Integer, Item> itemsById) {
+		return itemsById.values().stream().anyMatch(this::isProtectPlusProduct);
+	}
+
+	private void validateProtectPlusSaleRequest(Map<Integer, Item> itemsById, boolean containsProtectPlusProduct) {
+		if (containsProtectPlusProduct && !containsProtectorForProtectPlusPurchase(itemsById)) {
+			throw new IllegalArgumentException("protectPlusPurchaseRequiresProtector");
+		}
+	}
+
+	private boolean containsProtectorForProtectPlusPurchase(Map<Integer, Item> itemsById) {
+		return itemsById.values().stream()
+				.anyMatch(item -> isProtector(item) && !isProtectPlusProduct(item));
 	}
 
 //	private void saveSaleItems(Sale sale, Employee loggedInEmployee, DiscountCode discountCode, Integer saleId) {
@@ -192,10 +251,10 @@ public class SaleServiceImpl implements SaleService {
 //				BigDecimal itemPrice = itemDao.getItemPriceByStoreId(saleItem.getItemId(), sale.getStoreId());
 //				saleItem.setItemPrice(itemPrice);
 //			}
-//			
+//
 //			String discountValueAmount = discountCode.getDiscountValue();
 //			List<String> bundleDiscount = Arrays.asList(discountValueAmount.split(";"));
-//			
+//
 //			List<SaleItem> sortedSaleItems = sale.getSaleItems();
 //			sortedSaleItems.sort(new SaleItemByItemPriceComparator());
 //
@@ -210,28 +269,32 @@ public class SaleServiceImpl implements SaleService {
 //				} else {
 //					saleItem.setSalePrice(saleItem.getItemPrice());
 //				}
-//				
+//
 //				saleDao.insertSaleItem(saleItem);
 //				stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), loggedInEmployee.getStoreId());
 //			}
 //		}
 //	}
 
-	private void saveSaleItems(Sale sale, Integer saleId) {
+	private ProtectPlusDiscountUsage saveSaleItems(Sale sale, Integer saleId,
+			ProtectPlusCertificate protectPlusCertificate, Map<Integer, Item> itemsById) {
 		List<SaleItem> saleItems = sale.getSaleItems();
-		saveSaleItemsWithoutDiscount(sale, saleId, saleItems);
-		
+		ProtectPlusDiscountUsage protectPlusDiscountUsage = saveSaleItemsWithoutDiscount(sale, saleId, saleItems,
+				protectPlusCertificate, itemsById);
+
 		List<SaleItem> percentageDiscounTypeItems = saleItems.stream()
 				.filter(item -> "PERCENTAGE".equals(item.getDiscountType())).collect(Collectors.toList());
 		saveSaleItemsWithPercentageDiscount(sale, saleId, percentageDiscounTypeItems);
-				
+
 		List<SaleItem> amountDiscounTypeItems = saleItems.stream()
 				.filter(item -> "AMOUNT".equals(item.getDiscountType())).collect(Collectors.toList());
 		saveSaleItemsWithAmountDiscount(sale, saleId, amountDiscounTypeItems);
-		
+
 		List<SaleItem> bundleDiscounTypeItems = saleItems.stream()
 				.filter(item -> "BUNDLE".equals(item.getDiscountType())).collect(Collectors.toList());
 		saveSaleItemsWithBundleDiscount(sale, saleId, bundleDiscounTypeItems);
+
+		return protectPlusDiscountUsage;
 	}
 
 	private void saveSaleItemsWithBundleDiscount(Sale sale, Integer saleId,
@@ -239,25 +302,25 @@ public class SaleServiceImpl implements SaleService {
 		if (!bundleDiscounTypeItems.isEmpty()) {
 			LinkedHashMap<Integer, List<SaleItem>> bundledGroupedByDiscountCode = bundleDiscounTypeItems.stream()
 					.collect(Collectors.groupingBy(SaleItem::getDiscountCode, LinkedHashMap::new, Collectors.toList()));
-			
+
 			for (Integer discountCode : bundledGroupedByDiscountCode.keySet()) {
 				List<SaleItem> bundle = bundledGroupedByDiscountCode.get(discountCode);
-				
+
 				for (SaleItem saleItem : bundle) {
 					saleItem.setSaleId(saleId);
 					BigDecimal itemPrice = itemDao.getItemPriceByStoreId(saleItem.getItemId(), sale.getStoreId());
 					saleItem.setItemPrice(itemPrice);
 				}
-				
+
 		        List<SaleItem> bundleSortedByPrice = bundle.stream()
 		    			.sorted(Comparator.comparing(SaleItem::getItemPrice, Comparator.reverseOrder()))
 		    			.collect(Collectors.toList());
-				
+
 				String discountValueAmount = bundleSortedByPrice.get(0).getDiscountValue();
 				List<String> bundleDiscountValues = Arrays.asList(discountValueAmount.split(";"));
-				
+
 				int bundleDiscountCounter = 0;
-				
+
 				for (int i = 0; i < bundleSortedByPrice.size(); i++) {
 					SaleItem saleItem = bundleSortedByPrice.get(i);
 					if (bundleSortedByPrice.size() - (i + 1) < bundleDiscountValues.size()) {
@@ -267,7 +330,7 @@ public class SaleServiceImpl implements SaleService {
 					} else {
 						saleItem.setSalePrice(saleItem.getItemPrice());
 					}
-					
+
 					Item item = itemDao.getItem(saleItem.getItemId());
 					saleItem.setBonusPts(item.getProductBonusPts());
 					saleDao.insertSaleItem(saleItem);
@@ -311,17 +374,25 @@ public class SaleServiceImpl implements SaleService {
 		}
 	}
 
-	private void saveSaleItemsWithoutDiscount(Sale sale, Integer saleId,
-			List<SaleItem> saleItems) {
+	private ProtectPlusDiscountUsage saveSaleItemsWithoutDiscount(Sale sale, Integer saleId,
+			List<SaleItem> saleItems, ProtectPlusCertificate protectPlusCertificate, Map<Integer, Item> itemsById) {
+		ProtectPlusDiscountUsage protectPlusDiscountUsage = new ProtectPlusDiscountUsage(protectPlusCertificate);
 		for (SaleItem saleItem : saleItems) {
 			if (saleItem.getDiscountCode() == null) {
 				saleItem.setSaleId(saleId);
 				BigDecimal itemPrice = itemDao.getItemPriceByStoreId(saleItem.getItemId(), sale.getStoreId());
-				Item item = itemDao.getItem(saleItem.getItemId());
+				Item item = getItem(saleItem.getItemId(), itemsById);
 				saleItem.setBonusPts(item.getProductBonusPts());
 				saleItem.setItemPrice(itemPrice);
-				saleItem.setSalePrice(itemPrice);
-				
+				BigDecimal protectPlusDiscountPercent = getProtectPlusDiscountPercent(item, protectPlusDiscountUsage);
+				if (protectPlusDiscountPercent.compareTo(ZERO) > 0) {
+					saleItem.setSalePrice(calculcatePercentageDiscountValuePrice(itemPrice, protectPlusDiscountPercent));
+					saleItem.setProtectPlusApplied(true);
+				} else {
+					saleItem.setSalePrice(itemPrice);
+					saleItem.setProtectPlusApplied(false);
+				}
+
 				saleDao.insertSaleItem(saleItem);
 				stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), sale.getStoreId());
 			} else {
@@ -336,14 +407,16 @@ public class SaleServiceImpl implements SaleService {
 
 			}
 		}
+
+		return protectPlusDiscountUsage;
 	}
-	
+
 	private BigDecimal calculcateAmountDiscountValuePrice(BigDecimal priceBeforeDiscount, BigDecimal discountValueAmount) {
 		BigDecimal salePrice = priceBeforeDiscount.subtract(discountValueAmount);
 		if (salePrice.compareTo(ZERO) > 0) {
 			return salePrice;
 		}
-		
+
 		return ZERO;
 	}
 
@@ -351,9 +424,40 @@ public class SaleServiceImpl implements SaleService {
 		return priceBeforeDiscount.multiply(ONE_HUNDRED.subtract(discountValueAmount))
 				.divide(ONE_HUNDRED).setScale(2, RoundingMode.HALF_UP);
 	}
-	
+
 	private BigDecimal calculcatePercentageDiscount(BigDecimal priceBeforeDiscount, BigDecimal discountValueAmount) {
 		return priceBeforeDiscount.multiply(discountValueAmount).divide(ONE_HUNDRED).setScale(2, RoundingMode.HALF_UP);
+	}
+
+	private BigDecimal getProtectPlusDiscountPercent(Item item, ProtectPlusDiscountUsage protectPlusDiscountUsage) {
+		ProtectPlusCertificate protectPlusCertificate = protectPlusDiscountUsage.getProtectPlusCertificate();
+		if (protectPlusCertificate == null || item == null) {
+			return ZERO;
+		}
+		if (isProtectorForCertificate(item, protectPlusCertificate)) {
+			if (protectPlusDiscountUsage.isFreeProtectorAvailable()) {
+				protectPlusDiscountUsage.markFreeProtectorUsed();
+				return PROTECT_PLUS_FREE_PROTECTOR_DISCOUNT_PERCENT;
+			}
+
+			protectPlusDiscountUsage.markProtectPlusApplied();
+			return PROTECT_PLUS_DISCOUNT_PERCENT;
+		}
+
+		protectPlusDiscountUsage.markProtectPlusApplied();
+		return PROTECT_PLUS_OTHER_PRODUCTS_DISCOUNT_PERCENT;
+	}
+
+	private boolean isProtectorForCertificate(Item item, ProtectPlusCertificate protectPlusCertificate) {
+		return isProtector(item) && protectPlusCertificate.getDeviceModelId().equals(item.getDeviceModelId());
+	}
+
+	private boolean isProtector(Item item) {
+		return item != null && PROTECTOR_MASTER_TYPE.equals(item.getProductMasterTypeName());
+	}
+
+	private boolean isProtectPlusProduct(Item item) {
+		return item != null && PROTECT_PLUS_PRODUCT_CODE.equals(item.getProductCode());
 	}
 
 	@Override
@@ -373,28 +477,28 @@ public class SaleServiceImpl implements SaleService {
 	private SaleReport generateReport(String storeId, Long startDateMilliseconds,
 			Long endDateMilliseconds, String productCode, Integer deviceBrandId, Integer deviceModelId) {
 		SaleReport report = new SaleReport();
-		
+
 		report.setStartDate(startDateMilliseconds);
-		report.setEndDate(endDateMilliseconds);	
-		
+		report.setEndDate(endDateMilliseconds);
+
 		if (storeId != null) {
 			setSaleReportStoreName(storeId, report);
 		}
-		
+
 		if (deviceBrandId != null) {
 			report.setDeviceBrandName(deviceBrandDao.selectDeviceBrand(deviceBrandId).getName());
 		}
-		
+
 		if (deviceModelId != null) {
 			report.setDeviceModelName(deviceModelDao.selectDeviceModel(deviceModelId).getName());
 		}
-		
+
 		if (productCode != null) {
 			report.setProductCode(productCode);
 		}
-		
+
 		return report;
-		
+
 	}
 
 	private void setSaleReportStoreName(String storeId, SaleReport report) {
@@ -405,7 +509,7 @@ public class SaleServiceImpl implements SaleService {
 			report.setStoreName(store.getCity() + ", " + store.getName());
 		}
 	}
-	
+
 
 	@Override
 	public List<SaleItem> getSaleItems(Integer saleId) {
@@ -435,20 +539,20 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	private void calculateTotalAmountAndCountSaleItems(List<SaleItem> saleItems, SaleReport saleReport) {
-		BigDecimal totalAmount = ZERO;	
+		BigDecimal totalAmount = ZERO;
 		Integer count = 0;
 
 		if (saleItems != null && !saleItems.isEmpty()) {
 			totalAmount = saleItems.stream()
 			        .map(saleItem -> saleItem.getSalePrice())
-			        .reduce(ZERO, BigDecimal::add);	
+			        .reduce(ZERO, BigDecimal::add);
 			count = saleItems.size();
 		}
-		
+
 		saleReport.setItemCount(count);
-		saleReport.setTotalAmount(totalAmount);	
+		saleReport.setTotalAmount(totalAmount);
 	}
-	
+
 	private void calculateTotalAmountAndCountSaleByStore(List<SalesByStore> saleByStores, SaleReport saleReport) {
 		BigDecimal totalAmount = ZERO;
 		BigDecimal totalTransactionCount = ZERO;
@@ -467,57 +571,57 @@ public class SaleServiceImpl implements SaleService {
 							.map(SalesByStore::getAmount)
 							.map(amount -> amount != null)
 							.orElse(false))
-			        .map(saleByStore -> saleByStore.getAmount())	        
+			        .map(saleByStore -> saleByStore.getAmount())
 			        .reduce(ZERO, BigDecimal::add);
-			
+
 			totalTransactionCount = saleByStores.stream()
 					.filter(saleByStore -> Optional.ofNullable(saleByStore)
 							.map(SalesByStore::getTransactionCount)
 							.map(count -> count != null)
 							.orElse(false))
-					.map(saleByStore -> saleByStore.getTransactionCount())	        
+					.map(saleByStore -> saleByStore.getTransactionCount())
 					.reduce(ZERO, BigDecimal::add);
-			
+
 			totalSaleCount = saleByStores.stream()
 					.filter(saleByStore -> Optional.ofNullable(saleByStore)
 							.map(SalesByStore::getSaleCount)
 							.map(count -> count != null)
 							.orElse(false))
-					.map(saleByStore -> saleByStore.getTransactionCount())	        
+					.map(saleByStore -> saleByStore.getTransactionCount())
 					.reduce(ZERO, BigDecimal::add);
-			
+
 			totalItemCount = saleByStores.stream()
 					.filter(saleByStore -> Optional.ofNullable(saleByStore)
 							.map(SalesByStore::getItemCount)
 							.map(count -> count != null)
 							.orElse(false))
-					.map(saleByStore -> saleByStore.getItemCount())	        
+					.map(saleByStore -> saleByStore.getItemCount())
 					.reduce(ZERO, BigDecimal::add);
-			
+
 			totalBonusPts = saleByStores.stream()
 					.filter(saleByStore -> Optional.ofNullable(saleByStore)
 							.map(SalesByStore::getBonusPts)
 							.map(count -> count != null)
 							.orElse(false))
-					.map(saleByStore -> saleByStore.getBonusPts())	        
+					.map(saleByStore -> saleByStore.getBonusPts())
 					.reduce(ZERO, BigDecimal::add);
-			
+
 			totalProtectorCount = saleByStores.stream()
 					.filter(saleByStore -> Optional.ofNullable(saleByStore)
 							.map(SalesByStore::getProtectorCount)
 							.map(count -> count != null)
 							.orElse(false))
-					.map(saleByStore -> saleByStore.getProtectorCount())	        
+					.map(saleByStore -> saleByStore.getProtectorCount())
 					.reduce(ZERO, BigDecimal::add);
-			
+
 			totalProtectorPlusCount = saleByStores.stream()
 					.filter(saleByStore -> Optional.ofNullable(saleByStore)
 							.map(SalesByStore::getProtectorPlusCount)
 							.map(count -> count != null)
 							.orElse(false))
-					.map(saleByStore -> saleByStore.getProtectorPlusCount())	        
+					.map(saleByStore -> saleByStore.getProtectorPlusCount())
 					.reduce(ZERO, BigDecimal::add);
-			
+
 	    	if (ZERO.compareTo(totalItemCount) < 0 && ZERO.compareTo(totalTransactionCount) < 0) {
 	    		totalSPT = totalItemCount.divide(totalTransactionCount, 2, RoundingMode.HALF_UP);
 	    	} else {
@@ -534,7 +638,7 @@ public class SaleServiceImpl implements SaleService {
 	    		totalAttachRate = ZERO;
 	    	}
 		}
-		
+
 		saleReport.setTotalAmount(totalAmount);
 		saleReport.setTransactionCount(totalTransactionCount.intValue());
 		saleReport.setItemCount(totalItemCount.intValue());
@@ -543,18 +647,18 @@ public class SaleServiceImpl implements SaleService {
 		saleReport.setSqs(totalSQS);
 		saleReport.setAttachRate(totalAttachRate);
 	}
-	
+
 	private void calculateTotalAmountAndCountForSales(List<Sale> sales, SaleReport saleReport) {
 		BigDecimal totalAmount = ZERO;
 		Integer count = 0;
-		
+
 		if (sales != null && !sales.isEmpty()) {
 			totalAmount = sales.stream()
 			        .map(sale -> sale.getAmount())
 			        .reduce(ZERO, BigDecimal::add);
 			count = sales.size();
 		}
-		
+
 		saleReport.setTransactionCount(count);
 		saleReport.setTotalAmount(totalAmount);
 	}
@@ -563,12 +667,12 @@ public class SaleServiceImpl implements SaleService {
 	public TotalSumReport calculateTotalSum(TotalSumRequest request) {
 		TotalSumReport totalSumReport = new TotalSumReport();
 		List<SaleItem> selectedSaleItems = request.getSelectedSaleItems();
-		
+
 		BigDecimal totalSum = selectedSaleItems.stream().map(SaleItem::getItemPrice)
 				.reduce(ZERO, BigDecimal::add);
-		totalSumReport.setTotalSum(totalSum);		
+		totalSumReport.setTotalSum(totalSum);
 		BigDecimal discount = ZERO;
-		
+
 		List<SaleItem> percentageDiscounTypeItems = selectedSaleItems.stream()
 				.filter(item -> "PERCENTAGE".equals(item.getDiscountType())).collect(Collectors.toList());
 		if (!percentageDiscounTypeItems.isEmpty()) {
@@ -577,7 +681,7 @@ public class SaleServiceImpl implements SaleService {
 					.reduce(ZERO, BigDecimal::add);
 			discount = discount.add(percentageDiscount);
 		}
- 		
+
 		List<SaleItem> amountDiscounTypeItems = selectedSaleItems.stream()
 				.filter(item -> "AMOUNT".equals(item.getDiscountType())).collect(Collectors.toList());
 		if (!amountDiscounTypeItems.isEmpty()) {
@@ -591,26 +695,26 @@ public class SaleServiceImpl implements SaleService {
 				discount = discount.add(amountDiscount);
 			}
 		}
-		
+
 		List<SaleItem> bundleDiscounTypeItems = selectedSaleItems.stream()
 				.filter(item -> "BUNDLE".equals(item.getDiscountType())).collect(Collectors.toList());
 		if (!bundleDiscounTypeItems.isEmpty()) {
 			BigDecimal totalBundleDiscount = ZERO;
 			LinkedHashMap<Integer, List<SaleItem>> bundledGroupedByDiscountCode = bundleDiscounTypeItems.stream()
 					.collect(Collectors.groupingBy(SaleItem::getDiscountCode, LinkedHashMap::new, Collectors.toList()));
-			
+
 			for (Integer discountCode : bundledGroupedByDiscountCode.keySet()) {
 				List<SaleItem> bundle = bundledGroupedByDiscountCode.get(discountCode);
-				
+
 		        List<SaleItem> bundleSortedByPrice = bundle.stream()
 		    			.sorted(Comparator.comparing(SaleItem::getItemPrice, Comparator.reverseOrder()))
 		    			.collect(Collectors.toList());
-				
+
 				String discountValueAmount = bundleSortedByPrice.get(0).getDiscountValue();
 				List<String> bundleDiscountValues = Arrays.asList(discountValueAmount.split(";"));
-				
+
 				int bundleDiscountCounter = 0;
-				
+
 				for (int i = 0; i < bundleSortedByPrice.size(); i++) {
 					if (bundleSortedByPrice.size() - (i + 1) < bundleDiscountValues.size()) {
 						BigDecimal discountValue = new BigDecimal(bundleDiscountValues.get(bundleDiscountCounter++));
@@ -618,46 +722,63 @@ public class SaleServiceImpl implements SaleService {
 					}
 				}
 			}
-			
+
 			discount = discount.add(totalBundleDiscount);
 		}
-		
+
+		if (request.getProtectPlusCertificateId() != null) {
+			ProtectPlusCertificate protectPlusCertificate = protectPlusCertificateService.validateActiveCertificate(request.getProtectPlusCertificateId());
+			ProtectPlusDiscountUsage protectPlusDiscountUsage = new ProtectPlusDiscountUsage(protectPlusCertificate);
+			BigDecimal protectPlusDiscount = ZERO;
+			for (SaleItem selectedSaleItem : selectedSaleItems) {
+				if (selectedSaleItem.getDiscountCode() == null) {
+					Item item = itemDao.getItem(selectedSaleItem.getItemId());
+					BigDecimal protectPlusDiscountPercent = getProtectPlusDiscountPercent(item, protectPlusDiscountUsage);
+					if (protectPlusDiscountPercent.compareTo(ZERO) > 0) {
+						protectPlusDiscount = protectPlusDiscount.add(calculcatePercentageDiscount(
+								selectedSaleItem.getItemPrice(), protectPlusDiscountPercent));
+					}
+				}
+			}
+			discount = discount.add(protectPlusDiscount);
+		}
+
 		totalSumReport.setDiscount(discount);
 		totalSumReport.setTotalSumAfterDiscount(totalSum.subtract(discount));
-		
+
 		calculateChange(request.getPaid(), request.getCurrency(), totalSumReport);
-		
+
 		return totalSumReport;
 	}
-	
+
 
 //	@Override
 //	public TotalSumReport calculateTotalSum(TotalSumRequest totalSumRequest) {
 //		TotalSumReport totalSumReport = new TotalSumReport();
-//		
+//
 //		BigDecimal totalSum = totalSumRequest.getPrices().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
 //		totalSumReport.setTotalSum(totalSum);
 //		totalSumReport.setTotalSumAfterDiscount(totalSum);
-//		
+//
 //		DiscountCode discountCode = null;
 //		if (totalSumRequest.getDiscountCode() != null) {
 //			discountCode = discountDao.selectDiscountCode(totalSumRequest.getDiscountCode());
 //		}
-//		if (discountCode != null) {					
+//		if (discountCode != null) {
 //			BigDecimal totalSumAfterDiscount = BigDecimal.ZERO;
 //			if ("PERCENTAGE".equals(discountCode.getDiscountTypeCode())) {
-//				totalSumAfterDiscount = calculcatePercentageDiscountValuePrice(totalSum, new BigDecimal(discountCode.getDiscountValue())); 
+//				totalSumAfterDiscount = calculcatePercentageDiscountValuePrice(totalSum, new BigDecimal(discountCode.getDiscountValue()));
 //			} else if ("AMOUNT".equals(discountCode.getDiscountTypeCode())) {
 //				totalSumAfterDiscount = calculcateAmountDiscountValuePrice(totalSum, new BigDecimal(discountCode.getDiscountValue()));
 //			} else if ("BUNDLE".equals(discountCode.getDiscountTypeCode())) {
 //				List<BigDecimal> sortedPrices = totalSumRequest.getPrices();
 //				Collections.sort(sortedPrices, Collections.reverseOrder());
-//				
+//
 //				String discountValueAmount = discountCode.getDiscountValue();
 //				List<String> bundleDiscount = Arrays.asList(discountValueAmount.split(";"));
-//				
+//
 //				int bundleDiscountCounter = 0;
-//				
+//
 //				for (int i = 0; i < sortedPrices.size(); i++) {
 //					BigDecimal price = sortedPrices.get(i);
 //					if (sortedPrices.size() - (i + 1) < bundleDiscount.size()) {
@@ -674,7 +795,7 @@ public class SaleServiceImpl implements SaleService {
 //			totalSumReport.setDiscount(totalSum.subtract(totalSumAfterDiscount));
 //			totalSumReport.setTotalSumAfterDiscount(totalSumAfterDiscount);
 //		}
-//		
+//
 //		return totalSumReport;
 //	}
 
@@ -692,18 +813,18 @@ public class SaleServiceImpl implements SaleService {
 	public SaleReport searchSalesByStores(Long startDateMilliseconds, Long endDateMilliseconds, String productCode,
 			Integer deviceBrandId, Integer deviceModelId, Integer productTypeId) {
 		SaleReport saleReport = generateReport(null, startDateMilliseconds, endDateMilliseconds, productCode, deviceBrandId, deviceModelId);
-		
+
 		String storeIds = entityService.getConcatenatedStoreIdsForFiltering("0");
 		List<SalesByStore> salesByStores = saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds, storeIds, true);
-		
+
 		if (deviceModelId != null && productCode != null && productCode != "") {
 			saleReport.setWarehouseQuantity(stockService.getQuantitiyOfStockInWH(productCode, deviceModelId));
 			saleReport.setCompanyQuantity(stockService.getCompanyQuantityOfStock(productCode, deviceModelId));
-		}		
+		}
 
 		calculateTotalAmountAndCountSaleByStore(salesByStores, saleReport);
 		saleReport.setSalesByStores(salesByStores);
-		
+
 		return saleReport;
 	}
 
@@ -830,12 +951,12 @@ public class SaleServiceImpl implements SaleService {
 	private List<PastPeriodTurnover> mergeThePastPeriodTurnovers(List<SalesByStore> previousYearTurnoverList,
 			List<SalesByStore> previousMonthTurnoverList, List<SalesByStore> selectedMonthTurnoverList) {
 		List<PastPeriodTurnover> pastPeriodReportList = Lists.newArrayList();
-		selectedMonthTurnoverList.sort(new SalesByStoreByStoreIdComparator());		
+		selectedMonthTurnoverList.sort(new SalesByStoreByStoreIdComparator());
 		Map<String, SalesByStore> previousYearTurnoverMap = previousYearTurnoverList.stream()
-			      .collect(Collectors.toMap(SalesByStore::getStoreCode, Function.identity()));	
+			      .collect(Collectors.toMap(SalesByStore::getStoreCode, Function.identity()));
 		Map<String, SalesByStore> previousMonthTurnoverMap = previousMonthTurnoverList.stream()
 				.collect(Collectors.toMap(SalesByStore::getStoreCode, Function.identity()));
-		
+
 		for (int i = 0; i < selectedMonthTurnoverList.size(); i++) {
 			SalesByStore selectedMonth = selectedMonthTurnoverList.get(i);
 			SalesByStore prevYear = previousYearTurnoverMap.get(selectedMonth.getStoreCode()) != null ? previousYearTurnoverMap.get(selectedMonth.getStoreCode()) : SalesByStore.createEmptySalesByStore();
@@ -844,42 +965,42 @@ public class SaleServiceImpl implements SaleService {
 			pastPeriodReport.setStoreId(selectedMonth.getStoreId());
 			pastPeriodReport.setStoreCode(selectedMonth.getStoreCode());
 			pastPeriodReport.setStoreName(selectedMonth.getStoreName());
-			
+
 			BigDecimal prevYearAmount = prevYear.getAmount();
-			pastPeriodReport.setPrevYearAmount(prevYearAmount);					
+			pastPeriodReport.setPrevYearAmount(prevYearAmount);
 			BigDecimal prevMonthAmount = prevMonth.getAmount();
 			pastPeriodReport.setPrevMonthAmount(prevMonthAmount);
 			BigDecimal selectedMonthAmount = selectedMonth.getAmount();
 			pastPeriodReport.setSelectedMonthAmount(selectedMonthAmount);
-			
+
 			BigDecimal prevYearTransactionCount = prevYear.getTransactionCount();
 			pastPeriodReport.setPrevYearTransactionCount(prevYearTransactionCount);
 			BigDecimal prevMonthTransactionCount = prevMonth.getTransactionCount();
 			pastPeriodReport.setPrevMonthTransactionCount(prevMonthTransactionCount);
 			BigDecimal selectedMonthTransactionCount = selectedMonth.getTransactionCount();
 			pastPeriodReport.setSelectedMonthTransactionCount(selectedMonthTransactionCount);
-			
+
 			BigDecimal prevYearSaleCount = prevYear.getSaleCount();
 			pastPeriodReport.setPrevYearSaleCount(prevYearSaleCount);
 			BigDecimal prevMonthSaleCount = prevMonth.getSaleCount();
 			pastPeriodReport.setPrevMonthSaleCount(prevMonthSaleCount);
 			BigDecimal selectedMonthSaleCount = selectedMonth.getSaleCount();
 			pastPeriodReport.setSelectedMonthSaleCount(selectedMonthSaleCount);
-			
+
 			BigDecimal prevYearItemCount = prevYear.getItemCount();
 			pastPeriodReport.setPrevYearItemCount(prevYearItemCount);
 			BigDecimal prevMonthItemCount = prevMonth.getItemCount();
 			pastPeriodReport.setPrevMonthItemCount(prevMonthItemCount);
 			BigDecimal selectedMonthItemCount = selectedMonth.getItemCount();
 			pastPeriodReport.setSelectedMonthItemCount(selectedMonthItemCount);
-			
+
 			BigDecimal prevYearSpt = prevYear.getSpt();
 			pastPeriodReport.setPrevYearSpt(prevYearSpt);
 			BigDecimal prevMonthSpt = prevMonth.getSpt();
 			pastPeriodReport.setPrevMonthSpt(prevMonthSpt);
 			BigDecimal selectedMonthSpt = selectedMonth.getSpt();
 			pastPeriodReport.setSelectedMonthSpt(selectedMonthSpt);
-			
+
 			if (ZERO.compareTo(prevYear.getAmount()) < 0) {
 				BigDecimal prevYearDelta = selectedMonthAmount.multiply(ONE_HUNDRED)
 						.divide(prevYear.getAmount(), RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
@@ -890,7 +1011,7 @@ public class SaleServiceImpl implements SaleService {
 						.divide(prevMonthAmount, RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
 				pastPeriodReport.setPrevMonthAmountDelta(prevMonthDelta);
 			}
-			
+
 			if (ZERO.compareTo(prevYear.getTransactionCount()) < 0) {
 				BigDecimal prevYearTransactionCountDelta = selectedMonthTransactionCount.multiply(ONE_HUNDRED)
 						.divide(prevYear.getTransactionCount(), RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
@@ -901,7 +1022,7 @@ public class SaleServiceImpl implements SaleService {
 						.divide(prevMonthTransactionCount, RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
 				pastPeriodReport.setPrevMonthTransactionCountDelta(prevMonthTransactionCountDelta);
 			}
-			
+
 			if (ZERO.compareTo(prevYear.getSaleCount()) < 0) {
 				BigDecimal prevYearSaleCountDelta = selectedMonthSaleCount.multiply(ONE_HUNDRED)
 						.divide(prevYear.getSaleCount(), RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
@@ -912,7 +1033,7 @@ public class SaleServiceImpl implements SaleService {
 						.divide(prevMonthSaleCount, RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
 				pastPeriodReport.setPrevMonthSaleCountDelta(prevMonthSaleCountDelta);
 			}
-			
+
 			if (ZERO.compareTo(prevYear.getItemCount()) < 0) {
 				BigDecimal prevYearItemCountDelta = selectedMonthItemCount.multiply(ONE_HUNDRED)
 						.divide(prevYear.getItemCount(), RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
@@ -923,7 +1044,7 @@ public class SaleServiceImpl implements SaleService {
 						.divide(prevMonthItemCount, RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
 				pastPeriodReport.setPrevMonthItemCountDelta(prevMonthItemCountDelta);
 			}
-			
+
 			if (ZERO.compareTo(prevYear.getSpt()) < 0) {
 				BigDecimal prevYearSptDelta = selectedMonthSpt.multiply(ONE_HUNDRED)
 						.divide(prevYear.getSpt(), RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
@@ -934,12 +1055,12 @@ public class SaleServiceImpl implements SaleService {
 						.divide(prevMonthSpt, RoundingMode.HALF_UP).subtract(ONE_HUNDRED);
 				pastPeriodReport.setPrevMonthSptDelta(prevMonthSptDelta);
 			}
-			
+
 			pastPeriodReportList.add(pastPeriodReport);
 		}
-		
+
 		return pastPeriodReportList;
-		
+
 	}
 
 	private PeriodInMillis getMonthInMillis(int year, int month, int day) {
@@ -970,7 +1091,7 @@ public class SaleServiceImpl implements SaleService {
 			endDateCal.set(Calendar.SECOND, 59);
 			endDateCal.set(Calendar.MILLISECOND, 999);
 			long endDateMilliseconds = endDateCal.getTimeInMillis();
-			
+
 			return new PeriodInMillis(startDateMilliseconds, endDateMilliseconds);
 
 //			return saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds, null, false);
@@ -986,7 +1107,7 @@ public class SaleServiceImpl implements SaleService {
 		Map<String, LinkedHashMap<String, List<SalesByStoreByDayByProductType>>> groupedReport = report.stream()
 				.collect(Collectors.groupingBy(SalesByStoreByDayByProductType::getStoreName,
 						Collectors.groupingBy(SalesByStoreByDayByProductType::getDay, LinkedHashMap::new, Collectors.toList())));
-		
+
 		try {
 			return splitReportExcelWriterService.createProductTypeSplitReportExcel(groupedReport);
 		} catch (IOException e) {
@@ -1004,7 +1125,7 @@ public class SaleServiceImpl implements SaleService {
 		Map<String, LinkedHashMap<String, List<TransactionsByStoreByDay>>> groupedReport = report.stream()
 				.collect(Collectors.groupingBy(TransactionsByStoreByDay::getStoreName,
 						Collectors.groupingBy(TransactionsByStoreByDay::getDay, LinkedHashMap::new, Collectors.toList())));
-		
+
 		try {
 			return splitReportExcelWriterService.createTransactionSplitReportExcel(groupedReport);
 		} catch (IOException e) {
@@ -1018,7 +1139,7 @@ public class SaleServiceImpl implements SaleService {
 	public DataReport getSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
 		return saleDao.selectSaleItemTotalAndCountByStoreId(startDateTime, endDateTime, storeId);
 	}
-	
+
 	@Override
 	public DataReport getRefundedSaleItemDailyReportData(Long startDateTime, Long endDateTime, Integer storeId) {
 		return saleDao.selectRefundedSaleItemTotalAndCount(startDateTime, endDateTime, storeId);
@@ -1040,9 +1161,9 @@ public class SaleServiceImpl implements SaleService {
 		if (sale != null) {
 			List<SaleItem> saleItems = getSaleItems(sale.getId());
 			validateReplacementSaleItems(saleItems);
-			
+
 			sale.setSaleItems(saleItems);
-			
+
 			return sale;
 		} else {
 			throw new DomainObjectNotFoundException("replacementSaleUSI", "Non-existing sale!");
@@ -1056,8 +1177,46 @@ public class SaleServiceImpl implements SaleService {
 				return;
 			}
 		}
-		
+
 		throw new NoRefundedItemException("replacementSaleUSI", "This sale have not refunded items!");
-		
+
+	}
+
+	private static class ProtectPlusDiscountUsage {
+
+		private final ProtectPlusCertificate protectPlusCertificate;
+		private boolean freeProtectorUsedInSale;
+		private boolean protectPlusApplied;
+
+		ProtectPlusDiscountUsage(ProtectPlusCertificate protectPlusCertificate) {
+			this.protectPlusCertificate = protectPlusCertificate;
+		}
+
+		ProtectPlusCertificate getProtectPlusCertificate() {
+			return protectPlusCertificate;
+		}
+
+		boolean isFreeProtectorAvailable() {
+			return protectPlusCertificate != null
+					&& !Boolean.TRUE.equals(protectPlusCertificate.getFreeProtectorUsed())
+					&& !freeProtectorUsedInSale;
+		}
+
+		void markFreeProtectorUsed() {
+			freeProtectorUsedInSale = true;
+			protectPlusApplied = true;
+		}
+
+		void markProtectPlusApplied() {
+			protectPlusApplied = true;
+		}
+
+		boolean isFreeProtectorUsed() {
+			return freeProtectorUsedInSale;
+		}
+
+		boolean isProtectPlusApplied() {
+			return protectPlusApplied;
+		}
 	}
 }

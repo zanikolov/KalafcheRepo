@@ -10,6 +10,8 @@ public interface DateService {
 	
 	public long getSameDayPrevYearInMillisBGTimezone(long millis);
 
+	public long addMonthsInMillisBGTimezone(long millis, int months);
+
 	public String convertMillisToDateTimeString(Long millis, String dateFormat, Boolean withTime);
 
 	public PeriodInMillis getTodayInMillis(Integer dayShift);

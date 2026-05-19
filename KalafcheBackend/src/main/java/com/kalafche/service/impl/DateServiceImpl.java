@@ -158,5 +158,14 @@ public class DateServiceImpl implements DateService {
         
         return zonedDateTime.toEpochSecond() * 1000;
 	}
+
+	@Override
+	public long addMonthsInMillisBGTimezone(long millisTimestamp, int months) {
+		Instant instant = Instant.ofEpochMilli(millisTimestamp);
+		ZonedDateTime zonedDateTime = instant.atZone(ZoneId.of("Europe/Sofia"));
+		zonedDateTime = zonedDateTime.plusMonths(months);
+
+		return zonedDateTime.toEpochSecond() * 1000;
+	}
 	
 }

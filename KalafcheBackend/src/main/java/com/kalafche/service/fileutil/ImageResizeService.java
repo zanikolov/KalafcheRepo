@@ -59,7 +59,7 @@ public class ImageResizeService {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(resizedImage, "jpg", baos);
 			baos.flush();
-			File out = new File("test");
+			File out = File.createTempFile("keysoo-resized-image-", ".jpg");
 			FileUtils.writeByteArrayToFile(out, baos.toByteArray());
 			baos.close();
 			return out;

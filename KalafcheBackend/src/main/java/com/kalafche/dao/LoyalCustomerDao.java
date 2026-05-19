@@ -8,9 +8,11 @@ public interface LoyalCustomerDao {
 
 	LoyalCustomer getLoyalCustomerByCode(String code);
 
+	LoyalCustomer getLoyalCustomerById(Integer id);
+
 	List<LoyalCustomer> getAllLoyalCustomers();
 
-	void insertLoyalCustomer(LoyalCustomer loyalCustomer);
+	Integer insertLoyalCustomer(LoyalCustomer loyalCustomer);
 
 	void updateLoyalCustomer(LoyalCustomer loyalCustomer);
 

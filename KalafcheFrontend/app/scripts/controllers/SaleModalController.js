@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('kalafcheFrontendApp')
-	.controller('SaleModalController', function ($scope, currentSale, $mdDialog, DiscountService, SaleService, EmployeeService, ServerValidationService, SessionService, ApplicationService, FiscalMiddlewareService) {
+	.controller('SaleModalController', function ($scope, currentSale, $mdDialog, DiscountService, SaleService, ProtectPlusCertificateService, EmployeeService, ServerValidationService, SessionService, ApplicationService, FiscalMiddlewareService) {
 
         init();
 
@@ -11,7 +11,16 @@ angular.module('kalafcheFrontendApp')
             $scope.replacementSaleHasRefundedItem = false;
             $scope.discountCode = null;
             $scope.serverErrorMessages = {};
+            $scope.submitSaleErrorMessage = null;
+            $scope.protectPlusSearch = {};
+            $scope.protectPlusCertificates = [];
+            $scope.selectedProtectPlusCertificate = $scope.sale.selectedProtectPlusCertificate;
+            $scope.protectPlusSearchPerformed = false;
             $scope.totalSumReport = 0;
+
+            if ($scope.selectedProtectPlusCertificate) {
+                $scope.protectPlusSearch.query = $scope.selectedProtectPlusCertificate.certificateNumber;
+            }
 
             getEmployeesByStore();
             calculateTotalSum();
@@ -36,11 +45,14 @@ angular.module('kalafcheFrontendApp')
 
         $scope.submitSale = function() {
             $scope.loading = true;
+            $scope.serverErrorMessages = {};
+            $scope.submitSaleErrorMessage = null;
             var requestBody = {};
 
             requestBody.isCashPayment = $scope.sale.isCashPayment;
             requestBody.employeeId = $scope.sale.employeeId;
             requestBody.replacementSaleUSI = $scope.sale.replacementSaleUSI;
+            requestBody.protectPlusCertificateId = $scope.sale.protectPlusCertificateId;
             requestBody.storeId = SessionService.currentUser.employeeStoreId ? SessionService.currentUser.employeeStoreId : 0;
             requestBody.saleItems = [];
             angular.forEach($scope.sale.selectedStocks, function(stock){
@@ -64,11 +76,19 @@ angular.module('kalafcheFrontendApp')
                     $scope.sale.selectedStocks = [];
                     $scope.sale.isCashPayment = null;
                     $scope.sale.employeeId = null;
+                    $scope.sale.protectPlusCertificateId = null;
+                    $scope.sale.selectedProtectPlusCertificate = null;
+                    $scope.selectedProtectPlusCertificate = null;
                     $mdDialog.cancel();
                     $scope.loading = false;
                 },
-                function(error) {
+                function(errorResponse) {
                     $scope.loading = false;
+                    $scope.serverErrorMessages = getServerErrorMessages(errorResponse);
+                    $scope.submitSaleErrorMessage = getSubmitSaleErrorMessage($scope.serverErrorMessages.request);
+                    if (hasSaleFormFieldErrors($scope.serverErrorMessages)) {
+                        ServerValidationService.processServerErrors(errorResponse, $scope.saleForm);
+                    }
                 }
             );
             
@@ -76,7 +96,7 @@ angular.module('kalafcheFrontendApp')
 
         $scope.removeStock = function(index, stock) {
             $scope.sale.selectedStocks.splice(index, 1);
-            stock.quantity += 1;
+            restoreStockQuantity(stock);
             calculateTotalSum();
 
             if ($scope.sale.selectedStocks.length < 1) {
@@ -91,12 +111,23 @@ angular.module('kalafcheFrontendApp')
 
         $scope.resetSale = function() {
             angular.forEach($scope.sale.selectedStocks, function(stock){
-                stock.quantity += 1;
+                restoreStockQuantity(stock);
             });
             $scope.sale.selectedStocks = [];
             $scope.sale.paid = null;
             $scope.sale.currency = null;
+            $scope.sale.protectPlusCertificateId = null;
+            $scope.sale.selectedProtectPlusCertificate = null;
+            $scope.selectedProtectPlusCertificate = null;
             $mdDialog.cancel();
+        }
+
+        function restoreStockQuantity(stock) {
+            if (stock.sourceStock) {
+                stock.sourceStock.quantity += 1;
+            } else {
+                stock.quantity += 1;
+            }
         }
 
         $scope.onChangePaidAmount = function () {
@@ -148,8 +179,81 @@ angular.module('kalafcheFrontendApp')
             $scope.serverErrorMessages = {};
         }
 
+        $scope.searchProtectPlusCertificates = function () {
+            $scope.protectPlusSearchPerformed = true;
+            $scope.protectPlusCertificates = [];
+
+            if (!$scope.protectPlusSearch.query || $scope.protectPlusSearch.query.length < 5) {
+                return;
+            }
+
+            $scope.clearSelectedProtectPlusCertificate();
+            ProtectPlusCertificateService.searchCertificates({query: $scope.protectPlusSearch.query}).then(
+                function(response) {
+                    $scope.protectPlusCertificates = response;
+                },
+                function(errorResponse) {
+                    $scope.protectPlusCertificates = [];
+                    ServerValidationService.processServerErrors(errorResponse, $scope.saleForm);
+                    $scope.serverErrorMessages = errorResponse.data.errors;
+                }
+            );
+        }
+
+        $scope.selectProtectPlusCertificate = function (certificate) {
+            if (certificate.status != 'ACTIVE') {
+                return;
+            }
+
+            $scope.selectedProtectPlusCertificate = certificate;
+            $scope.sale.protectPlusCertificateId = certificate.id;
+            $scope.sale.selectedProtectPlusCertificate = certificate;
+            $scope.protectPlusSearch.query = certificate.certificateNumber;
+            calculateTotalSum();
+        }
+
+        $scope.clearSelectedProtectPlusCertificate = function () {
+            $scope.selectedProtectPlusCertificate = null;
+            $scope.sale.protectPlusCertificateId = null;
+            $scope.sale.selectedProtectPlusCertificate = null;
+            calculateTotalSum();
+        }
+
         $scope.getSaleTimestamp = function(saleTimestamp) {
             return ApplicationService.convertEpochToTimestamp(saleTimestamp)
         };
+
+        function getSubmitSaleErrorMessage(errorCode) {
+            if (errorCode === 'protectPlusPurchaseRequiresProtector') {
+                return 'Protect+ сертификат може да бъде закупен само заедно с протектор.';
+            }
+            if (errorCode === 'protectPlusPurchaseAndUsageInSameSale') {
+                return 'Protect+ сертификат не може да бъде закупен и използван в една и съща продажба.';
+            }
+
+            return errorCode;
+        }
+
+        function getServerErrorMessages(errorResponse) {
+            if (!errorResponse || !errorResponse.data) {
+                return {};
+            }
+
+            if (angular.isString(errorResponse.data)) {
+                try {
+                    return angular.fromJson(errorResponse.data).errors || {};
+                } catch (e) {
+                    return {request: errorResponse.data};
+                }
+            }
+
+            return errorResponse.data.errors || {};
+        }
+
+        function hasSaleFormFieldErrors(errors) {
+            return Object.getOwnPropertyNames(errors).some(function(field) {
+                return field !== 'request' && angular.isObject($scope.saleForm[field]);
+            });
+        }
 
 	});

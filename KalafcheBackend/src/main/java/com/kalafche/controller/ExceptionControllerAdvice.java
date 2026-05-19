@@ -19,6 +19,7 @@ import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.exceptions.ErrorResponse;
 import com.kalafche.exceptions.ExcelInvalidFormatException;
 import com.kalafche.exceptions.ImageUploadException;
+import com.kalafche.exceptions.IllegalStateTransferException;
 import com.kalafche.exceptions.NoRefundedItemException;
 
 /**
@@ -78,6 +79,22 @@ public class ExceptionControllerAdvice extends  ResponseEntityExceptionHandler {
 		Map<String, String> errors = Maps.newHashMap();
 		errors.put(exception.getField(), exception.getMessage());
 		ErrorResponse errorResponse = new ErrorResponse(errors);		
+		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(IllegalStateTransferException.class)
+	public ResponseEntity<String> handleIllegalStateTransferException(IllegalStateTransferException exception) throws JsonProcessingException {
+		Map<String, String> errors = Maps.newHashMap();
+		errors.put(exception.getField(), exception.getMessage());
+		ErrorResponse errorResponse = new ErrorResponse(errors);
+		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException exception) throws JsonProcessingException {
+		Map<String, String> errors = Maps.newHashMap();
+		errors.put("request", exception.getMessage());
+		ErrorResponse errorResponse = new ErrorResponse(errors);
 		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), HttpStatus.BAD_REQUEST);
 	}
 

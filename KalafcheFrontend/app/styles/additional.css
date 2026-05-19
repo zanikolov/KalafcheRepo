@@ -13,3 +13,118 @@
     .kalafche-icon:hover {
         color: #ffcc00;
     }
+
+    md-dialog .sale-submit-error-message {
+        color: red !important;
+        display: block;
+        font-size: 14px;
+        font-weight: normal;
+        margin-bottom: 10px;
+        padding: 0 0 2px 0;
+        text-align: left;
+        white-space: normal;
+    }
+
+    .protect-plus-sale-section {
+        border-top: 1px solid #f1e9aa;
+        border-bottom: 1px solid #f1e9aa;
+        padding: 12px 0 8px 0;
+        margin-top: 8px;
+    }
+
+    .sale-modal-protect-plus-section {
+        border-top: none;
+        border-bottom: none;
+        padding: 6px 0 2px 0;
+        margin-top: 4px;
+    }
+
+    .sale-modal-protect-plus-section .protect-plus-search-row {
+        margin-top: 0;
+    }
+
+    .sale-modal-protect-plus-section md-input-container {
+        margin: 8px 0 2px 0;
+    }
+
+    .protect-plus-section-title {
+        color: #5c531c;
+        font-weight: 600;
+        margin-right: 14px;
+        min-width: 72px;
+    }
+
+    .protect-plus-section-text {
+        color: #5c531c;
+        font-size: 13px;
+    }
+
+    .protect-plus-search-row {
+        margin-top: 6px;
+    }
+
+    .protect-plus-empty-result {
+        color: #7a7131;
+        font-size: 13px;
+        padding: 4px 0 8px 0;
+    }
+
+    .protect-plus-results-table {
+        margin-bottom: 8px;
+    }
+
+    .protect-plus-select-button {
+        margin: 0;
+        min-height: 28px;
+        line-height: 28px;
+    }
+
+    .protect-plus-certificate-row {
+        cursor: pointer;
+    }
+
+    .protect-plus-activation-container {
+        padding: 8px 14px 14px 14px;
+    }
+
+    .protect-plus-form-row {
+        column-gap: 28px;
+        margin-top: 2px;
+    }
+
+    md-input-container.protect-plus-form-control {
+        display: block;
+        margin: 10px 0 2px 0;
+        width: 520px;
+    }
+
+    .protect-plus-form-row md-input-container {
+        margin: 10px 0 2px 0;
+    }
+
+    .protect-plus-file-row {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+        margin: 12px 0 8px 0;
+        max-width: 520px;
+        padding: 0 0 12px 0;
+    }
+
+    .protect-plus-file-label {
+        color: rgba(0, 0, 0, 0.54);
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .protect-plus-file-name {
+        color: #5c531c;
+        display: inline-block;
+        font-size: 13px;
+        margin-left: 10px;
+        vertical-align: middle;
+    }
+
+    .protect-plus-activation-actions {
+        margin-top: 14px;
+    }

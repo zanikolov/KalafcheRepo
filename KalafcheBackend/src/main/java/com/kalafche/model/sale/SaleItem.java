@@ -36,6 +36,7 @@ public class SaleItem {
 	private Integer discountCode;
 	private String discountType;
 	private String discountValue;
+	private Boolean protectPlusApplied;
 	private Integer bonusPts;
 
 }

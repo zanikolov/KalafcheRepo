@@ -63,6 +63,13 @@ angular
                     authorizedRoles: [UserRoles.superAdmin, UserRoles.admin],
                     title: "Лоялни клиенти"
                 }      
+            }).state('protectPlus', {
+                url: '/protect-plus',
+                templateUrl: 'views/partials/protect-plus/protect-plus.html',
+                data: {
+                    authorizedRoles: [UserRoles.superAdmin, UserRoles.admin, UserRoles.user, UserRoles.manager],
+                    title: "Protect+"
+                }
             }).state('partner', {
                 url: '/partner',
                 templateUrl: 'views/partials/partial-partner.html',
