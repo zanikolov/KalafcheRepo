@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.kalafche.model.protectplus.ProtectPlusCertificate;
 import com.kalafche.model.protectplus.ProtectPlusCertificateSearchResult;
+import com.kalafche.model.protectplus.ProtectPlusCertificateStatus;
 
 public interface ProtectPlusCertificateDao {
 
@@ -22,7 +23,8 @@ public interface ProtectPlusCertificateDao {
 	ProtectPlusCertificate getProtectPlusCertificateByNumber(Integer certificateNumber);
 
 	List<ProtectPlusCertificateSearchResult> searchProtectPlusCertificates(Integer certificateNumber, String phoneNumber,
-			String status, Integer storeId, Integer deviceBrandId, Integer deviceModelId, Integer limit);
+			ProtectPlusCertificateStatus status, String storeIds, Integer deviceBrandId, Integer deviceModelId,
+			Integer limit);
 
 	Integer getMaxCertificateNumber();
 }

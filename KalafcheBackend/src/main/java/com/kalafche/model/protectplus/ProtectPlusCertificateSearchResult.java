@@ -9,7 +9,7 @@ public class ProtectPlusCertificateSearchResult {
 
 	private Integer id;
 	private Integer certificateNumber;
-	private String status;
+	private ProtectPlusCertificateStatus status;
 	private Long validUntilTimestamp;
 	private Boolean freeProtectorUsed;
 	private String customerName;

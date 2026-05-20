@@ -20,7 +20,7 @@ public class ProtectPlusCertificate {
 	private Integer soldByEmployeeId;
 	private String soldByEmployeeName;
 	private Integer soldSaleId;
-	private String status;
+	private ProtectPlusCertificateStatus status;
 	private Long validFromTimestamp;
 	private Long validUntilTimestamp;
 	private Integer activatedById;

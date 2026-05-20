@@ -59,10 +59,10 @@ public class ImageResizeService {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(resizedImage, "jpg", baos);
 			baos.flush();
-			File out = File.createTempFile("keysoo-resized-image-", ".jpg");
-			FileUtils.writeByteArrayToFile(out, baos.toByteArray());
+			File resizedImageFile = File.createTempFile("keysoo-resized-image-", ".jpg");
+			FileUtils.writeByteArrayToFile(resizedImageFile, baos.toByteArray());
 			baos.close();
-			return out;
+			return resizedImageFile;
 
 		} catch (IOException ex) {
 			ex.printStackTrace();

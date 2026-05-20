@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 import com.kalafche.dao.ProtectPlusCertificateDao;
 import com.kalafche.model.protectplus.ProtectPlusCertificate;
 import com.kalafche.model.protectplus.ProtectPlusCertificateSearchResult;
+import com.kalafche.model.protectplus.ProtectPlusCertificateStatus;
 
 @Service
 public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements ProtectPlusCertificateDao {
@@ -82,7 +83,7 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 	private static final String CERTIFICATE_NUMBER_FILTER = " and ppc.certificate_number = ? ";
 	private static final String PHONE_NUMBER_FILTER = " and lc.phone_number = ? ";
 	private static final String STATUS_FILTER = " and ppc.status = ? ";
-	private static final String SOLD_STORE_FILTER = " and ppc.sold_store_id = ? ";
+	private static final String SOLD_STORE_FILTER = " and ppc.sold_store_id in (%s) ";
 	private static final String DEVICE_BRAND_FILTER = " and db.id = ? ";
 	private static final String DEVICE_MODEL_FILTER = " and ppc.device_model_id = ? ";
 	private static final String ORDER_BY_VALIDITY = " order by ppc.valid_until_timestamp desc ";
@@ -128,7 +129,7 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 				statement.setInt(4, certificate.getSoldStoreId());
 				statement.setInt(5, certificate.getSoldByEmployeeId());
 				setNullableInteger(statement, 6, certificate.getSoldSaleId());
-				statement.setString(7, certificate.getStatus());
+				statement.setString(7, certificate.getStatus().name());
 				setNullableLong(statement, 8, certificate.getValidFromTimestamp());
 				setNullableLong(statement, 9, certificate.getValidUntilTimestamp());
 				statement.setString(10, certificate.getGdprConsentFileId());
@@ -148,7 +149,7 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 
 	@Override
 	public void activateProtectPlusCertificate(ProtectPlusCertificate certificate) {
-		getJdbcTemplate().update(ACTIVATE_CERTIFICATE, certificate.getStatus(), certificate.getLoyalCustomerId(),
+		getJdbcTemplate().update(ACTIVATE_CERTIFICATE, certificate.getStatus().name(), certificate.getLoyalCustomerId(),
 				certificate.getDeviceModelId(), certificate.getValidFromTimestamp(), certificate.getValidUntilTimestamp(),
 				certificate.getActivatedById(), certificate.getActivatedTimestamp(), certificate.getGdprConsentFileId(),
 				certificate.getLastUpdateTimestamp(), certificate.getUpdatedById(), certificate.getId());
@@ -186,10 +187,10 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 
 	@Override
 	public List<ProtectPlusCertificateSearchResult> searchProtectPlusCertificates(Integer certificateNumber,
-			String phoneNumber, String status, Integer storeId, Integer deviceBrandId, Integer deviceModelId,
+			String phoneNumber, ProtectPlusCertificateStatus status, String storeIds, Integer deviceBrandId, Integer deviceModelId,
 			Integer limit) {
-		if (certificateNumber == null && StringUtils.isEmpty(phoneNumber) && StringUtils.isEmpty(status)
-				&& storeId == null && deviceBrandId == null && deviceModelId == null) {
+		if (certificateNumber == null && StringUtils.isEmpty(phoneNumber) && status == null
+				&& StringUtils.isEmpty(storeIds) && deviceBrandId == null && deviceModelId == null) {
 			return new ArrayList<ProtectPlusCertificateSearchResult>();
 		}
 
@@ -206,14 +207,13 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 			args.add(phoneNumber);
 		}
 
-		if (!StringUtils.isEmpty(status)) {
+		if (status != null) {
 			query += STATUS_FILTER;
-			args.add(status);
+			args.add(status.name());
 		}
 
-		if (storeId != null) {
-			query += SOLD_STORE_FILTER;
-			args.add(storeId);
+		if (!StringUtils.isEmpty(storeIds)) {
+			query += String.format(SOLD_STORE_FILTER, storeIds);
 		}
 
 		if (deviceBrandId != null) {
@@ -226,7 +226,7 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 			args.add(deviceModelId);
 		}
 
-		if ("INACTIVE".equals(status)) {
+		if (ProtectPlusCertificateStatus.INACTIVE.equals(status)) {
 			query += ORDER_BY_CREATED;
 		} else {
 			query += ORDER_BY_VALIDITY;

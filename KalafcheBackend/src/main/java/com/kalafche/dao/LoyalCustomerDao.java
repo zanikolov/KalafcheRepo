@@ -10,6 +10,8 @@ public interface LoyalCustomerDao {
 
 	LoyalCustomer getLoyalCustomerById(Integer id);
 
+	List<LoyalCustomer> getLoyalCustomersByPhoneNumberOrEmail(String phoneNumber, String email);
+
 	List<LoyalCustomer> getAllLoyalCustomers();
 
 	Integer insertLoyalCustomer(LoyalCustomer loyalCustomer);

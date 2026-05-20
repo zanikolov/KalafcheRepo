@@ -46,8 +46,7 @@ public class LoyalCustomerServiceImpl implements LoyalCustomerService {
 		validateDiscountCode(loyalCustomer);
 		loyalCustomer.setCreatedTimestamp(dateService.getCurrentMillisBGTimezone());
 		loyalCustomer.setCreatedById(employeeService.getLoggedInEmployee().getId());
-		Integer loyalCustomerId = loyalCustomerDao.insertLoyalCustomer(loyalCustomer);
-		loyalCustomer.setId(loyalCustomerId);
+		loyalCustomerDao.insertLoyalCustomer(loyalCustomer);
 	}
 
 	@Override

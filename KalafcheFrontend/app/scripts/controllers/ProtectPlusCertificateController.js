@@ -21,7 +21,7 @@ angular.module('kalafcheFrontendApp')
 
             getAllBrands();
             getAllModels();
-            if ($scope.isAdmin && $scope.isAdmin()) {
+            if (isAdmin()) {
                 getAllStores();
             }
             loadInactiveCertificates();
@@ -59,8 +59,6 @@ angular.module('kalafcheFrontendApp')
             );
         }
 
-        $scope.loadInactiveCertificates = loadInactiveCertificates;
-
         $scope.searchActiveCertificates = function() {
             $scope.activeCertificates = [];
             $scope.resetActivationForm();
@@ -83,7 +81,7 @@ angular.module('kalafcheFrontendApp')
         };
 
         $scope.canSearchActiveCertificates = function() {
-            if ($scope.isAdmin()) {
+            if (isAdmin()) {
                 return $scope.activeSearch.certificateNumber || $scope.activeSearch.phoneNumber ||
                     $scope.activeSearch.storeId || $scope.activeSearch.deviceBrandId || $scope.activeSearch.deviceModelId;
             }
@@ -157,4 +155,8 @@ angular.module('kalafcheFrontendApp')
         $scope.clearModelSearchTerm = function() {
             $scope.modelSearchTerm = "";
         };
+
+        function isAdmin() {
+            return angular.isFunction($scope.isAdmin) && $scope.isAdmin();
+        }
     });

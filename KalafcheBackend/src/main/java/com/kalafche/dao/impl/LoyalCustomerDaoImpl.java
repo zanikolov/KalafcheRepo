@@ -29,6 +29,7 @@ public class LoyalCustomerDaoImpl extends JdbcDaoSupport implements LoyalCustome
 			"left join employee ue on lc.updated_by = ue.id ";
 	private static final String CODE_CLAUSE = " where dc.code = ? ";
 	private static final String ID_CLAUSE = " where lc.id = ? ";
+	private static final String PHONE_OR_EMAIL_CLAUSE = " where lc.phone_number = ? or lc.email = ? order by lc.id desc ";
 	private static final String INSERT_LOYAL_CUSTOMER = "insert into loyal_customer (name, phone_number, email, discount_code_id, created_by, created_timestamp)"
 			+ " values (?, ?, ?, ?, ?, ?)";
 	private static final String UPDATE_LOYAL_CUSTOMER = "update loyal_customer set name = ?, phone_number = ?, email = ?, updated_by = ?, last_update_timestamp = ? where id = ?";
@@ -74,6 +75,12 @@ public class LoyalCustomerDaoImpl extends JdbcDaoSupport implements LoyalCustome
 				GET_ALL_LOYAL_CUSTOMERS_QUERY + ID_CLAUSE, getRowMapper(), id);
 
 		return loyalCustomers.isEmpty() ? null : loyalCustomers.get(0);
+	}
+
+	@Override
+	public List<LoyalCustomer> getLoyalCustomersByPhoneNumberOrEmail(String phoneNumber, String email) {
+		return getJdbcTemplate().query(
+				GET_ALL_LOYAL_CUSTOMERS_QUERY + PHONE_OR_EMAIL_CLAUSE, getRowMapper(), phoneNumber, email);
 	}
 
 	@Override

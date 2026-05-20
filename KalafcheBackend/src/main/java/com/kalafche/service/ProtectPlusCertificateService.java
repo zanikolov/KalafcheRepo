@@ -10,7 +10,7 @@ import com.kalafche.model.protectplus.ProtectPlusCertificateSearchResult;
 
 public interface ProtectPlusCertificateService {
 
-	ProtectPlusCertificate createPendingCertificateForSale(Integer saleId, Integer storeId, Integer employeeId);
+	void createPendingCertificateForSale(Integer saleId, Integer storeId, Integer employeeId);
 
 	ProtectPlusCertificate activateProtectPlusCertificate(Integer certificateId, ProtectPlusCertificateRequest request,
 			MultipartFile gdprConsentImage);
@@ -25,10 +25,10 @@ public interface ProtectPlusCertificateService {
 
 	List<ProtectPlusCertificateSearchResult> getInactiveProtectPlusCertificatesForCurrentStore();
 
-	List<ProtectPlusCertificateSearchResult> searchProtectPlusCertificates(Integer certificateNumber, String phoneNumber,
-			Integer storeId, Integer deviceBrandId, Integer deviceModelId);
+	List<ProtectPlusCertificateSearchResult> searchActiveProtectPlusCertificates(Integer certificateNumber, String phoneNumber,
+				Integer storeId, Integer deviceBrandId, Integer deviceModelId);
 
-	List<ProtectPlusCertificateSearchResult> searchActiveProtectPlusCertificates(String query);
+	List<ProtectPlusCertificateSearchResult> searchActiveProtectPlusCertificatesByQuery(String query);
 
 	ProtectPlusCertificate validateActiveCertificate(Integer certificateId);
 }

@@ -1,6 +1,7 @@
 package com.kalafche.service.impl;
 
 import java.util.List;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import com.kalafche.model.protectplus.ProtectPlusCertificateSearchResult;
 import com.kalafche.model.protectplus.ProtectPlusCertificateStatus;
 import com.kalafche.service.DateService;
 import com.kalafche.service.EmployeeService;
+import com.kalafche.service.EntityService;
 import com.kalafche.service.ProtectPlusCertificateService;
 import com.kalafche.service.fileutil.ImageUploadService;
 
@@ -41,10 +43,13 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 	EmployeeService employeeService;
 
 	@Autowired
+	EntityService entityService;
+
+	@Autowired
 	ImageUploadService imageUploadService;
 
 	@Override
-	public ProtectPlusCertificate createPendingCertificateForSale(Integer saleId, Integer storeId, Integer employeeId) {
+	public void createPendingCertificateForSale(Integer saleId, Integer storeId, Integer employeeId) {
 		long currentTimestamp = dateService.getCurrentMillisBGTimezone();
 
 		ProtectPlusCertificate certificate = new ProtectPlusCertificate();
@@ -57,14 +62,13 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 		certificate.setCreatedById(employeeId);
 		certificate.setCreatedTimestamp(currentTimestamp);
 
-		Integer certificateId = protectPlusCertificateDao.insertProtectPlusCertificate(certificate);
-		return getProtectPlusCertificate(certificateId);
+		protectPlusCertificateDao.insertProtectPlusCertificate(certificate);
 	}
 
 	@Override
 	public ProtectPlusCertificate activateProtectPlusCertificate(Integer certificateId, ProtectPlusCertificateRequest request,
 			MultipartFile gdprConsentImage) {
-		validateActivationRequest(request);
+		validateActivationRequest(request, gdprConsentImage);
 
 		ProtectPlusCertificate certificate = getProtectPlusCertificate(certificateId);
 		if (ProtectPlusCertificateStatus.CANCELLED.equals(certificate.getStatus())) {
@@ -151,37 +155,39 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 			storeId = null;
 		}
 
+		String storeIds = resolveVisibleStoreIds(storeId);
 		return protectPlusCertificateDao.searchProtectPlusCertificates(null, null,
-				ProtectPlusCertificateStatus.INACTIVE, storeId, null, null, null);
+				ProtectPlusCertificateStatus.INACTIVE, storeIds, null, null, null);
 	}
 
 	@Override
-	public List<ProtectPlusCertificateSearchResult> searchProtectPlusCertificates(Integer certificateNumber,
-			String phoneNumber, Integer storeId, Integer deviceBrandId, Integer deviceModelId) {
+	public List<ProtectPlusCertificateSearchResult> searchActiveProtectPlusCertificates(Integer certificateNumber,
+				String phoneNumber, Integer storeId, Integer deviceBrandId, Integer deviceModelId) {
 		boolean admin = Boolean.TRUE.equals(employeeService.isLoggedInEmployeeAdmin());
 		if (!admin && certificateNumber == null && StringUtils.isEmpty(phoneNumber)) {
 			throw new IllegalArgumentException("Certificate number or phone number is required.");
 		}
 
 		Integer limit = admin ? null : 1;
-		Integer resolvedStoreId = admin ? storeId : null;
+		String storeIds = resolveVisibleStoreIds(storeId);
 		Integer resolvedDeviceBrandId = admin ? deviceBrandId : null;
 		Integer resolvedDeviceModelId = admin ? deviceModelId : null;
 
 		return protectPlusCertificateDao.searchProtectPlusCertificates(certificateNumber, phoneNumber,
-				ProtectPlusCertificateStatus.ACTIVE, resolvedStoreId, resolvedDeviceBrandId, resolvedDeviceModelId, limit);
+				ProtectPlusCertificateStatus.ACTIVE, storeIds, resolvedDeviceBrandId, resolvedDeviceModelId, limit);
 	}
 
 	@Override
-	public List<ProtectPlusCertificateSearchResult> searchActiveProtectPlusCertificates(String query) {
+	public List<ProtectPlusCertificateSearchResult> searchActiveProtectPlusCertificatesByQuery(String query) {
 		if (StringUtils.isEmpty(query) || query.length() < 5) {
 			throw new IllegalArgumentException("Protect+ search query should be at least 5 symbols.");
 		}
 
+		String storeIds = resolveVisibleStoreIds(null);
 		if (query.matches("\\d+")) {
 			try {
 				List<ProtectPlusCertificateSearchResult> certificatesByNumber = protectPlusCertificateDao.searchProtectPlusCertificates(
-						Integer.valueOf(query), null, ProtectPlusCertificateStatus.ACTIVE, null, null, null, null);
+							Integer.valueOf(query), null, ProtectPlusCertificateStatus.ACTIVE, storeIds, null, null, null);
 				if (!certificatesByNumber.isEmpty()) {
 					return certificatesByNumber;
 				}
@@ -191,7 +197,7 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 		}
 
 		return protectPlusCertificateDao.searchProtectPlusCertificates(null, query,
-				ProtectPlusCertificateStatus.ACTIVE, null, null, null, null);
+				ProtectPlusCertificateStatus.ACTIVE, storeIds, null, null, null);
 	}
 
 	@Override
@@ -227,14 +233,55 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 		}
 
 		LoyalCustomer loyalCustomer = request.getLoyalCustomer();
+		LoyalCustomer existingLoyalCustomer = findMatchingLoyalCustomer(loyalCustomer);
+		if (existingLoyalCustomer != null) {
+			return existingLoyalCustomer.getId();
+		}
+
 		loyalCustomer.setCreatedById(loggedInEmployee.getId());
 		loyalCustomer.setCreatedTimestamp(currentTimestamp);
 		return loyalCustomerDao.insertLoyalCustomer(loyalCustomer);
 	}
 
-	private void validateActivationRequest(ProtectPlusCertificateRequest request) {
+	private LoyalCustomer findMatchingLoyalCustomer(LoyalCustomer newLoyalCustomer) {
+		List<LoyalCustomer> candidates = loyalCustomerDao.getLoyalCustomersByPhoneNumberOrEmail(
+				newLoyalCustomer.getPhoneNumber(), newLoyalCustomer.getEmail());
+
+		for (LoyalCustomer candidate : candidates) {
+			if (namesMatch(candidate.getName(), newLoyalCustomer.getName())) {
+				return candidate;
+			}
+		}
+
+		return null;
+	}
+
+	private boolean namesMatch(String existingName, String newName) {
+		if (StringUtils.isEmpty(existingName) || StringUtils.isEmpty(newName)) {
+			return false;
+		}
+
+		return normalizeName(existingName).equals(normalizeName(newName));
+	}
+
+	private String normalizeName(String name) {
+		return name.trim().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
+	}
+
+	private String resolveVisibleStoreIds(Integer requestedStoreId) {
+		if (Boolean.TRUE.equals(employeeService.isLoggedInEmployeeAdmin())) {
+			return requestedStoreId == null ? entityService.getConcatenatedStoreIdsForFiltering("0") : requestedStoreId.toString();
+		}
+
+		return entityService.getConcatenatedStoreIdsForFiltering("0");
+	}
+
+	private void validateActivationRequest(ProtectPlusCertificateRequest request, MultipartFile gdprConsentImage) {
 		if (request == null) {
 			throw new IllegalArgumentException("Protect+ certificate request is required.");
+		}
+		if (gdprConsentImage == null || gdprConsentImage.isEmpty()) {
+			throw new IllegalArgumentException("GDPR consent image is required.");
 		}
 		if (request.getDeviceModelId() == null) {
 			throw new IllegalArgumentException("Device model is required.");

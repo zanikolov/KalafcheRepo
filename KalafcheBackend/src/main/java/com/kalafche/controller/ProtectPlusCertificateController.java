@@ -59,10 +59,10 @@ public class ProtectPlusCertificateController {
 			@RequestParam(value = "deviceBrandId", required = false) Integer deviceBrandId,
 			@RequestParam(value = "deviceModelId", required = false) Integer deviceModelId) {
 		if (query != null && !query.isEmpty()) {
-			return protectPlusCertificateService.searchActiveProtectPlusCertificates(query);
+			return protectPlusCertificateService.searchActiveProtectPlusCertificatesByQuery(query);
 		}
 
-		return protectPlusCertificateService.searchProtectPlusCertificates(certificateNumber, phoneNumber, storeId,
+		return protectPlusCertificateService.searchActiveProtectPlusCertificates(certificateNumber, phoneNumber, storeId,
 				deviceBrandId, deviceModelId);
 	}
 
