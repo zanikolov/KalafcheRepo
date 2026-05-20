@@ -8,7 +8,7 @@
                             <th></th>
                             <th><label>Сертификат</label></th>
                             <th><label>Магазин</label></th>
-                            <th><label>Продаден от</label></th>
+                            <th><label>Търговец</label></th>
                             <th><label>Създаден</label></th>
                         </tr>
                     </thead>
@@ -25,13 +25,13 @@
                                 <div class="protect-plus-activation-container">
                                     <form name="protectPlusActivationForm" server-validation novalidate>
                                         <md-input-container class="md-block protect-plus-form-control">
-                                            <label>Имена</label>
+                                            <label>Име</label>
                                             <input ng-model="activationRequest.loyalCustomer.name" name="name" required>
                                             <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
                                         </md-input-container>
 
                                         <md-input-container class="md-block protect-plus-form-control">
-                                            <label>Телефонен номер</label>
+                                            <label>Телефон</label>
                                             <input ng-model="activationRequest.loyalCustomer.phoneNumber" name="phoneNumber" required>
                                             <span ng-message="serverError" class="label label-error">{{serverErrorMessages.phoneNumber}}</span>
                                         </md-input-container>

@@ -131,7 +131,7 @@ public class SaleServiceImpl implements SaleService {
 
 		sale.setEmployeeId(saleEmployeeId);
 		sale.setStoreId(sale.getStoreId());
-		sale.setSaleTimestamp(dateService.getCurrentMillisBGTimezone());
+		sale.setSaleTimestamp(currentMillis);
 
 		Map<Integer, Item> itemsById = getItemsById(sale.getSaleItems());
 		boolean containsProtectPlusProduct = containsProtectPlusProduct(itemsById);
@@ -190,7 +190,7 @@ public class SaleServiceImpl implements SaleService {
 	private Item getItem(Integer itemId, Map<Integer, Item> itemsById) {
 		Item item = itemsById.get(itemId);
 		if (item == null) {
-			throw new DomainObjectNotFoundException("itemId", "Несъществуващ артикул.");
+			throw new DomainObjectNotFoundException("itemId", "Non-existing item.");
 		}
 
 		return item;
