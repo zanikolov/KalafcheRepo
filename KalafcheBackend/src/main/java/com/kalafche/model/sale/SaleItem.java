@@ -22,10 +22,15 @@ public class SaleItem {
 	private String productMasterTypeName;
 	private Integer deviceModelId;
 	private String deviceModelName;
+	private Integer soldForDeviceModelId;
+	private String soldForDeviceModelName;
+	private Boolean soldForDeviceModelRequired;
 	private Integer deviceBrandId;
 	private String deviceBrandName;
 	private BigDecimal itemPrice;
 	private BigDecimal salePrice;
+	private BigDecimal discountAmount;
+	private BigDecimal discountPercent;
 	private Integer storeId;
 	private String storeName;
 	private Integer employeeId;

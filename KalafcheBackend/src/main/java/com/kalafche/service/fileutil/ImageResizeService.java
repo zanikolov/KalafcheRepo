@@ -25,6 +25,9 @@ public class ImageResizeService {
 		try {
 
 			origImage = ImageIO.read(image);
+			if (origImage == null) {
+				throw new IllegalArgumentException("Unsupported image format.");
+			}
 			int type = origImage.getType() == 0? BufferedImage.TYPE_INT_ARGB : origImage.getType();
 
 			int fHeight = IMG_HEIGHT;

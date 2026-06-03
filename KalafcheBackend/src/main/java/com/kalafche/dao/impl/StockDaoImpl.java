@@ -26,11 +26,12 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			"iv.device_brand_id, " +
 			"iv.device_model_id, " +
 			"iv.device_model_name, " +
-			"iv.product_id, " +
-			"iv.product_code, " +
-			"iv.product_name, " +
-			"iv.product_type_name, " +
-			"iv.barcode, " +
+				"iv.product_id, " +
+				"iv.product_code, " +
+				"iv.product_name, " +
+				"iv.product_type_name, " +
+				"iv.sold_for_device_model_required, " +
+				"iv.barcode, " +
 			"coalesce(psp.specific_price, iv.product_price) as product_price, " +
 			"s.QUANTITY, " +
 			"iv.product_fabric " +
@@ -40,17 +41,18 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			"where s.approved is true " +
 			"and s.store_id = ? " +
 			"order by iv.device_brand_id, iv.device_model_id";
-	
+
 	private static final String GET_ALL_APPROVED_STOCKS_FOR_STORES = "select " +
 			"s.ID, " +
 			"iv.id as item_id, " +
 			"iv.device_brand_id, " +
 			"iv.device_model_id, " +
 			"iv.device_model_name, " +
-			"iv.product_id, " +
-			"iv.product_code, " +
-			"iv.product_name, " +
-			"iv.barcode, " +
+				"iv.product_id, " +
+				"iv.product_code, " +
+				"iv.product_name, " +
+				"iv.sold_for_device_model_required, " +
+				"iv.barcode, " +
 			"coalesce(psp.specific_price, iv.product_price) as product_price, " +
 			"ks.ID as store_id, " +
 			"CONCAT(ks.CITY,',',ks.NAME) as store_name, " +
@@ -87,57 +89,58 @@ public class StockDaoImpl extends JdbcDaoSupport {
 
 	private static final String GROUP_BY_CLAUSE = "group by s.id ";
 
-	private static final String GET_ALL_APPROVED_STOCKS_FROM_WH = "select " + 
-			"s.ID, " + 
-			"iv.id as item_id, " + 
-			"iv.device_brand_id, " + 
-			"iv.device_model_id, " + 
-			"iv.device_model_name, " + 
-			"iv.product_id, " + 
-			"iv.product_code, " + 
-			"iv.product_name, " +
-			"iv.barcode, " +
+	private static final String GET_ALL_APPROVED_STOCKS_FROM_WH = "select " +
+			"s.ID, " +
+			"iv.id as item_id, " +
+			"iv.device_brand_id, " +
+			"iv.device_model_id, " +
+			"iv.device_model_name, " +
+				"iv.product_id, " +
+				"iv.product_code, " +
+				"iv.product_name, " +
+				"iv.sold_for_device_model_required, " +
+				"iv.barcode, " +
 			"coalesce(psp.specific_price, iv.product_price) as product_price, " +
-			"ks.ID as store_id, " + 
-			"CONCAT(ks.CITY,\",\",ks.NAME) as store_name, " + 
-			"s.QUANTITY, " + 
-			"s.approved, " + 
-			"s.approver, " + 
-			"es.quantity as extraQuantity, " + 
-			"sum(sr2.quantity) as orderedQuantity " + 
-			"from stock s " + 
-			"join store ks on s.store_ID=ks.ID " + 
-			"join item_vw iv on s.ITEM_ID=iv.ID " + 
-			"left join stock es on es.item_id=iv.ID and es.store_id=? and es.approved=true " + 
-			"left join " + 
-			"( " + 
-			"   select " + 
-			"   sr1.quantity, " + 
-			"   sr1.dest_store_id, " + 
-			"   st3.product_id, " + 
-			"   st3.device_model_id " + 
-			"   from relocation sr1 " + 
-			"   join stock st3 on sr1.stock_id=st3.id " + 
-			"   where sr1.source_store_id=4 " + 
-			"   and sr1.arrived=false " + 
-			"   and sr1.archived=false " + 
-			"   and (sr1.rejected=false or sr1.rejected is null) " + 
-			") " + 
-			"sr2 on sr2.product_id=iv.product_id " + 
-			"and sr2.device_model_id=iv.device_model_id " + 
-			"and sr2.dest_store_id=? " + 
+			"ks.ID as store_id, " +
+			"CONCAT(ks.CITY,\",\",ks.NAME) as store_name, " +
+			"s.QUANTITY, " +
+			"s.approved, " +
+			"s.approver, " +
+			"es.quantity as extraQuantity, " +
+			"sum(sr2.quantity) as orderedQuantity " +
+			"from stock s " +
+			"join store ks on s.store_ID=ks.ID " +
+			"join item_vw iv on s.ITEM_ID=iv.ID " +
+			"left join stock es on es.item_id=iv.ID and es.store_id=? and es.approved=true " +
+			"left join " +
+			"( " +
+			"   select " +
+			"   sr1.quantity, " +
+			"   sr1.dest_store_id, " +
+			"   st3.product_id, " +
+			"   st3.device_model_id " +
+			"   from relocation sr1 " +
+			"   join stock st3 on sr1.stock_id=st3.id " +
+			"   where sr1.source_store_id=4 " +
+			"   and sr1.arrived=false " +
+			"   and sr1.archived=false " +
+			"   and (sr1.rejected=false or sr1.rejected is null) " +
+			") " +
+			"sr2 on sr2.product_id=iv.product_id " +
+			"and sr2.device_model_id=iv.device_model_id " +
+			"and sr2.dest_store_id=? " +
 			"left join product_specific_price psp on psp.product_id = iv.product_id and psp.store_id = ks.id " +
-			"where s.approved is true " + 
+			"where s.approved is true " +
 			"and ks.CODE = 'RU_WH' ";
 
 	private static final String ORDER_BY_CLAUSE = "order by iv.device_model_name, iv.product_id, store_id ";
 
 	private static final String UPDATE_QUANTITY_OF_SOLD_STOCK = "update stock set quantity = quantity - 1 where item_id = ? and store_id = ?";
-	
+
 	private static final String UPDATE_QUANTITY_OF_REVISED_STOCK = "update stock set quantity = quantity - ?, synced = true where item_id = ? and store_id = (select store_id from revision where id = ?)";
 
 	private static final String UPDATE_QUANTITY_OF_REFUND_STOCK = "update stock set quantity = quantity + 1 where item_id = (select item_id from sale_item where id = ?) and store_id = ?";
-	
+
 	private static final String GET_QUANTITY_OF_STOCK_IN_WH = "select " +
 			"coalesce(( " +
 			"	select quantity " +
@@ -169,10 +172,11 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			"iv.device_brand_id, " +
 			"iv.device_model_id, " +
 			"iv.device_model_name, " +
-			"iv.product_id, " +
-			"iv.PRODUCT_CODE as product_code, " +
-			"iv.PRODUCT_NAME as product_name, " +
-			"iv.PRODUCT_PRICE as product_price, " +
+				"iv.product_id, " +
+				"iv.PRODUCT_CODE as product_code, " +
+				"iv.PRODUCT_NAME as product_name, " +
+				"iv.sold_for_device_model_required, " +
+				"iv.PRODUCT_PRICE as product_price, " +
 			"os.QUANTITY as ordered_quantity, " +
 			"sum(s.QUANTITY) as quantity " +
 			"from stock s " +
@@ -192,7 +196,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 	private static final String PRODUCT_CODES_CLAUSE = "and iv.product_code in (%s) ";
 
 	private static final String BARCODE_CLAUSE = "and iv.barcode = ? ";
-	
+
 	private static final String ZERO_QUANTITIES_CLAUSE = "and s.QUANTITY <> 0 ";
 
 	private BeanPropertyRowMapper<Stock> rowMapper;
@@ -217,7 +221,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 	}
 
 	public List<Stock> getAllApprovedStocks(int userStoreId, int selectedStoreId, Integer deviceBrandId, Integer deviceModelId, String productCodes, String barcode, Boolean showZeroInStocks) {
-		
+
 		List<Object> storeArgsList;
 		List<Object> searchArgsList = Lists.newArrayList();
 		String searchCriteria;
@@ -225,11 +229,11 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			storeArgsList = Lists.newArrayList(userStoreId, userStoreId);
 			searchCriteria = generateSearchCriteria(deviceBrandId, deviceModelId, productCodes, barcode, showZeroInStocks, searchArgsList);
 
-			storeArgsList.addAll(searchArgsList);		
-			
+			storeArgsList.addAll(searchArgsList);
+
 			Object[] storeArgsArr = listToArr(storeArgsList);
 			Object[] searchArgsArr = listToArr(searchArgsList);
-			
+
 			List<Stock> stocks = getJdbcTemplate()
 					.query(GET_ALL_APPROVED_STOCKS_FOR_STORES + searchCriteria + GROUP_BY_CLAUSE + ORDER_BY_CLAUSE, searchArgsArr, getRowMapper());
 			stocks.addAll(getJdbcTemplate().query(GET_ALL_APPROVED_STOCKS_FROM_WH + searchCriteria + GROUP_BY_CLAUSE + ORDER_BY_CLAUSE,
@@ -241,20 +245,20 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			storeArgsList = Lists.newArrayList(userStoreId, userStoreId);
 			searchCriteria = generateSearchCriteria(deviceBrandId, deviceModelId, productCodes, barcode, showZeroInStocks, searchArgsList);
 
-			storeArgsList.addAll(searchArgsList);		
-			
+			storeArgsList.addAll(searchArgsList);
+
 			Object[] storeArgsArr = listToArr(storeArgsList);
-			
+
 			return getJdbcTemplate().query(GET_ALL_APPROVED_STOCKS_FROM_WH + searchCriteria + GROUP_BY_CLAUSE + ORDER_BY_CLAUSE,
 					storeArgsArr, getRowMapper());
 		} else {
 			storeArgsList = Lists.newArrayList(selectedStoreId);
 			searchCriteria = generateSearchCriteria(deviceBrandId, deviceModelId, productCodes, barcode, showZeroInStocks, searchArgsList);
 
-			storeArgsList.addAll(searchArgsList);		
-			
+			storeArgsList.addAll(searchArgsList);
+
 			Object[] storeArgsArr = listToArr(storeArgsList);
-			
+
 			return getJdbcTemplate().query(
 					GET_ALL_APPROVED_STOCKS_FOR_STORES + BY_STORE_CLAUSE + searchCriteria + GROUP_BY_CLAUSE + ORDER_BY_CLAUSE,
 					storeArgsArr, getRowMapper());
@@ -264,7 +268,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 	private Object[] listToArr(List<Object> list) {
 		Object[] arr = new Object[list.size()];
 		arr = list.toArray(arr);
-		
+
 		return arr;
 	}
 
@@ -272,35 +276,35 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			String barcode, Boolean showZeroInStocks, List<Object> argsList) {
 
 		String searchCriteria = "";
-		
+
 		if (deviceBrandId != null) {
 			searchCriteria += DEVICE_BRAND_CLAUSE;
 			argsList.add(deviceBrandId);
 		}
-		
+
 		if (deviceModelId != null) {
 			searchCriteria += DEVICE_MODEL_CLAUSE;
 			argsList.add(deviceModelId);
 		}
-		
-		if (Strings.isNotBlank(productCodes)) {			
+
+		if (Strings.isNotBlank(productCodes)) {
 			searchCriteria += String.format(PRODUCT_CODES_CLAUSE, productCodes);
 		}
-		
+
 		if (Strings.isNotBlank(barcode)) {
 			searchCriteria += BARCODE_CLAUSE;
 			argsList.add(barcode);
 		}
-		
+
 		if (Strings.isNotBlank(barcode)) {
 			searchCriteria += BARCODE_CLAUSE;
 			argsList.add(barcode);
 		}
-		
+
 		if (!showZeroInStocks) {
 			searchCriteria += ZERO_QUANTITIES_CLAUSE;
 		}
-		
+
 		return searchCriteria;
 	}
 
@@ -341,7 +345,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 	}
 
 	public void updateTheQuantitiyOfRevisedStock(Integer itemId, Integer revisionId, Integer difference) {
-		getJdbcTemplate().update(UPDATE_QUANTITY_OF_REVISED_STOCK, difference, itemId, revisionId);	
+		getJdbcTemplate().update(UPDATE_QUANTITY_OF_REVISED_STOCK, difference, itemId, revisionId);
 	}
 
 }

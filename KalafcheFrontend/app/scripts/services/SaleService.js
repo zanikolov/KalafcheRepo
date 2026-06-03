@@ -21,9 +21,11 @@ angular.module('kalafcheFrontendApp')
             var selectedSaleItems = [];
             angular.forEach(items, function(item) {
                 var selectedSaleItem = {};
-                selectedSaleItem.itemId = item.itemId;
-                selectedSaleItem.itemPrice = item.productPrice;
-                if (item.discountCode) {
+	                selectedSaleItem.itemId = item.itemId;
+	                selectedSaleItem.itemPrice = item.productPrice;
+	                selectedSaleItem.soldForDeviceModelId = item.soldForDeviceModelId;
+	                selectedSaleItem.soldForDeviceModelRequired = item.soldForDeviceModelRequired;
+	                if (item.discountCode) {
                     selectedSaleItem.discountValue = item.discountCode.discountValue;
                     selectedSaleItem.discountType = item.discountCode.discountTypeCode;
                     selectedSaleItem.discountCode = item.discountCode.code;

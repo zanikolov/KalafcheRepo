@@ -1,6 +1,6 @@
-<div ng-controller="ProtectPlusCertificateController" layout="column" ng-cloak>
+<div ng-controller="ProtectPlusCertificateController" layout="column" class="protect-plus-page" ng-cloak>
     <md-tabs md-dynamic-height md-border-bottom>
-        <md-tab label="Неактивни">
+        <md-tab label="За активация">
             <md-content layout-padding layout="column">
                 <table class="table table-hover table-condensed" ng-if="inactiveCertificates.length > 0">
                     <thead>
@@ -24,28 +24,28 @@
                             <td colspan="5">
                                 <div class="protect-plus-activation-container">
                                     <form name="protectPlusActivationForm" server-validation novalidate>
-                                        <md-input-container class="md-block protect-plus-form-control">
+                                        <md-input-container class="protect-plus-call-record-note">
                                             <label>Име</label>
                                             <input ng-model="activationRequest.loyalCustomer.name" name="name" required>
                                             <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
                                         </md-input-container>
 
-                                        <md-input-container class="md-block protect-plus-form-control">
+                                        <md-input-container class="protect-plus-call-record-note">
                                             <label>Телефон</label>
                                             <input ng-model="activationRequest.loyalCustomer.phoneNumber" name="phoneNumber" required>
                                             <span ng-message="serverError" class="label label-error">{{serverErrorMessages.phoneNumber}}</span>
                                         </md-input-container>
 
-                                        <md-input-container class="md-block protect-plus-form-control">
+                                        <md-input-container class="protect-plus-call-record-note">
                                             <label>Имейл</label>
                                             <input type="email" ng-model="activationRequest.loyalCustomer.email" name="email" required>
                                             <span ng-message="serverError" class="label label-error">{{serverErrorMessages.email}}</span>
                                         </md-input-container>
 
-                                        <div layout="row" layout-xs="column" class="protect-plus-form-row">
+                                        <div layout="row" layout-xs="column" class="protect-plus-form-row protect-plus-device-selector-row">
                                             <md-input-container flex="30" flex-xs="100">
                                                 <label>Марка</label>
-                                                <md-select ng-model="activationRequest.deviceBrandId" ng-change="onActivationBrandChanged()" required>
+                                                <md-select ng-model="activationRequest.deviceBrandId" ng-change="onActivationBrandChanged()" ng-disabled="!isAdmin()" required>
                                                     <md-option value="" selected></md-option>
                                                     <md-option ng-repeat="brand in brands" ng-value="brand.id">
                                                         {{brand.name}}
@@ -57,7 +57,7 @@
                                                 <md-select name="deviceModelId" ng-model="activationRequest.deviceModelId"
                                                            md-on-close="clearModelSearchTerm()"
                                                            data-md-container-class="selectSearchTermHeader"
-                                                           ng-disabled="!activationRequest.deviceBrandId" required>
+                                                           ng-disabled="!isAdmin() || !activationRequest.deviceBrandId" required>
                                                     <md-select-header class="select-header">
                                                         <input id="protectPlusModelSearchTerm" ng-model="modelSearchTerm"
                                                                type="search"
@@ -74,9 +74,9 @@
                                             </md-input-container>
                                         </div>
 
-                                        <div class="protect-plus-file-row">
-                                            <label class="protect-plus-file-label">GDPR декларация *</label>
-                                            <input type="file" file-model="selectedCertificate.gdprConsentImage" ng-model="selectedCertificate.gdprConsentImage" name="gdprConsentImage" required>
+                                        <div class="protect-plus-file-row protect-plus-call-record-file-row">
+	                                            <label class="protect-plus-file-label">GDPR декларация *</label>
+	                                            <input type="file" file-model="selectedCertificate.gdprConsentImage" ng-model="selectedCertificate.gdprConsentImage" name="gdprConsentImage" accept="image/jpeg,image/png" required>
                                             <span class="protect-plus-file-name" ng-if="selectedCertificate.gdprConsentImage">{{selectedCertificate.gdprConsentImage.name}}</span>
                                             <span ng-message="serverError" class="label label-error">{{serverErrorMessages.gdprConsentImage}}</span>
                                         </div>
@@ -101,7 +101,7 @@
             </md-content>
         </md-tab>
 
-        <md-tab label="Активни">
+        <md-tab label="Сертификати">
             <md-content layout-padding layout="column">
                 <form name="protectPlusSearchForm" server-validation novalidate>
                     <div layout="row" layout-xs="column">
@@ -161,23 +161,202 @@
                         <tr>
                             <th ng-if="isAdmin()"></th>
                             <th><label>Сертификат</label></th>
-                            <th><label>Клиент</label></th>
-                            <th><label>Телефон</label></th>
-                            <th><label>Модел</label></th>
+                            <th ng-if="isAdmin()"><label>Клиент</label></th>
+                            <th ng-if="isAdmin()"><label>Телефон</label></th>
+                            <th><label>Устройство</label></th>
                             <th ng-if="isAdmin()"><label>Магазин</label></th>
                             <th><label>Валиден до</label></th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr dir-paginate="certificate in activeCertificates | itemsPerPage: certificatesPerPage track by certificate.id" pagination-id="activeCertificatesPagination" current-page="activeCurrentPage" class="item-row">
+                        <tr ng-click="selectActiveCertificateDetails(certificate)" dir-paginate-start="certificate in activeCertificates | itemsPerPage: certificatesPerPage track by certificate.id" pagination-id="activeCertificatesPagination" current-page="activeCurrentPage" class="item-row protect-plus-certificate-row">
                             <td ng-if="isAdmin()">{{(activeCurrentPage - 1) * certificatesPerPage + $index + 1}}</td>
                             <td>{{certificate.certificateNumber}}</td>
-                            <td>{{certificate.customerName}}</td>
-                            <td>{{certificate.phoneNumber}}</td>
+                            <td ng-if="isAdmin()">{{certificate.customerName}}</td>
+                            <td ng-if="isAdmin()">{{certificate.phoneNumber}}</td>
                             <td>{{certificate.deviceModelName}}</td>
                             <td ng-if="isAdmin()">{{certificate.soldStoreName}}</td>
                             <td>{{convertEpochToDate(certificate.validUntilTimestamp)}}</td>
                         </tr>
+                        <tr dir-paginate-end ng-show="certificate.expanded" class="sale-details">
+                            <td colspan="{{isAdmin() ? 7 : 4}}">
+	                                <div class="protect-plus-details-container">
+	                                    <div class="protect-plus-history-section" ng-if="isAdmin()">
+	                                        <div class="protect-plus-details-section-title">Използвания</div>
+	                                        <table class="table table-condensed protect-plus-history-table protect-plus-usage-history-table" ng-if="usageRecords.length > 0">
+	                                            <thead>
+	                                                <tr>
+	                                                    <th><label>Дата</label></th>
+	                                                    <th><label>Магазин</label></th>
+	                                                    <th><label>Служител</label></th>
+	                                                    <th><label>Сума</label></th>
+	                                                    <th><label>P+ артикули</label></th>
+	                                                </tr>
+	                                            </thead>
+	                                            <tbody>
+	                                                <tr ng-repeat="usageRecord in usageRecords track by usageRecord.saleId">
+	                                                    <td class="protect-plus-date-cell">{{convertEpochToDate(usageRecord.saleTimestamp)}}</td>
+	                                                    <td>{{usageRecord.storeName}}</td>
+	                                                    <td>{{usageRecord.employeeName}}</td>
+	                                                    <td>{{usageRecord.totalAmount}}€</td>
+	                                                    <td>{{usageRecord.protectPlusAppliedItemsCount}}</td>
+	                                                </tr>
+	                                            </tbody>
+	                                        </table>
+	                                        <div class="protect-plus-empty-result" ng-if="usageRecords.length == 0">Няма използвания на сертификата.</div>
+	                                    </div>
+
+	                                    <div class="protect-plus-history-section" ng-if="isAdmin()">
+	                                        <div class="protect-plus-details-section-title">Подновявания</div>
+	                                        <table class="table table-condensed protect-plus-history-table protect-plus-renewal-history-table" ng-if="renewalRecords.length > 0">
+	                                            <thead>
+	                                                <tr>
+	                                                    <th><label>Дата</label></th>
+	                                                    <th><label>Магазин</label></th>
+	                                                    <th><label>Служител</label></th>
+	                                                    <th><label>Стар срок</label></th>
+	                                                    <th><label>Нов срок</label></th>
+	                                                </tr>
+	                                            </thead>
+	                                            <tbody>
+	                                                <tr ng-repeat="renewalRecord in renewalRecords track by renewalRecord.id">
+	                                                    <td class="protect-plus-date-cell">{{convertEpochToDate(renewalRecord.createdTimestamp)}}</td>
+	                                                    <td>{{renewalRecord.storeName}}</td>
+	                                                    <td>{{renewalRecord.employeeName}}</td>
+	                                                    <td>{{convertEpochToDate(renewalRecord.oldValidUntilTimestamp)}}</td>
+	                                                    <td>{{convertEpochToDate(renewalRecord.newValidUntilTimestamp)}}</td>
+	                                                </tr>
+	                                            </tbody>
+	                                        </table>
+	                                        <div class="protect-plus-empty-result" ng-if="renewalRecords.length == 0">Няма удължавания на сертификата.</div>
+	                                    </div>
+
+
+                                    <div class="protect-plus-history-section" ng-if="isAdmin()">
+                                        <div layout="row" layout-xs="column" layout-align="start start" class="protect-plus-form-row">
+                                            <md-input-container flex="30" flex-xs="100">
+                                                <label>Имейл</label>
+                                                <input type="email" ng-model="customerEmailUpdate.email" name="customerEmail">
+                                                <span ng-message="serverError" class="label label-error">{{serverErrorMessages.email}}</span>
+                                            </md-input-container>
+                                            <div flex="20" flex-xs="100">
+                                                <md-button ng-disabled="!customerEmailUpdate.email || customerEmailUpdate.email == certificate.loyalCustomerEmail" ng-click="updateCustomerEmail(certificate); $event.stopPropagation()" class="md-raised md-primary">Запази</md-button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="protect-plus-history-section">
+		                                        <div class="protect-plus-details-section-title">Смяна на устройство</div>
+		                                        <div class="protect-plus-activation-container" ng-if="canChangeDeviceModel(certificate)">
+	                                            <form name="protectPlusDeviceModelChangeForm" server-validation novalidate>
+	                                                <div layout="row" layout-sm="column" layout-xs="column" layout-align="start start" class="protect-plus-form-row protect-plus-device-selector-row protect-plus-device-model-change-row">
+	                                                    <md-input-container flex="30" flex-sm="100" flex-xs="100">
+	                                                        <label>Марка</label>
+	                                                        <md-select ng-model="deviceModelChangeRequest.deviceBrandId" ng-change="onDeviceModelChangeBrandChanged()" required>
+	                                                            <md-option value="" selected></md-option>
+	                                                            <md-option ng-repeat="brand in brands" ng-value="brand.id">
+	                                                                {{brand.name}}
+	                                                            </md-option>
+	                                                        </md-select>
+	                                                    </md-input-container>
+	                                                    <md-input-container flex="30" flex-sm="100" flex-xs="100">
+	                                                        <label>Модел</label>
+	                                                        <md-select name="deviceModelId" ng-model="deviceModelChangeRequest.deviceModelId"
+	                                                                   md-on-close="clearModelSearchTerm()"
+	                                                                   data-md-container-class="selectSearchTermHeader"
+	                                                                   ng-disabled="!deviceModelChangeRequest.deviceBrandId" required>
+	                                                            <md-select-header class="select-header">
+	                                                                <input id="protectPlusDeviceChangeModelSearchTerm" ng-model="modelSearchTerm"
+	                                                                       type="search"
+	                                                                       placeholder="Търси модел.."
+	                                                                       class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+	                                                            </md-select-header>
+	                                                            <md-option value="" selected></md-option>
+	                                                            <md-option ng-repeat="model in models | filter: {deviceBrandId : deviceModelChangeRequest.deviceBrandId} : true |
+	                                                              filter:modelSearchTerm" ng-value="model.id">
+	                                                                {{model.name}}
+	                                                            </md-option>
+	                                                        </md-select>
+	                                                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.deviceModelId}}</span>
+	                                                    </md-input-container>
+	                                                    <div layout="row" layout-sm="row" layout-xs="row" flex="30" flex-sm="100" flex-xs="100" class="protect-plus-device-model-change-actions">
+	                                                        <md-button ng-disabled="protectPlusDeviceModelChangeForm.$invalid || deviceModelChangeRequest.deviceModelId == certificate.deviceModelId" ng-click="changeCertificateDeviceModel()" class="md-raised md-primary">Запази</md-button>
+	                                                        <md-button class="md-raised md-primary" ng-click="resetActiveCertificateDetails()">Отмени</md-button>
+	                                                    </div>
+	                                                </div>
+	                                            </form>
+	                                        </div>
+	                                        <div class="protect-plus-empty-result" ng-if="!canChangeDeviceModel(certificate)">Смяната на устройство вече е използвана.</div>
+	                                        <table class="table table-condensed protect-plus-history-table protect-plus-device-change-history-table" ng-if="isAdmin() && deviceModelChangeRecords.length > 0">
+	                                            <thead>
+	                                                <tr>
+	                                                    <th><label>Дата</label></th>
+	                                                    <th><label>Служител</label></th>
+	                                                    <th><label>От</label></th>
+	                                                    <th><label>Към</label></th>
+	                                                    <th><label>Admin</label></th>
+	                                                </tr>
+	                                            </thead>
+	                                            <tbody>
+	                                                <tr ng-repeat="deviceModelChangeRecord in deviceModelChangeRecords track by deviceModelChangeRecord.id">
+	                                                    <td class="protect-plus-date-cell">{{convertEpochToDate(deviceModelChangeRecord.createdTimestamp)}}</td>
+	                                                    <td>{{deviceModelChangeRecord.employeeName}}</td>
+	                                                    <td>{{deviceModelChangeRecord.oldDeviceModelName}}</td>
+	                                                    <td>{{deviceModelChangeRecord.newDeviceModelName}}</td>
+	                                                    <td>{{deviceModelChangeRecord.adminOverride ? 'Да' : 'Не'}}</td>
+	                                                </tr>
+	                                            </tbody>
+	                                        </table>
+	                                        <div class="protect-plus-empty-result" ng-if="isAdmin() && deviceModelChangeRecords.length == 0">Няма история за смяна на устройство.</div>
+	                                    </div>
+
+	                                    <div class="protect-plus-history-section" ng-if="isAdmin()">
+		                                        <div layout="row" layout-xs="column" layout-align="start center" class="protect-plus-gdpr-row">
+	                                            <div class="protect-plus-details-section-title">GDPR декларация</div>
+	                                            <a href="" ng-click="downloadGdprConsent(certificate); $event.stopPropagation()" ng-if="certificate.gdprConsentFileId">Свали файл</a>
+	                                            <span class="protect-plus-empty-result" ng-if="!certificate.gdprConsentFileId">Няма качен GDPR файл.</span>
+	                                        </div>
+	                                    </div>
+
+	                                    <div class="protect-plus-history-section" ng-if="isAdmin()">
+	                                        <div class="protect-plus-details-section-title">Обаждания</div>
+	                                        <table class="table table-condensed protect-plus-history-table protect-plus-call-records-table" ng-if="callRecords.length > 0">
+	                                            <thead>
+	                                                <tr>
+	                                                    <th><label>Дата</label></th>
+	                                                    <th><label>Служител</label></th>
+	                                                    <th><label>Файл</label></th>
+	                                                    <th><label>Бележка</label></th>
+	                                                </tr>
+	                                            </thead>
+	                                            <tbody>
+	                                                <tr ng-repeat="callRecord in callRecords track by callRecord.id">
+	                                                    <td class="protect-plus-date-cell">{{convertEpochToDate(callRecord.createdTimestamp)}}</td>
+	                                                    <td>{{callRecord.employeeName}}</td>
+	                                                    <td><a href="" ng-click="downloadCallRecording(callRecord); $event.stopPropagation()">{{callRecord.callRecordingFileName}}</a></td>
+	                                                    <td>{{callRecord.note}}</td>
+	                                                </tr>
+	                                            </tbody>
+	                                        </table>
+	                                        <div class="protect-plus-empty-result" ng-if="callRecords.length == 0">Няма качени записи от обаждания.</div>
+	                                        <form name="protectPlusCallRecordForm" server-validation novalidate layout="row" layout-sm="column" layout-xs="column" layout-align="start start" class="protect-plus-call-record-upload-form">
+	                                            <md-input-container flex="25" flex-sm="100" flex-xs="100" class="protect-plus-call-record-note">
+	                                                <label>Бележка</label>
+	                                                <input ng-model="callRecordingUpload.note" name="note">
+	                                            </md-input-container>
+	                                            <div flex="25" flex-sm="100" flex-xs="100" class="protect-plus-file-row protect-plus-call-record-file-row">
+	                                                <input id="protectPlusCallRecordingInput" type="file" file-model="callRecordingUpload.file" ng-model="callRecordingUpload.file" name="callRecording" accept="audio/*">
+	                                                <span class="protect-plus-file-name" ng-if="callRecordingUpload.file">{{callRecordingUpload.file.name}}</span>
+	                                                <span ng-message="serverError" class="label label-error">{{serverErrorMessages.callRecording}}</span>
+	                                            </div>
+	                                            <div flex="20" flex-sm="100" flex-xs="100">
+	                                                <md-button ng-disabled="!canUploadCallRecording()" ng-click="uploadCallRecording()" class="md-raised md-primary protect-plus-call-record-upload-button">Качи запис</md-button>
+	                                            </div>
+	                                        </form>
+	                                    </div>
+	                                </div>
+	                            </td>
+	                        </tr>
                     </tbody>
                 </table>
 

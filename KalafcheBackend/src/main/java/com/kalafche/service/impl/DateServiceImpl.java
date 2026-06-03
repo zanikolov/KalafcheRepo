@@ -167,5 +167,14 @@ public class DateServiceImpl implements DateService {
 
 		return zonedDateTime.toEpochSecond() * 1000;
 	}
+
+	@Override
+	public long endOfDayInMillisBGTimezone(long millisTimestamp) {
+		Instant instant = Instant.ofEpochMilli(millisTimestamp);
+		ZonedDateTime zonedDateTime = instant.atZone(ZoneId.of("Europe/Sofia"));
+		zonedDateTime = zonedDateTime.withHour(23).withMinute(59).withSecond(59).withNano(999000000);
+
+		return zonedDateTime.toInstant().toEpochMilli();
+	}
 	
 }

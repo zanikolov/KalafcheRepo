@@ -6,14 +6,15 @@ angular.module('kalafcheFrontendApp')
             getInStock: getInStock,
             getAllInStockForReport: getAllInStockForReport,
             printStickersForStocks: printStickersForStocks,
-            printStickersForStocksV2: printStickersForStocksV2
+            printStickersForStocksV2: printStickersForStocksV2,
+            printInStocks: printInStocks
 
 		});
 
     function getInStock(userStoreId, selectedStoreId, deviceBrandId, deviceModelId, productCode, barcode, showZeroInStocks) {
-        return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock', 
+        return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock',
           {"params": {
-            "userStoreId": userStoreId, 
+            "userStoreId": userStoreId,
             "selectedStoreId": selectedStoreId,
             "deviceBrandId": deviceBrandId,
             "deviceModelId": deviceModelId,
@@ -27,7 +28,7 @@ angular.module('kalafcheFrontendApp')
             );
     }
 
-    function getAllInStockForReport() { 
+    function getAllInStockForReport() {
         return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock/getAllStocksForReport')
             .then(
                 function(response) {
@@ -44,7 +45,7 @@ angular.module('kalafcheFrontendApp')
                   var blob = new Blob([response.data], {type: "application/pdf"});
                   FileSaver.saveAs(blob, 'Етикети наличност.pdf')
               }
-          ); 
+          );
     }
 
     function printStickersForStocksV2(storeId) {
@@ -55,7 +56,17 @@ angular.module('kalafcheFrontendApp')
                   var blob = new Blob([response.data], {type: "application/pdf"});
                   FileSaver.saveAs(blob, 'Етикети наличност V2.pdf')
               }
-          ); 
+          );
     }
-  
+
+    function printInStocks(inStocks) {
+      return $http.post(Environment.apiEndpoint + '/KalafcheBackend/stock/excel', inStocks, {responseType: "blob"})
+          .then(
+              function(response) {
+                  var blob = new Blob([response.data], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+                  FileSaver.saveAs(blob, 'Наличности.xlsx')
+              }
+          );
+    }
+
 	});

@@ -13,6 +13,9 @@ public class ProtectPlusCertificate {
 	private Integer certificateNumber;
 	private Integer loyalCustomerId;
 	private LoyalCustomer loyalCustomer;
+	private String loyalCustomerName;
+	private String loyalCustomerPhoneNumber;
+	private String loyalCustomerEmail;
 	private Integer deviceModelId;
 	private String deviceModelName;
 	private Integer soldStoreId;
@@ -26,10 +29,13 @@ public class ProtectPlusCertificate {
 	private Integer activatedById;
 	private String activatedByName;
 	private Long activatedTimestamp;
-	private Long confirmationEmailSentTimestamp;
 	private String gdprConsentFileId;
 	private String callRecordingFileId;
 	private Boolean freeProtectorUsed;
+	private Boolean freeDisplayReplacementServiceUsed;
+	private Boolean freeBatteryReplacementServiceUsed;
+	private Boolean deviceModelChangeUsed;
+	private Integer usageCount;
 	private Integer createdById;
 	private String createdByName;
 	private Long createdTimestamp;

@@ -1,6 +1,9 @@
 package com.kalafche.service.impl;
 
 import java.math.BigDecimal;
+import java.util.List;
+
+import com.kalafche.model.sale.SaleItem;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,5 +16,6 @@ public class TotalSumReport {
 	private BigDecimal discount = BigDecimal.ZERO;
 	private BigDecimal totalSumAfterDiscount = BigDecimal.ZERO;
 	private BigDecimal change = BigDecimal.ZERO;
+	private List<SaleItem> selectedSaleItems;
 
 }

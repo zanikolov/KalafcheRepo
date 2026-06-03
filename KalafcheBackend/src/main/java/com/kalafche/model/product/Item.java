@@ -19,6 +19,7 @@ public class Item {
 	private BigDecimal productPrice;
 	private BigDecimal productPurchasePrice;
 	private int productBonusPts;
+	private Boolean soldForDeviceModelRequired;
 	private Integer productTypeId;
 	private String productTypeName;
 	private Integer productMasterTypeId;

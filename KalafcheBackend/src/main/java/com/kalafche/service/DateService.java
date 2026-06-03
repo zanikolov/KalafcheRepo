@@ -12,6 +12,8 @@ public interface DateService {
 
 	public long addMonthsInMillisBGTimezone(long millis, int months);
 
+	public long endOfDayInMillisBGTimezone(long millis);
+
 	public String convertMillisToDateTimeString(Long millis, String dateFormat, Boolean withTime);
 
 	public PeriodInMillis getTodayInMillis(Integer dayShift);

@@ -8,9 +8,17 @@ angular.module('kalafcheFrontendApp')
         function init() {
             $scope.activeSearch = {};
             $scope.activationRequest = {};
+            $scope.deviceModelChangeRequest = {};
             $scope.selectedCertificate = null;
+            $scope.selectedActiveCertificate = null;
             $scope.inactiveCertificates = [];
             $scope.activeCertificates = [];
+            $scope.usageRecords = [];
+            $scope.renewalRecords = [];
+            $scope.deviceModelChangeRecords = [];
+            $scope.callRecords = [];
+            $scope.callRecordingUpload = {};
+            $scope.customerEmailUpdate = {};
             $scope.brands = [];
             $scope.models = [];
             $scope.stores = [];
@@ -61,6 +69,7 @@ angular.module('kalafcheFrontendApp')
 
         $scope.searchActiveCertificates = function() {
             $scope.activeCertificates = [];
+            $scope.resetActiveCertificateDetails();
             $scope.resetActivationForm();
 
             if (!$scope.canSearchActiveCertificates()) {
@@ -110,7 +119,8 @@ angular.module('kalafcheFrontendApp')
             certificate.expanded = true;
             $scope.activationRequest = {
                 loyalCustomer: {},
-                deviceModelId: null
+                deviceBrandId: certificate.deviceBrandId,
+                deviceModelId: certificate.deviceModelId
             };
             $scope.gdprConsentImage = null;
             $scope.serverErrorMessages = {};
@@ -118,7 +128,7 @@ angular.module('kalafcheFrontendApp')
 
         $scope.activateCertificate = function() {
             ProtectPlusCertificateService.activateCertificate($scope.selectedCertificate.id, $scope.activationRequest, $scope.selectedCertificate.gdprConsentImage).then(
-                function() {
+                function(activatedCertificate) {
                     loadInactiveCertificates();
                     $scope.resetActivationForm();
                 },
@@ -150,6 +160,157 @@ angular.module('kalafcheFrontendApp')
 
         $scope.onActiveSearchBrandChanged = function() {
             $scope.activeSearch.deviceModelId = null;
+        };
+
+        $scope.selectActiveCertificateDetails = function(certificate) {
+            angular.forEach($scope.activeCertificates, function(activeCertificate) {
+                if (activeCertificate.id !== certificate.id) {
+                    activeCertificate.expanded = false;
+                }
+            });
+
+            if ($scope.selectedActiveCertificate && $scope.selectedActiveCertificate.id === certificate.id && certificate.expanded) {
+                $scope.resetActiveCertificateDetails();
+                return;
+            }
+
+            $scope.selectedActiveCertificate = certificate;
+            certificate.expanded = true;
+            $scope.deviceModelChangeRequest = {
+                deviceBrandId: certificate.deviceBrandId,
+                deviceModelId: certificate.deviceModelId
+            };
+            $scope.serverErrorMessages = {};
+            $scope.customerEmailUpdate = {
+                email: certificate.loyalCustomerEmail
+            };
+            if (isAdmin()) {
+                loadActiveCertificateHistory(certificate.id);
+            }
+        };
+
+        function loadActiveCertificateHistory(certificateId) {
+            loadUsageRecords(certificateId);
+            loadRenewalRecords(certificateId);
+            loadDeviceModelChangeRecords(certificateId);
+            loadCallRecords(certificateId);
+        }
+
+        function loadUsageRecords(certificateId) {
+            ProtectPlusCertificateService.getUsageRecords(certificateId).then(function(response) {
+                $scope.usageRecords = response;
+            });
+        }
+
+        function loadRenewalRecords(certificateId) {
+            ProtectPlusCertificateService.getRenewalRecords(certificateId).then(function(response) {
+                $scope.renewalRecords = response;
+            });
+        }
+
+        function loadDeviceModelChangeRecords(certificateId) {
+            ProtectPlusCertificateService.getDeviceModelChangeRecords(certificateId).then(function(response) {
+                $scope.deviceModelChangeRecords = response;
+            });
+        }
+
+        function loadCallRecords(certificateId) {
+            ProtectPlusCertificateService.getCallRecords(certificateId).then(function(response) {
+                $scope.callRecords = response;
+            });
+        }
+
+        $scope.uploadCallRecording = function() {
+            ProtectPlusCertificateService.uploadCallRecording($scope.selectedActiveCertificate.id,
+                $scope.callRecordingUpload.file, $scope.callRecordingUpload.note).then(
+                function(callRecord) {
+                    $scope.callRecords.unshift(callRecord);
+                    $scope.callRecordingUpload = {};
+                    resetCallRecordingInput();
+                    if ($scope.protectPlusCallRecordForm) {
+                        $scope.protectPlusCallRecordForm.$setPristine();
+                        $scope.protectPlusCallRecordForm.$setUntouched();
+                    }
+                },
+                function(errorResponse) {
+                    ServerValidationService.processServerErrors(errorResponse, $scope.protectPlusCallRecordForm);
+                    $scope.serverErrorMessages = errorResponse.data.errors;
+                }
+            );
+        };
+
+        function resetCallRecordingInput() {
+            var callRecordingInput = document.getElementById('protectPlusCallRecordingInput');
+            if (callRecordingInput) {
+                callRecordingInput.value = null;
+            }
+        }
+
+        $scope.downloadCallRecording = function(callRecord) {
+            ProtectPlusCertificateService.downloadCallRecording($scope.selectedActiveCertificate.id, callRecord);
+        };
+
+        $scope.downloadGdprConsent = function(certificate) {
+            ProtectPlusCertificateService.downloadGdprConsent(certificate);
+        };
+
+
+        $scope.updateCustomerEmail = function(certificate) {
+            ProtectPlusCertificateService.updateCustomerEmail(certificate.id, $scope.customerEmailUpdate.email).then(
+                function(updatedCertificate) {
+                    certificate.loyalCustomerEmail = updatedCertificate.loyalCustomerEmail;
+                    $scope.customerEmailUpdate.email = updatedCertificate.loyalCustomerEmail;
+                },
+                function(errorResponse) {
+                    if (errorResponse.data && errorResponse.data.errors) {
+                        $scope.serverErrorMessages = errorResponse.data.errors;
+                    }
+                }
+            );
+        };
+
+        $scope.canUploadCallRecording = function() {
+            return $scope.selectedActiveCertificate && $scope.callRecordingUpload.file;
+        };
+
+        $scope.canChangeDeviceModel = function(certificate) {
+            return isAdmin() || !certificate.deviceModelChangeUsed;
+        };
+
+        $scope.changeCertificateDeviceModel = function() {
+            ProtectPlusCertificateService.changeDeviceModel($scope.selectedActiveCertificate.id, $scope.deviceModelChangeRequest.deviceModelId).then(
+                function() {
+                    $scope.searchActiveCertificates();
+                    $scope.resetActiveCertificateDetails();
+                },
+                function(errorResponse) {
+                    ServerValidationService.processServerErrors(errorResponse, $scope.protectPlusDeviceModelChangeForm);
+                    $scope.serverErrorMessages = errorResponse.data.errors;
+                }
+            );
+        };
+
+        $scope.resetActiveCertificateDetails = function() {
+            if ($scope.selectedActiveCertificate) {
+                $scope.selectedActiveCertificate.expanded = false;
+            }
+            $scope.selectedActiveCertificate = null;
+            $scope.deviceModelChangeRequest = {};
+            $scope.usageRecords = [];
+            $scope.renewalRecords = [];
+            $scope.deviceModelChangeRecords = [];
+            $scope.callRecords = [];
+            $scope.callRecordingUpload = {};
+            $scope.customerEmailUpdate = {};
+            $scope.serverErrorMessages = {};
+            if ($scope.protectPlusDeviceModelChangeForm) {
+                $scope.protectPlusDeviceModelChangeForm.$setPristine();
+                $scope.protectPlusDeviceModelChangeForm.$setUntouched();
+            }
+        };
+
+        $scope.onDeviceModelChangeBrandChanged = function() {
+            $scope.deviceModelChangeRequest.deviceModelId = null;
         };
 
         $scope.clearModelSearchTerm = function() {

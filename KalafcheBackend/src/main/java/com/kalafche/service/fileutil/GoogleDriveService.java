@@ -2,6 +2,7 @@ package com.kalafche.service.fileutil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
@@ -172,7 +173,7 @@ public class GoogleDriveService implements ImageUploadService {
 			} else {
 				throw new ImageUploadException(errorField, "Incorrect file type.");
 			}
-		} catch (IllegalStateException | IOException | GeneralSecurityException e) {
+		} catch (IllegalArgumentException | IllegalStateException | IOException | GeneralSecurityException e) {
 			e.printStackTrace();
 			throw new ImageUploadException(errorField, "Error during file upload.");
 		}
@@ -190,12 +191,24 @@ public class GoogleDriveService implements ImageUploadService {
 
 	@Override
 	public String uploadProtectPlusGdprConsentImage(MultipartFile image) {
-		return uploadFileHandleExceptions(image, PROTECT_PLUS_GDPR_CONSENT_FOLDER_ID, "image/", "image", true);
+		return uploadFileHandleExceptions(image, PROTECT_PLUS_GDPR_CONSENT_FOLDER_ID, "image/", "gdprConsentImage", true);
 	}
 
 	@Override
 	public String uploadProtectPlusCallRecording(MultipartFile audio) {
 		return uploadFileHandleExceptions(audio, PROTECT_PLUS_CALL_RECORDING_FOLDER_ID, "audio/", "audio", false);
+	}
+
+	@Override
+	public byte[] downloadFile(String fileId) {
+		try {
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			createService().files().get(fileId).executeMediaAndDownloadTo(outputStream);
+			return outputStream.toByteArray();
+		} catch (IOException | GeneralSecurityException e) {
+			e.printStackTrace();
+			throw new ImageUploadException("callRecording", "Error during file download.");
+		}
 	}
 	
 }

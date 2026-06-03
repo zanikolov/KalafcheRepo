@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TimeZone;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -104,6 +105,8 @@ public class SaleServiceImpl implements SaleService {
 	private static final BigDecimal PROTECT_PLUS_FREE_PROTECTOR_DISCOUNT_PERCENT = new BigDecimal(100);
 	private static final String PROTECTOR_MASTER_TYPE = "PROTECTOR";
 	private static final String PROTECT_PLUS_PRODUCT_CODE = "0500";
+	private static final String FREE_DISPLAY_REPLACEMENT_SERVICE_PRODUCT_CODE = "90001";
+	private static final String FREE_BATTERY_REPLACEMENT_SERVICE_PRODUCT_CODE = "90002";
 
 	@Override
 	@Transactional
@@ -135,6 +138,7 @@ public class SaleServiceImpl implements SaleService {
 
 		Map<Integer, Item> itemsById = getItemsById(sale.getSaleItems());
 		boolean containsProtectPlusProduct = containsProtectPlusProduct(itemsById);
+		validateRequiredSoldForDeviceModels(sale.getSaleItems(), itemsById);
 		validateProtectPlusSaleRequest(itemsById, containsProtectPlusProduct);
 
 		ProtectPlusCertificate protectPlusCertificate = null;
@@ -148,13 +152,17 @@ public class SaleServiceImpl implements SaleService {
 		saleDao.updateSaleUSI(saleId, usi);
 
 		ProtectPlusDiscountUsage protectPlusDiscountUsage = saveSaleItems(sale, saleId, protectPlusCertificate, itemsById);
-		if (protectPlusCertificate != null && protectPlusDiscountUsage.isProtectPlusApplied()) {
+		if (protectPlusCertificate != null) {
 			protectPlusCertificateService.registerCertificateUsage(protectPlusCertificate,
-					protectPlusDiscountUsage.isFreeProtectorUsed());
+					protectPlusDiscountUsage.isFreeProtectorUsed(),
+					protectPlusDiscountUsage.isFreeDisplayReplacementServiceUsed(),
+					protectPlusDiscountUsage.isFreeBatteryReplacementServiceUsed(), saleId, sale.getStoreId(),
+					saleEmployeeId);
 		}
 
 		if (containsProtectPlusProduct) {
-			protectPlusCertificateService.createPendingCertificateForSale(saleId, sale.getStoreId(), saleEmployeeId);
+			protectPlusCertificateService.createPendingCertificateForSale(saleId, sale.getStoreId(), saleEmployeeId,
+					resolvePendingCertificateDeviceModelId(sale.getSaleItems(), itemsById));
 		}
 
 		Sale insertedSale = saleDao.selectSaleByUniqueSaleId(usi);
@@ -203,6 +211,16 @@ public class SaleServiceImpl implements SaleService {
 	private void validateProtectPlusSaleRequest(Map<Integer, Item> itemsById, boolean containsProtectPlusProduct) {
 		if (containsProtectPlusProduct && !containsProtectorForProtectPlusPurchase(itemsById)) {
 			throw new IllegalArgumentException("protectPlusPurchaseRequiresProtector");
+		}
+	}
+
+	private void validateRequiredSoldForDeviceModels(List<SaleItem> saleItems, Map<Integer, Item> itemsById) {
+		for (SaleItem saleItem : saleItems) {
+			Item item = getItem(saleItem.getItemId(), itemsById);
+			if (Boolean.TRUE.equals(item.getSoldForDeviceModelRequired())
+					&& saleItem.getSoldForDeviceModelId() == null) {
+				throw new IllegalArgumentException("soldForDeviceModelRequired");
+			}
 		}
 	}
 
@@ -384,7 +402,7 @@ public class SaleServiceImpl implements SaleService {
 				Item item = getItem(saleItem.getItemId(), itemsById);
 				saleItem.setBonusPts(item.getProductBonusPts());
 				saleItem.setItemPrice(itemPrice);
-				BigDecimal protectPlusDiscountPercent = getProtectPlusDiscountPercent(item, protectPlusDiscountUsage);
+				BigDecimal protectPlusDiscountPercent = getProtectPlusDiscountPercent(saleItem, item, protectPlusDiscountUsage);
 				if (protectPlusDiscountPercent.compareTo(ZERO) > 0) {
 					saleItem.setSalePrice(calculcatePercentageDiscountValuePrice(itemPrice, protectPlusDiscountPercent));
 					saleItem.setProtectPlusApplied(true);
@@ -429,12 +447,22 @@ public class SaleServiceImpl implements SaleService {
 		return priceBeforeDiscount.multiply(discountValueAmount).divide(ONE_HUNDRED).setScale(2, RoundingMode.HALF_UP);
 	}
 
-	private BigDecimal getProtectPlusDiscountPercent(Item item, ProtectPlusDiscountUsage protectPlusDiscountUsage) {
+	private BigDecimal getProtectPlusDiscountPercent(SaleItem saleItem, Item item, ProtectPlusDiscountUsage protectPlusDiscountUsage) {
 		ProtectPlusCertificate protectPlusCertificate = protectPlusDiscountUsage.getProtectPlusCertificate();
 		if (protectPlusCertificate == null || item == null) {
 			return ZERO;
 		}
-		if (isProtectorForCertificate(item, protectPlusCertificate)) {
+		if (isFreeDisplayReplacementServiceForCertificate(saleItem, item, protectPlusCertificate)
+				&& protectPlusDiscountUsage.isFreeDisplayReplacementServiceAvailable()) {
+			protectPlusDiscountUsage.markFreeDisplayReplacementServiceUsed();
+			return PROTECT_PLUS_FREE_PROTECTOR_DISCOUNT_PERCENT;
+		}
+		if (isFreeBatteryReplacementServiceForCertificate(saleItem, item, protectPlusCertificate)
+				&& protectPlusDiscountUsage.isFreeBatteryReplacementServiceAvailable()) {
+			protectPlusDiscountUsage.markFreeBatteryReplacementServiceUsed();
+			return PROTECT_PLUS_FREE_PROTECTOR_DISCOUNT_PERCENT;
+		}
+		if (isProtectorForCertificate(saleItem, item, protectPlusCertificate)) {
 			if (protectPlusDiscountUsage.isFreeProtectorAvailable()) {
 				protectPlusDiscountUsage.markFreeProtectorUsed();
 				return PROTECT_PLUS_FREE_PROTECTOR_DISCOUNT_PERCENT;
@@ -448,12 +476,58 @@ public class SaleServiceImpl implements SaleService {
 		return PROTECT_PLUS_OTHER_PRODUCTS_DISCOUNT_PERCENT;
 	}
 
-	private boolean isProtectorForCertificate(Item item, ProtectPlusCertificate protectPlusCertificate) {
-		return isProtector(item) && protectPlusCertificate.getDeviceModelId().equals(item.getDeviceModelId());
+	private boolean isProtectorForCertificate(SaleItem saleItem, Item item, ProtectPlusCertificate protectPlusCertificate) {
+		Integer effectiveDeviceModelId = getEffectiveDeviceModelId(saleItem, item);
+		return isProtector(item) && protectPlusCertificate.getDeviceModelId() != null
+				&& protectPlusCertificate.getDeviceModelId().equals(effectiveDeviceModelId);
 	}
 
 	private boolean isProtector(Item item) {
 		return item != null && PROTECTOR_MASTER_TYPE.equals(item.getProductMasterTypeName());
+	}
+
+	private boolean isFreeDisplayReplacementService(Item item) {
+		return item != null && FREE_DISPLAY_REPLACEMENT_SERVICE_PRODUCT_CODE.equals(item.getProductCode());
+	}
+
+	private boolean isFreeBatteryReplacementService(Item item) {
+		return item != null && FREE_BATTERY_REPLACEMENT_SERVICE_PRODUCT_CODE.equals(item.getProductCode());
+	}
+
+	private boolean isFreeDisplayReplacementServiceForCertificate(SaleItem saleItem, Item item,
+			ProtectPlusCertificate protectPlusCertificate) {
+		return isFreeDisplayReplacementService(item) && isForCertificateDeviceModel(saleItem, item, protectPlusCertificate);
+	}
+
+	private boolean isFreeBatteryReplacementServiceForCertificate(SaleItem saleItem, Item item,
+			ProtectPlusCertificate protectPlusCertificate) {
+		return isFreeBatteryReplacementService(item) && isForCertificateDeviceModel(saleItem, item, protectPlusCertificate);
+	}
+
+	private boolean isForCertificateDeviceModel(SaleItem saleItem, Item item, ProtectPlusCertificate protectPlusCertificate) {
+		Integer effectiveDeviceModelId = getEffectiveDeviceModelId(saleItem, item);
+		return protectPlusCertificate.getDeviceModelId() != null
+				&& protectPlusCertificate.getDeviceModelId().equals(effectiveDeviceModelId);
+	}
+
+	private Integer getEffectiveDeviceModelId(SaleItem saleItem, Item item) {
+		if (saleItem != null && saleItem.getSoldForDeviceModelId() != null) {
+			return saleItem.getSoldForDeviceModelId();
+		}
+
+		return item == null ? null : item.getDeviceModelId();
+	}
+
+	private Integer resolvePendingCertificateDeviceModelId(List<SaleItem> saleItems, Map<Integer, Item> itemsById) {
+		Set<Integer> protectorDeviceModelIds = saleItems.stream()
+				.map(saleItem -> {
+					Item item = getItem(saleItem.getItemId(), itemsById);
+					return isProtector(item) && !isProtectPlusProduct(item) ? getEffectiveDeviceModelId(saleItem, item) : null;
+				})
+				.filter(deviceModelId -> deviceModelId != null)
+				.collect(Collectors.toSet());
+
+		return protectorDeviceModelIds.size() == 1 ? protectorDeviceModelIds.iterator().next() : null;
 	}
 
 	private boolean isProtectPlusProduct(Item item) {
@@ -667,39 +741,36 @@ public class SaleServiceImpl implements SaleService {
 	public TotalSumReport calculateTotalSum(TotalSumRequest request) {
 		TotalSumReport totalSumReport = new TotalSumReport();
 		List<SaleItem> selectedSaleItems = request.getSelectedSaleItems();
+		validateRequiredSoldForDeviceModels(selectedSaleItems);
+		initializeSaleItemDiscounts(selectedSaleItems);
 
 		BigDecimal totalSum = selectedSaleItems.stream().map(SaleItem::getItemPrice)
 				.reduce(ZERO, BigDecimal::add);
 		totalSumReport.setTotalSum(totalSum);
-		BigDecimal discount = ZERO;
 
 		List<SaleItem> percentageDiscounTypeItems = selectedSaleItems.stream()
 				.filter(item -> "PERCENTAGE".equals(item.getDiscountType())).collect(Collectors.toList());
 		if (!percentageDiscounTypeItems.isEmpty()) {
-			BigDecimal percentageDiscount = percentageDiscounTypeItems.stream()
-					.map(item -> calculcatePercentageDiscount(item.getItemPrice(), new BigDecimal(item.getDiscountValue())))
-					.reduce(ZERO, BigDecimal::add);
-			discount = discount.add(percentageDiscount);
+			for (SaleItem item : percentageDiscounTypeItems) {
+				BigDecimal salePrice = calculcatePercentageDiscountValuePrice(item.getItemPrice(),
+						new BigDecimal(item.getDiscountValue()));
+				applySaleItemDiscount(item, salePrice);
+			}
 		}
 
 		List<SaleItem> amountDiscounTypeItems = selectedSaleItems.stream()
 				.filter(item -> "AMOUNT".equals(item.getDiscountType())).collect(Collectors.toList());
 		if (!amountDiscounTypeItems.isEmpty()) {
-			BigDecimal amountTotalSum = amountDiscounTypeItems.stream().map(SaleItem::getItemPrice)
-					.reduce(ZERO, BigDecimal::add);
-			BigDecimal amountDiscount = amountDiscounTypeItems.stream().map(item -> new BigDecimal(item.getDiscountValue()))
-					.reduce(ZERO, BigDecimal::add);
-			if (amountTotalSum.compareTo(amountDiscount) < 0) {
-				discount = discount.add(amountTotalSum);
-			} else {
-				discount = discount.add(amountDiscount);
+			for (SaleItem item : amountDiscounTypeItems) {
+				BigDecimal salePrice = calculcateAmountDiscountValuePrice(item.getItemPrice(),
+						new BigDecimal(item.getDiscountValue()));
+				applySaleItemDiscount(item, salePrice);
 			}
 		}
 
 		List<SaleItem> bundleDiscounTypeItems = selectedSaleItems.stream()
 				.filter(item -> "BUNDLE".equals(item.getDiscountType())).collect(Collectors.toList());
 		if (!bundleDiscounTypeItems.isEmpty()) {
-			BigDecimal totalBundleDiscount = ZERO;
 			LinkedHashMap<Integer, List<SaleItem>> bundledGroupedByDiscountCode = bundleDiscounTypeItems.stream()
 					.collect(Collectors.groupingBy(SaleItem::getDiscountCode, LinkedHashMap::new, Collectors.toList()));
 
@@ -718,37 +789,66 @@ public class SaleServiceImpl implements SaleService {
 				for (int i = 0; i < bundleSortedByPrice.size(); i++) {
 					if (bundleSortedByPrice.size() - (i + 1) < bundleDiscountValues.size()) {
 						BigDecimal discountValue = new BigDecimal(bundleDiscountValues.get(bundleDiscountCounter++));
-						totalBundleDiscount = totalBundleDiscount.add(calculcatePercentageDiscount(bundleSortedByPrice.get(i).getItemPrice(), discountValue));
+						BigDecimal salePrice = calculcatePercentageDiscountValuePrice(
+								bundleSortedByPrice.get(i).getItemPrice(), discountValue);
+						applySaleItemDiscount(bundleSortedByPrice.get(i), salePrice);
 					}
 				}
 			}
-
-			discount = discount.add(totalBundleDiscount);
 		}
 
 		if (request.getProtectPlusCertificateId() != null) {
 			ProtectPlusCertificate protectPlusCertificate = protectPlusCertificateService.validateActiveCertificate(request.getProtectPlusCertificateId());
 			ProtectPlusDiscountUsage protectPlusDiscountUsage = new ProtectPlusDiscountUsage(protectPlusCertificate);
-			BigDecimal protectPlusDiscount = ZERO;
 			for (SaleItem selectedSaleItem : selectedSaleItems) {
 				if (selectedSaleItem.getDiscountCode() == null) {
 					Item item = itemDao.getItem(selectedSaleItem.getItemId());
-					BigDecimal protectPlusDiscountPercent = getProtectPlusDiscountPercent(item, protectPlusDiscountUsage);
+					BigDecimal protectPlusDiscountPercent = getProtectPlusDiscountPercent(selectedSaleItem, item,
+							protectPlusDiscountUsage);
 					if (protectPlusDiscountPercent.compareTo(ZERO) > 0) {
-						protectPlusDiscount = protectPlusDiscount.add(calculcatePercentageDiscount(
-								selectedSaleItem.getItemPrice(), protectPlusDiscountPercent));
+						BigDecimal salePrice = calculcatePercentageDiscountValuePrice(selectedSaleItem.getItemPrice(),
+								protectPlusDiscountPercent);
+						applySaleItemDiscount(selectedSaleItem, salePrice);
+						selectedSaleItem.setProtectPlusApplied(true);
 					}
 				}
 			}
-			discount = discount.add(protectPlusDiscount);
 		}
 
+		BigDecimal discount = selectedSaleItems.stream().map(SaleItem::getDiscountAmount)
+				.reduce(ZERO, BigDecimal::add);
 		totalSumReport.setDiscount(discount);
 		totalSumReport.setTotalSumAfterDiscount(totalSum.subtract(discount));
+		totalSumReport.setSelectedSaleItems(selectedSaleItems);
 
 		calculateChange(request.getPaid(), request.getCurrency(), totalSumReport);
 
 		return totalSumReport;
+	}
+
+	private void initializeSaleItemDiscounts(List<SaleItem> saleItems) {
+		for (SaleItem saleItem : saleItems) {
+			saleItem.setSalePrice(saleItem.getItemPrice());
+			saleItem.setDiscountAmount(ZERO);
+			saleItem.setDiscountPercent(ZERO);
+			saleItem.setProtectPlusApplied(false);
+		}
+	}
+
+	private void applySaleItemDiscount(SaleItem saleItem, BigDecimal salePrice) {
+		saleItem.setSalePrice(salePrice);
+
+		BigDecimal discountAmount = saleItem.getItemPrice().subtract(salePrice);
+		if (discountAmount.compareTo(ZERO) < 0) {
+			discountAmount = ZERO;
+		}
+		saleItem.setDiscountAmount(discountAmount);
+
+		if (saleItem.getItemPrice().compareTo(ZERO) > 0) {
+			BigDecimal discountPercent = discountAmount.multiply(ONE_HUNDRED)
+					.divide(saleItem.getItemPrice(), 0, RoundingMode.HALF_UP);
+			saleItem.setDiscountPercent(discountPercent);
+		}
 	}
 
 
@@ -805,6 +905,15 @@ public class SaleServiceImpl implements SaleService {
 			if (paid.compareTo(totalSumReport.getTotalSumAfterDiscount()) > 0) {
 				change = paid.subtract(totalSumReport.getTotalSumAfterDiscount());
 				totalSumReport.setChange(change);
+			}
+		}
+	}
+
+	private void validateRequiredSoldForDeviceModels(List<SaleItem> saleItems) {
+		for (SaleItem saleItem : saleItems) {
+			if (Boolean.TRUE.equals(saleItem.getSoldForDeviceModelRequired())
+					&& saleItem.getSoldForDeviceModelId() == null) {
+				throw new IllegalArgumentException("soldForDeviceModelRequired");
 			}
 		}
 	}
@@ -1186,6 +1295,8 @@ public class SaleServiceImpl implements SaleService {
 
 		private final ProtectPlusCertificate protectPlusCertificate;
 		private boolean freeProtectorUsedInSale;
+		private boolean freeDisplayReplacementServiceUsedInSale;
+		private boolean freeBatteryReplacementServiceUsedInSale;
 		private boolean protectPlusApplied;
 
 		ProtectPlusDiscountUsage(ProtectPlusCertificate protectPlusCertificate) {
@@ -1207,12 +1318,42 @@ public class SaleServiceImpl implements SaleService {
 			protectPlusApplied = true;
 		}
 
+		boolean isFreeDisplayReplacementServiceAvailable() {
+			return protectPlusCertificate != null
+					&& !Boolean.TRUE.equals(protectPlusCertificate.getFreeDisplayReplacementServiceUsed())
+					&& !freeDisplayReplacementServiceUsedInSale;
+		}
+
+		void markFreeDisplayReplacementServiceUsed() {
+			freeDisplayReplacementServiceUsedInSale = true;
+			protectPlusApplied = true;
+		}
+
+		boolean isFreeBatteryReplacementServiceAvailable() {
+			return protectPlusCertificate != null
+					&& !Boolean.TRUE.equals(protectPlusCertificate.getFreeBatteryReplacementServiceUsed())
+					&& !freeBatteryReplacementServiceUsedInSale;
+		}
+
+		void markFreeBatteryReplacementServiceUsed() {
+			freeBatteryReplacementServiceUsedInSale = true;
+			protectPlusApplied = true;
+		}
+
 		void markProtectPlusApplied() {
 			protectPlusApplied = true;
 		}
 
 		boolean isFreeProtectorUsed() {
 			return freeProtectorUsedInSale;
+		}
+
+		boolean isFreeDisplayReplacementServiceUsed() {
+			return freeDisplayReplacementServiceUsedInSale;
+		}
+
+		boolean isFreeBatteryReplacementServiceUsed() {
+			return freeBatteryReplacementServiceUsedInSale;
 		}
 
 		boolean isProtectPlusApplied() {

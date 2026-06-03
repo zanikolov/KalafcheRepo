@@ -10,32 +10,36 @@ import com.kalafche.dao.impl.StockDaoImpl;
 import com.kalafche.exceptions.CommonException;
 import com.kalafche.model.Stock;
 import com.kalafche.model.StockOrder;
+import com.kalafche.service.fileutil.InStockExcelReportService;
 import com.kalafche.service.fileutil.StickerPDFGeneratorService;
 
 @Service
 public class StockService {
-	
+
 	@Autowired
 	StockDaoImpl stockDao;
-	
+
 	@Autowired
 	StockOrderDao stockOrderDao;
-	
+
 	@Autowired
 	StickerPDFGeneratorService pdfGeneratorService;
-	
-	public void updateTheQuantitiyOfSoldStock(int itemId, int storeId) {				
+
+	@Autowired
+	InStockExcelReportService inStockExcelReportService;
+
+	public void updateTheQuantitiyOfSoldStock(int itemId, int storeId) {
 		stockDao.updateTheQuantitiyOfSoldStock(itemId, storeId);
 	}
-	
-	public void updateTheQuantitiyOfRefundStock(Integer saleItemId, int storeId) {				
+
+	public void updateTheQuantitiyOfRefundStock(Integer saleItemId, int storeId) {
 		stockDao.updateTheQuantitiyOfRefundStock(saleItemId, storeId);
 	}
-	
-	public void updateTheQuantitiyOfRevisedStock(Integer itemId, Integer revisionId, Integer difference) {				
+
+	public void updateTheQuantitiyOfRevisedStock(Integer itemId, Integer revisionId, Integer difference) {
 		stockDao.updateTheQuantitiyOfRevisedStock(itemId, revisionId, difference);
 	}
-	
+
 	public List<Stock> generateStockReport() {
 		StockOrder stockOrder;
 		int stockOrderId = 0;
@@ -46,9 +50,9 @@ public class StockService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		List<Stock> stockList = stockDao.getAllStocksForReport(stockOrderId);
-		
+
 		return stockList;
 	}
 
@@ -73,5 +77,9 @@ public class StockService {
 		List<Stock> stocks = stockDao.getAllApprovedStocksForStickerPrinting(storeId);
 		return pdfGeneratorService.generatePartialStickers(stocks);
 	}
-	
+
+	public byte[] generateInStockExcel(List<Stock> stocks) {
+		return inStockExcelReportService.generateExcel(stocks);
+	}
+
 }

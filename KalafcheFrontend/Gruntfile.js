@@ -95,6 +95,18 @@ module.exports = function (grunt) {
             fiscalMiddlewareEndpoint: 'http://localhost:8001'
           }
         }
+      },
+      uat: {
+        options: {
+          dest: '.tmp/scripts/config.js',
+        },
+        constants: {
+          Environment: {
+            name: 'uat',
+            apiEndpoint: 'http://52.28.152.198:8080',
+            fiscalMiddlewareEndpoint: 'http://localhost:8001'
+          }
+        }
       }
     },
 
@@ -455,23 +467,27 @@ module.exports = function (grunt) {
     'karma'
   ]);
 
-  grunt.registerTask('build', [
-    'clean:dist',
-    'ngconstant:production',
-    'wiredep',
-    'useminPrepare',
-    'concurrent:dist',
-    'autoprefixer',
-    'concat',
-    'ngAnnotate',
-    'copy:dist',
-    'cdnify',
-    'cssmin',
-    'uglify',
-    'filerev',
-    'usemin',
-    'htmlmin'
-  ]);
+  grunt.registerTask('build', function (target) {
+    var environment = target === 'uat' ? 'uat' : 'production';
+
+    grunt.task.run([
+      'clean:dist',
+      'ngconstant:' + environment,
+      'wiredep',
+      'useminPrepare',
+      'concurrent:dist',
+      'autoprefixer',
+      'concat',
+      'ngAnnotate',
+      'copy:dist',
+      'cdnify',
+      'cssmin',
+      'uglify',
+      'filerev',
+      'usemin',
+      'htmlmin'
+    ]);
+  });
 
   grunt.registerTask('default', [
     'newer:jshint',

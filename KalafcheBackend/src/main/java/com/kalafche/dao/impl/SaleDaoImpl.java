@@ -91,6 +91,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			saleItem.setProductMasterTypeName(rs.getString("PRODUCT_MASTER_TYPE_NAME"));
 			saleItem.setDeviceModelId(rs.getInt("DEVICE_MODEL_ID"));
 			saleItem.setDeviceModelName(rs.getString("DEVICE_MODEL_NAME"));
+			saleItem.setSoldForDeviceModelId(getNullableInteger(rs, "SOLD_FOR_DEVICE_MODEL_ID"));
+			saleItem.setSoldForDeviceModelName(rs.getString("SOLD_FOR_DEVICE_MODEL_NAME"));
 			saleItem.setDeviceBrandId(rs.getInt("DEVICE_BRAND_ID"));
 			saleItem.setEmployeeId(rs.getInt("EMPLOYEE_ID"));
 			saleItem.setEmployeeName(rs.getString("EMPLOYEE_NAME"));
@@ -120,6 +122,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			saleItem.setProductName(rs.getString("PRODUCT_NAME"));
 			saleItem.setDeviceModelId(rs.getInt("DEVICE_MODEL_ID"));
 			saleItem.setDeviceModelName(rs.getString("DEVICE_MODEL_NAME"));
+			saleItem.setSoldForDeviceModelId(getNullableInteger(rs, "SOLD_FOR_DEVICE_MODEL_ID"));
+			saleItem.setSoldForDeviceModelName(rs.getString("SOLD_FOR_DEVICE_MODEL_NAME"));
 			saleItem.setDeviceBrandId(rs.getInt("DEVICE_BRAND_ID"));
 			saleItem.setDeviceBrandName(rs.getString("DEVICE_BRAND_NAME"));
 			saleItem.setSalePrice(rs.getBigDecimal("SALE_PRICE"));
@@ -186,6 +190,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"iv.product_master_type_name, " +
 			"iv.device_model_id, " +
 			"iv.device_model_name, " +
+			"si.sold_for_device_model_id, " +
+			"concat(sfdb.name, ' ', sfdm.name) as sold_for_device_model_name, " +
 			"iv.device_brand_id, " +
 			"si.sale_price, " +
 			"si.item_price, " +
@@ -202,6 +208,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"left join discount_code dc on si.discount_code_id = dc.id " +
 			"left join discount_campaign dca on dc.discount_campaign_id = dca.id " +
 			"join item_vw iv on iv.id = si.item_id " +
+			"left join device_model sfdm on si.sold_for_device_model_id = sfdm.id " +
+			"left join device_brand sfdb on sfdm.device_brand_id = sfdb.id " +
 			"join store ks on ks.id = s.store_id " +
 			"join employee e on e.id = s.employee_id ";
 	
@@ -268,8 +276,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	private static final String REFUND_QUERY = " and si.is_refunded is true";
 	private static final String NON_REFUND_QUERY = " and si.is_refunded is false";
 	private static final String PRODUCT_CODE_QUERY = " and iv.product_code in (%s)";
-	private static final String DEVICE_BRAND_QUERY = " and iv.device_brand_id = ?";
-	private static final String DEVICE_MODEL_QUERY = " and iv.device_model_id = ?";
+	private static final String DEVICE_BRAND_QUERY = " and coalesce(sfdm.device_brand_id, iv.device_brand_id) = ?";
+	private static final String DEVICE_MODEL_QUERY = " and coalesce(si.sold_for_device_model_id, iv.device_model_id) = ?";
 	private static final String DISCOUNT_CAMPAIGN_QUERY = " and dca.code = ?";
 	private static final String MASTER_PRODUCT_TYPE_QUERY = " and iv.product_master_type_id = ?";
 	private static final String PRODUCT_TYPE_QUERY = " and iv.product_type_id = ?";
@@ -293,6 +301,8 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"p.name as product_name, " +
 			"dm.id as device_model_id, " +
 			"dm.name as device_model_name, " +
+			"si.sold_for_device_model_id, " +
+			"concat(sfdb.name, ' ', sfdm.name) as sold_for_device_model_name, " +
 			"db.id as device_brand_id, " +
 			"db.name as device_brand_name, " +
 			"si.sale_price, " +
@@ -303,10 +313,12 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 			"join item i on si.item_id = i.id " +
 			"join product p on i.product_id = p.id " +
 			"join device_model dm on i.device_model_id = dm.id " +
+			"left join device_model sfdm on si.sold_for_device_model_id = sfdm.id " +
+			"left join device_brand sfdb on sfdm.device_brand_id = sfdb.id " +
 			"join device_brand db on dm.device_brand_id = db.id " +
 			"where si.sale_id = ?";
 	
-	private static final String INSERT_SALE_ITEM = "insert into sale_item(sale_id, item_id, item_price, sale_price, discount_code_id, protect_plus_applied, bonus_pts) values (?, ?, ?, ?, ?, ?, ?)";
+	private static final String INSERT_SALE_ITEM = "insert into sale_item(sale_id, item_id, item_price, sale_price, discount_code_id, protect_plus_applied, bonus_pts, sold_for_device_model_id) values (?, ?, ?, ?, ?, ?, ?, ?)";
 	
 	private static final String UPDATE_REFUNDED_SALE_ITEM = "update sale_item set is_refunded = true where id = ?";
 	
@@ -687,7 +699,12 @@ public class SaleDaoImpl extends JdbcDaoSupport implements SaleDao {
 	public void insertSaleItem(SaleItem saleItem) {
 		getJdbcTemplate().update(INSERT_SALE_ITEM, saleItem.getSaleId(), saleItem.getItemId(), saleItem.getItemPrice(),
 				saleItem.getSalePrice(), saleItem.getDiscountCodeId(), Boolean.TRUE.equals(saleItem.getProtectPlusApplied()),
-				saleItem.getBonusPts());
+				saleItem.getBonusPts(), saleItem.getSoldForDeviceModelId());
+	}
+
+	private Integer getNullableInteger(ResultSet rs, String columnName) throws SQLException {
+		int value = rs.getInt(columnName);
+		return rs.wasNull() ? null : value;
 	}
 	
 	@Override

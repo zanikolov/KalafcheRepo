@@ -33,6 +33,7 @@ public class LoyalCustomerDaoImpl extends JdbcDaoSupport implements LoyalCustome
 	private static final String INSERT_LOYAL_CUSTOMER = "insert into loyal_customer (name, phone_number, email, discount_code_id, created_by, created_timestamp)"
 			+ " values (?, ?, ?, ?, ?, ?)";
 	private static final String UPDATE_LOYAL_CUSTOMER = "update loyal_customer set name = ?, phone_number = ?, email = ?, updated_by = ?, last_update_timestamp = ? where id = ?";
+	private static final String UPDATE_LOYAL_CUSTOMER_EMAIL = "update loyal_customer set email = ?, updated_by = ?, last_update_timestamp = ? where id = ?";
 	private static final String CHECK_IF_LOYAL_CUSTOMER_CODE_EXISTS = "select count(*) from loyal_customer where discount_code_id = ? ";
 	private static final String ID_NOT_CLAUSE = " and id <> ?";
 
@@ -122,6 +123,12 @@ public class LoyalCustomerDaoImpl extends JdbcDaoSupport implements LoyalCustome
 		getJdbcTemplate().update(UPDATE_LOYAL_CUSTOMER, loyalCustomer.getName(), loyalCustomer.getPhoneNumber(),
 				loyalCustomer.getEmail(), loyalCustomer.getUpdatedById(), loyalCustomer.getLastUpdateTimestamp(),
 				loyalCustomer.getId());
+	}
+
+	@Override
+	public void updateLoyalCustomerEmail(Integer loyalCustomerId, String email, Integer updatedById,
+			Long lastUpdateTimestamp) {
+		getJdbcTemplate().update(UPDATE_LOYAL_CUSTOMER_EMAIL, email, updatedById, lastUpdateTimestamp, loyalCustomerId);
 	}
 
 	@Override

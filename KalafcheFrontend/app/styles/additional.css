@@ -102,6 +102,11 @@
         margin: 10px 0 2px 0;
     }
 
+    .protect-plus-device-selector-row md-input-container {
+        max-width: 420px;
+        min-width: 240px;
+    }
+
     .protect-plus-file-row {
         border-bottom: 1px solid rgba(0, 0, 0, 0.12);
         margin: 12px 0 8px 0;
@@ -127,4 +132,226 @@
 
     .protect-plus-activation-actions {
         margin-top: 14px;
+    }
+
+    .product-form .product-sale-device-model-required {
+        margin: 0 0 18px 0;
+    }
+
+    .sale-dialog .sale-items-table > tbody > tr > td {
+        padding-top: 8px;
+        vertical-align: top !important;
+    }
+
+    .sale-dialog .sale-items-table .sold-for-device-model-cell {
+        padding-top: 8px !important;
+        padding-bottom: 0 !important;
+    }
+
+    .sale-dialog .sold-for-device-model-selection {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        height: 32px;
+    }
+
+    .sale-dialog .sold-for-device-model-selection md-input-container {
+        margin: 0;
+        padding: 0;
+        height: 32px;
+    }
+
+    .sale-dialog .sold-for-device-model-selection md-input-container .md-errors-spacer {
+        display: none;
+        min-height: 0;
+    }
+
+    .sale-dialog .universal-device-model-brand {
+        width: 115px;
+    }
+
+    .sale-dialog .universal-device-model-model {
+        width: 160px;
+    }
+
+    .sale-dialog .sale-item-discount-cell {
+        white-space: nowrap;
+    }
+
+    .sale-dialog .sold-for-device-model-required-error {
+        color: #d32f2f;
+        font-size: 12px;
+        margin-top: 3px;
+        white-space: nowrap;
+    }
+
+    .sale-dialog .sale-modal-protect-plus-details {
+        color: #555;
+        font-size: 13px;
+        margin-top: 6px;
+    }
+
+    .sale-dialog .sale-modal-protect-plus-details span {
+        margin-right: 14px;
+    }
+
+    .sale-dialog .protect-plus-expired-status {
+        color: #d32f2f;
+        font-weight: 600;
+    }
+
+    .sale-dialog .protect-plus-expiration-notice {
+        color: #d32f2f;
+        font-size: 13px;
+        font-weight: 600;
+        margin-top: 4px;
+    }
+
+    .protect-plus-call-records-container {
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        margin-top: 12px;
+        padding-top: 12px;
+    }
+
+    .protect-plus-details-container {
+        padding: 8px 14px 14px 14px;
+    }
+
+    .protect-plus-history-section {
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+        padding-top: 12px;
+        margin-top: 12px;
+    }
+
+    .protect-plus-history-section:first-child {
+        border-top: none;
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+    .protect-plus-history-table {
+        background: transparent;
+        margin: 0 0 10px 0;
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .protect-plus-history-table,
+    .protect-plus-history-table thead,
+    .protect-plus-history-table tbody,
+    .protect-plus-history-table tr,
+    .protect-plus-history-table th,
+    .protect-plus-history-table td {
+        background: transparent !important;
+    }
+
+    .protect-plus-history-table td {
+        vertical-align: top !important;
+        word-break: break-word;
+    }
+
+    .protect-plus-date-cell {
+        white-space: nowrap;
+    }
+
+    .protect-plus-call-records-table {
+        background: transparent;
+        margin: 0 0 10px 0;
+        table-layout: fixed;
+        width: 100%;
+    }
+
+    .protect-plus-call-records-table th:nth-child(1),
+    .protect-plus-call-records-table td:nth-child(1) {
+        width: 16%;
+    }
+
+    .protect-plus-call-records-table th:nth-child(2),
+    .protect-plus-call-records-table td:nth-child(2) {
+        width: 24%;
+    }
+
+    .protect-plus-call-records-table th:nth-child(3),
+    .protect-plus-call-records-table td:nth-child(3) {
+        width: 24%;
+    }
+
+    .protect-plus-call-records-table th:nth-child(4),
+    .protect-plus-call-records-table td:nth-child(4) {
+        width: 36%;
+    }
+
+    .protect-plus-call-records-table,
+    .protect-plus-call-records-table thead,
+    .protect-plus-call-records-table tbody,
+    .protect-plus-call-records-table tr,
+    .protect-plus-call-records-table th,
+    .protect-plus-call-records-table td {
+        background: transparent !important;
+    }
+
+    .protect-plus-call-records-table td {
+        vertical-align: top !important;
+        word-break: break-word;
+    }
+
+    .protect-plus-call-record-date {
+        white-space: nowrap;
+    }
+
+    .protect-plus-call-record-upload-form {
+        align-items: flex-start;
+        gap: 12px;
+        margin-top: 8px;
+    }
+
+    .protect-plus-call-record-note {
+        margin: 0;
+        width: 420px;
+    }
+
+    .protect-plus-call-record-file-row {
+        border-bottom: none;
+        margin: 6px 0 0 0;
+        max-width: none;
+        padding-bottom: 0;
+        width: 420px;
+    }
+
+    .protect-plus-call-record-upload-form .protect-plus-call-record-note,
+    .protect-plus-call-record-upload-form .protect-plus-call-record-file-row {
+        width: auto;
+    }
+
+    .protect-plus-call-record-upload-button {
+        margin: 2px 0 0 0;
+    }
+
+    .protect-plus-details-section-title {
+        color: #5c531c;
+        font-weight: 600;
+        margin: 0 0 8px 0;
+    }
+
+    .protect-plus-gdpr-row {
+        column-gap: 16px;
+    }
+
+    .protect-plus-page md-content {
+        overflow-x: auto;
+    }
+
+    .protect-plus-page table {
+        max-width: none;
+    }
+
+    .protect-plus-device-model-change-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .protect-plus-device-model-change-actions .md-button {
+        margin-left: 0;
+        margin-right: 0;
     }

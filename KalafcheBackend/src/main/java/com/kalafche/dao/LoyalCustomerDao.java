@@ -18,6 +18,8 @@ public interface LoyalCustomerDao {
 
 	void updateLoyalCustomer(LoyalCustomer loyalCustomer);
 
+	void updateLoyalCustomerEmail(Integer loyalCustomerId, String email, Integer updatedById, Long lastUpdateTimestamp);
+
 	boolean checkIfLoyalCustomerDiscountCodeExists(LoyalCustomer loyalCustomer);
 
 }

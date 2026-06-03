@@ -11,5 +11,7 @@ public interface ImageUploadService {
 	public String uploadProtectPlusGdprConsentImage(MultipartFile image);
 
 	public String uploadProtectPlusCallRecording(MultipartFile audio);
+
+	public byte[] downloadFile(String fileId);
 	
 }
