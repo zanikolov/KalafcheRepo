@@ -26,6 +26,7 @@ public class InStockExcelReportServiceImpl implements InStockExcelReportService 
 			"#",
 			"Модел",
 			"Продукт",
+			"Тип",
 			"Магазин",
 			"Цена",
 			"Брой",
@@ -33,7 +34,7 @@ public class InStockExcelReportServiceImpl implements InStockExcelReportService 
 			"Склад"
 	};
 
-	private static final int[] COLUMN_WIDTHS = { 8, 35, 45, 28, 12, 10, 12, 22 };
+	private static final int[] COLUMN_WIDTHS = { 8, 35, 45, 24, 28, 12, 10, 12, 22 };
 
 	@Override
 	public byte[] generateExcel(List<Stock> stocks) {
@@ -76,6 +77,7 @@ public class InStockExcelReportServiceImpl implements InStockExcelReportService 
 		createCell(row, column++, stockIndex);
 		createCell(row, column++, stock.getDeviceModelName());
 		createCell(row, column++, buildProductName(stock));
+		createCell(row, column++, stock.getProductTypeName());
 		createCell(row, column++, stock.getStoreName());
 		createCell(row, column++, stock.getProductPrice());
 		createCell(row, column++, stock.getQuantity());
