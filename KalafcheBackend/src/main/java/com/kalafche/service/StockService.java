@@ -10,6 +10,7 @@ import com.kalafche.dao.impl.StockDaoImpl;
 import com.kalafche.exceptions.CommonException;
 import com.kalafche.model.Stock;
 import com.kalafche.model.StockOrder;
+import com.kalafche.service.fileutil.InStockExcelReportService;
 import com.kalafche.service.fileutil.StickerPDFGeneratorService;
 
 @Service
@@ -23,6 +24,9 @@ public class StockService {
 	
 	@Autowired
 	StickerPDFGeneratorService pdfGeneratorService;
+
+	@Autowired
+	InStockExcelReportService inStockExcelReportService;
 	
 	public void updateTheQuantitiyOfSoldStock(int itemId, int storeId) {				
 		stockDao.updateTheQuantitiyOfSoldStock(itemId, storeId);
@@ -72,6 +76,10 @@ public class StockService {
 	public byte[] printStockStickersV2ByStoreId(Integer storeId) {
 		List<Stock> stocks = stockDao.getAllApprovedStocksForStickerPrinting(storeId);
 		return pdfGeneratorService.generatePartialStickers(stocks);
+	}
+
+	public byte[] printInStockExcel(List<Stock> stocks) {
+		return inStockExcelReportService.generateExcel(stocks);
 	}
 	
 }
