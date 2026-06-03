@@ -192,6 +192,13 @@ angular.module('kalafcheFrontendApp')
                     function(response) {
                     }
                 );     
-        };     
+        };
+
+        $scope.printInStocks = function() {
+            InStockService.printInStocks($scope.inStockList).then(
+                    function(response) {
+                    }
+                );
+        };
         
 	});

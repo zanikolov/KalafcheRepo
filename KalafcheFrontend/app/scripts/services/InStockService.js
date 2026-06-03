@@ -6,7 +6,8 @@ angular.module('kalafcheFrontendApp')
             getInStock: getInStock,
             getAllInStockForReport: getAllInStockForReport,
             printStickersForStocks: printStickersForStocks,
-            printStickersForStocksV2: printStickersForStocksV2
+            printStickersForStocksV2: printStickersForStocksV2,
+            printInStocks: printInStocks
 
 		});
 
@@ -56,6 +57,16 @@ angular.module('kalafcheFrontendApp')
                   FileSaver.saveAs(blob, 'Етикети наличност V2.pdf')
               }
           ); 
+    }
+
+    function printInStocks(inStocks) {
+      return $http.post(Environment.apiEndpoint + '/KalafcheBackend/stock/excel', inStocks, {responseType: "blob"})
+          .then(
+              function(response) {
+                  var blob = new Blob([response.data], {type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+                  FileSaver.saveAs(blob, 'Наличности.xlsx')
+              }
+          );
     }
   
 	});

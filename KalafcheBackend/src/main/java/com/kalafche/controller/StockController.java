@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -81,6 +83,20 @@ public class StockController {
 		ResponseEntity<byte[]> response = new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
 		
 		return response;
+	}
+
+	@PostMapping("/excel")
+	public ResponseEntity<byte[]> printInStockExcel(@RequestBody List<Stock> stocks) {
+		byte[] excelBytes = stockService.printInStockExcel(stocks);
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		String filename = "in-stock.xlsx";
+		headers.setContentDispositionFormData(filename, filename);
+		headers.set("Content-Transfer-Encoding", "binary");
+		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+
+		return new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);
 	}
 	
 }
