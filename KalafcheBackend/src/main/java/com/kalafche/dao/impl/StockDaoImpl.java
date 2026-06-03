@@ -50,6 +50,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			"iv.product_id, " +
 			"iv.product_code, " +
 			"iv.product_name, " +
+			"iv.product_type_name, " +
 			"iv.barcode, " +
 			"coalesce(psp.specific_price, iv.product_price) as product_price, " +
 			"ks.ID as store_id, " +
@@ -96,6 +97,7 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			"iv.product_id, " + 
 			"iv.product_code, " + 
 			"iv.product_name, " +
+			"iv.product_type_name, " +
 			"iv.barcode, " +
 			"coalesce(psp.specific_price, iv.product_price) as product_price, " +
 			"ks.ID as store_id, " + 
