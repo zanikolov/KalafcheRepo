@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.kalafche.model.DataReport;
 import com.kalafche.model.PeriodInMillis;
+import com.kalafche.model.sale.ProtectPlusKpiRow;
 import com.kalafche.model.sale.Sale;
 import com.kalafche.model.sale.SaleItem;
 import com.kalafche.model.sale.SalesByStore;
@@ -22,13 +23,26 @@ public abstract interface SaleDao {
 
 	public abstract List<SaleItem> getSaleItemsBySaleId(Integer saleId);
 
-	public abstract void insertSaleItem(SaleItem saleItem);
+	public abstract Integer insertSaleItem(SaleItem saleItem);
 
 	public abstract List<SaleItem> searchSaleItems(Long startDateMilliseconds, Long endDateMilliseconds,
 			String storeIds, String productCode, Integer deviceBrandId, Integer deviceModelId,
 			Integer productTypeId, Integer masterProductTypeId, Float priceFrom, Float priceTo, String discountCampaignCode);
 
+	public abstract List<SaleItem> searchSaleItems(Long startDateMilliseconds, Long endDateMilliseconds,
+			String storeIds, String productCode, Integer deviceBrandId, Integer deviceModelId,
+			Integer productTypeId, Integer masterProductTypeId, Float priceFrom, Float priceTo,
+			String discountCampaignCode, Boolean onlyUnknownSoldForDeviceModel, Boolean onlyProtectPlusApplied);
+
 	public abstract void updateRefundedSaleItem(Integer saleItemId);
+
+	public abstract Boolean isSaleItemRefunded(Integer saleItemId);
+
+	public abstract Integer getSaleItemStoreId(Integer saleItemId);
+
+	public abstract String getSaleItemProductCode(Integer saleItemId);
+
+	public abstract Integer getSingleSaleItemIdBySaleIdAndProductCode(Integer saleId, String productCode);
 
 	public abstract BigDecimal getSaleItemPrice(Integer saleItemId);
 
@@ -54,6 +68,15 @@ public abstract interface SaleDao {
 	public abstract List<SalesByStore> searchSaleTurnoverForCompany(Long startDateMilliseconds, Long endDateMilliseconds,
 			String storeIds);
 
+	public abstract List<ProtectPlusKpiRow> searchProtectPlusKpiRows(Long startDateMilliseconds,
+			Long endDateMilliseconds, Integer storeId, Integer utilityUsageThreshold);
+
+	public abstract List<ProtectPlusKpiRow> searchProtectPlusAllStoreKpiRows(Long startDateMilliseconds,
+			Long endDateMilliseconds, Integer utilityUsageThreshold);
+
+	public abstract ProtectPlusKpiRow searchProtectPlusCompanyKpiRow(Long startDateMilliseconds,
+			Long endDateMilliseconds, Integer utilityUsageThreshold);
+
 	public abstract Integer insertTransaction(Transaction transaction) throws SQLException;
 
 	public abstract void udpateTransaction(Integer transactionId, long updateTimestamp, Integer updateEmployeeId);
@@ -61,7 +84,9 @@ public abstract interface SaleDao {
 	public abstract Integer getSaleTransactionId(String referenceSaleUniqueSaleId);
 
 	public abstract void updateSaleUSI(Integer saleId, String usi);
-	
+
+	public abstract void updateSaleItemSoldForDeviceModel(Integer saleItemId, Integer deviceModelId);
+
 	public abstract Sale selectSaleByUniqueSaleId(String uniqueSaleId);
 
 }

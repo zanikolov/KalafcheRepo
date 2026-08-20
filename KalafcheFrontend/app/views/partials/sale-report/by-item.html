@@ -91,6 +91,14 @@
                             <input ng-model="discountCampaignCode" name="discountCampaignCode">
                         </md-input-container>
                     </div>
+                    <div layout="column" layout-align="start start">
+                        <md-checkbox ng-model="onlyProtectPlusApplied" class="md-primary">
+                            Protect+
+                        </md-checkbox>
+                        <md-checkbox ng-show="isAdmin()" ng-model="onlyUnknownSoldForDeviceModel" class="md-primary">
+                            Само артикули с Unknown "Продаден за"
+                        </md-checkbox>
+                    </div>
                 </div>
                 <div layout="row" layout-xs="column" class="md-inline-form">
                     <md-input-container>
@@ -133,6 +141,9 @@
                             <label>Устройство</label>
                         </th>
                         <th>
+                            <label>Продаден за</label>
+                        </th>
+                        <th>
                             <label>Продукт</label>
                         </th>
                         <th>
@@ -145,7 +156,7 @@
                             <label>Дата</label>
                         </th> 
                         <th>
-                            <label>Отстъпка</label>
+                            <label>Код Отстъпка</label>
                         </th>                     
                         <th>
                             <label>Цена</label>
@@ -163,11 +174,50 @@
                         <td>{{(currentPage - 1) * saleItemsPerPage + $index + 1}}</td>
                         <td>{{saleItem.saleId}}</td>
                         <td>{{saleItem.deviceModelName}}</td>
+                        <td class="sale-item-sold-for-device-model-cell">
+                            <div ng-if="!saleItem.soldForDeviceModelEdit">
+                                <div class="sale-item-sold-for-device-model-display">
+                                    <span>{{saleItem.soldForDeviceModelName || '-'}}</span>
+                                    <a href="" ng-if="isAdmin() && saleItem.soldForDeviceModelUnknown" ng-click="startSoldForDeviceModelEdit(saleItem)">
+                                        <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+                                    </a>
+                                    <a href="" ng-if="saleItem.saleDescription" ng-click="toggleSaleDescription(saleItem)" class="sale-item-description-toggle">
+                                        <md-icon class="primary-icon">info</md-icon>
+                                    </a>
+                                </div>
+                                <div ng-if="saleItem.saleDescriptionVisible" class="sale-item-description-inline">
+                                    {{saleItem.saleDescription}}
+                                </div>
+                            </div>
+                            <div ng-if="saleItem.soldForDeviceModelEdit" layout="row" layout-xs="column" class="sale-item-sold-for-device-model-edit">
+                                <md-input-container>
+                                    <md-select placeholder="Марка" ng-model="saleItem.soldForDeviceModelEdit.brandId">
+                                        <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                                            {{brand.name}}
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
+                                <md-input-container>
+                                    <md-select placeholder="Модел" ng-model="saleItem.soldForDeviceModelEdit.deviceModelId"
+                                               ng-disabled="!saleItem.soldForDeviceModelEdit.brandId">
+                                        <md-option ng-repeat="model in models | filter: {deviceBrandId : saleItem.soldForDeviceModelEdit.brandId} : true" ng-value="model.id">
+                                            {{model.name}}
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
+                                <a href="" ng-if="saleItem.soldForDeviceModelEdit.deviceModelId && saleItem.soldForDeviceModelEdit.deviceModelId != saleItem.soldForDeviceModelId" ng-click="updateSoldForDeviceModel(saleItem)">
+                                    <md-icon class="primary-icon" md-svg-src="images/icons/save.svg"></md-icon>
+                                </a>
+                                <a href="" ng-click="cancelSoldForDeviceModelEdit(saleItem)">
+                                    <md-icon class="primary-icon" md-svg-src="images/icons/close.svg"></md-icon>
+                                </a>
+                            </div>
+                        </td>
                         <td>{{saleItem.productCode}} {{saleItem.productName}}</td>
                         <td>{{saleItem.storeName}}</td>
                         <td>{{saleItem.employeeName}}</td>
                         <td>{{getSaleTimestamp(saleItem.saleTimestamp)}}</td>
-                        <td>{{saleItem.discountCode}}</td>
+                        <td>{{saleItem.discountCode && saleItem.discountCode != 0 ? saleItem.discountCode : '-'}}</td>
                         <td>{{saleItem.itemPrice}}€</td>
                         <td>{{saleItem.salePrice}}€</td>
                         <td>{{saleItem.bonusPts}}т.</td>

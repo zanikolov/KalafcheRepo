@@ -150,8 +150,13 @@ public class NewStockServiceImpl implements NewStockService {
 
 	@Override
 	public byte[] printNewStockStickers(Integer storeId) {
+		return printNewStockStickers(storeId, false);
+	}
+
+	@Override
+	public byte[] printNewStockStickers(Integer storeId, boolean euroOnly) {
 		List<NewStock> newStocks = getNewStockByStoreId(storeId);
-		return pdfGeneratorService.generateFullStickers(newStocks);
+		return pdfGeneratorService.generateFullStickers(newStocks, euroOnly);
 	}
 
 	@Override
@@ -174,8 +179,13 @@ public class NewStockServiceImpl implements NewStockService {
 
 	@Override
 	public byte[] printNewStockPartialStickers(Integer storeId) {
+		return printNewStockPartialStickers(storeId, false);
+	}
+
+	@Override
+	public byte[] printNewStockPartialStickers(Integer storeId, boolean euroOnly) {
 		List<NewStock> newStocks = getNewStockByStoreId(storeId);
-		return pdfGeneratorService.generatePartialStickers(newStocks);
+		return pdfGeneratorService.generatePartialStickers(newStocks, euroOnly);
 	}
 
 }

@@ -1,4 +1,4 @@
-<md-dialog flex="90">
+<md-dialog flex="90" class="sale-dialog">
   <form name="saleForm" server-validation novalidate ng-cloak>
     <md-toolbar>
       <div class="md-toolbar-tools">
@@ -12,6 +12,9 @@
 
     <md-dialog-content>
         <md-content layout-padding layout="column">
+            <div class="sale-submit-error-message" style="color: red !important;" ng-show="submitSaleErrorMessage">
+                {{submitSaleErrorMessage}}
+            </div>
             <div flex>           
                 <div layout="row">
                     <md-input-container style="width:40%">
@@ -34,12 +37,15 @@
             </div>
             <div flex>
                 <div layout="row">
-                    <table class="table table-hover table-condensed">
+                    <table class="table table-hover table-condensed sale-items-table">
                         <thead>
                             <tr>
                                 <th></th>
                                 <th>
                                     <label>Модел</label>
+                                </th>
+                                <th>
+                                    <label>Продаден за</label>
                                 </th>
                                 <th>
                                     <label>Продукт</label>
@@ -51,13 +57,52 @@
                                 <th>
                                     <label>Цена</label>
                                 </th>
+                                <th>
+                                    <label>Отстъпка</label>
+                                </th>
+                                <th>
+                                    <label>Крайна цена</label>
+                                </th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>               
                             <tr ng-repeat="stock in sale.selectedStocks track by $index" class="item-row">
                                 <td>{{$index + 1}}</td>
-                                <td>{{stock.deviceModelName}}</td>
+                                <td class="sold-for-device-model-cell">
+                                    <div>{{stock.deviceModelName}}</div>
+                                </td>
+                                <td>
+                                    <div class="sold-for-device-model-selection">
+                                        <md-input-container class="universal-device-model-brand">
+                                            <md-select placeholder="{{isSoldForDeviceModelRequired(stock) ? 'Марка *' : 'Марка'}}" ng-model="stock.soldForDeviceBrandId" ng-change="onSoldForDeviceBrandChanged(stock)" >
+                                                <md-option ng-repeat="brand in brands" ng-value="brand.id">
+                                                    {{brand.name}}
+                                                </md-option>
+                                            </md-select>
+                                        </md-input-container>
+	                                        <md-input-container class="universal-device-model-model">
+	                                            <md-select placeholder="{{isSoldForDeviceModelRequired(stock) ? 'Модел *' : 'Модел'}}" ng-model="stock.soldForDeviceModelId"
+	                                                       ng-disabled="!stock.soldForDeviceBrandId"
+	                                                       ng-change="onSoldForDeviceModelChanged(stock)"
+	                                                       md-on-close="clearSoldForDeviceModelSearchTerm(stock)"
+	                                                       data-md-container-class="selectSearchTermHeader"
+	                                                       >
+	                                                <md-select-header class="select-header">
+		                                                    <input ng-model="stock.soldForDeviceModelSearchTerm"
+		                                                           type="search"
+		                                                           class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+	                                                </md-select-header>
+	                                                <md-option ng-repeat="model in models | filter: {deviceBrandId : stock.soldForDeviceBrandId} : true | filter:stock.soldForDeviceModelSearchTerm" ng-value="model.id">
+	                                                    {{model.name}}
+	                                                </md-option>
+	                                            </md-select>
+                                        </md-input-container>
+                                    </div>
+                                    <div class="sold-for-device-model-required-error" ng-if="shouldShowSoldForDeviceModelMissing(stock)">
+                                        Изберете модел
+                                    </div>
+                                </td>
                                 <td>{{stock.productCode}} {{stock.productName}}</td>                              
                                 <td>
                                     <input name="code" ng-model="stock.code" ng-blur="onChangeDiscountCode(stock)">
@@ -68,6 +113,13 @@
                                     <span ng-if="stock.discountCode.discountCampaignCode != 'LOYAL' && stock.discountCode.discountCampaignCode != 'PARTNER'">{{stock.discountCode.discountCampaignName}} {{stock.discountCode.discountValue}}{{stock.discountCode.discountTypeSign}}</span>
                                 </td>
                                 <td>{{stock.productPrice}}€</td>
+                                <td class="sale-item-discount-cell">
+                                    <span ng-if="stock.discountAmount > 0">
+                                        {{stock.discountAmount}}€ / {{stock.discountPercent}}%
+                                    </span>
+                                    <span ng-if="!stock.discountAmount || stock.discountAmount <= 0">-</span>
+                                </td>
+                                <td>{{stock.salePrice != null ? stock.salePrice : stock.productPrice}}€</td>
                                 <td>
                                     <a href="" ng-click="removeStock($index, stock)">
                                         <md-icon class="primary-icon" md-svg-src="images/icons/close.svg"></md-icon>
@@ -76,7 +128,86 @@
                             </tr>
                         </tbody>
                     </table>  
-                </div> 
+	                </div>
+	                <div class="sold-for-unknown-model-description" ng-if="hasUnknownSoldForDeviceModel()">
+	                    <md-input-container flex="40" flex-xs="100">
+	                        <label>Описание на реалния модел</label>
+	                        <input name="description" ng-model="sale.description" ng-required="showSoldForDeviceModelValidation && hasMissingUnknownSoldForDeviceModelDescription()">
+	                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.description}}</span>
+	                    </md-input-container>
+	                    <div class="sold-for-device-model-required-error" ng-if="shouldShowMissingUnknownSoldForDeviceModelDescription()">
+	                        Попълнете реалния модел устройство, когато "Продаден за" е Unknown.
+	                    </div>
+	                </div>
+	                <hr/>
+                <div class="protect-plus-sale-section sale-modal-protect-plus-section">
+                    <div ng-if="selectedProtectPlusCertificate" class="sale-modal-protect-plus-selected">
+                        <div class="protect-plus-section-text">
+                            Избран сертификат {{selectedProtectPlusCertificate.certificateNumber}}
+                        </div>
+                        <div layout="row" layout-xs="column" layout-wrap class="sale-modal-protect-plus-details">
+                            <span flex="25" flex-xs="100">Устройство: <b>{{selectedProtectPlusCertificate.deviceModelName}}</b></span>
+                            <span flex="25" flex-xs="100">Валиден до: <b>{{getProtectPlusCertificateValidUntil(selectedProtectPlusCertificate)}}</b></span>
+                            <span flex="25" flex-xs="100">Безпл. протектор: <b>{{getProtectPlusCertificateFreeProtectorStatus(selectedProtectPlusCertificate)}}</b></span>
+                            <span flex="25" flex-xs="100">Смяна устройство: <b>{{getProtectPlusCertificateDeviceChangeStatus(selectedProtectPlusCertificate)}}</b></span>
+                            <span flex="25" flex-xs="100">Безпл. труд дисплей: <b>{{getProtectPlusCertificateFreeDisplayServiceStatus(selectedProtectPlusCertificate)}}</b></span>
+                            <span flex="25" flex-xs="100">Безпл. труд батерия: <b>{{getProtectPlusCertificateFreeBatteryServiceStatus(selectedProtectPlusCertificate)}}</b></span>
+                            <span flex="25" flex-xs="100">Използвания: <b>{{selectedProtectPlusCertificate.usageCount || 0}}</b></span>
+                        </div>
+                        <div class="protect-plus-expiration-notice" ng-if="isProtectPlusCertificateExpired(selectedProtectPlusCertificate)">
+                            {{getProtectPlusCertificateExpirationNotice(selectedProtectPlusCertificate)}}
+                        </div>
+                    </div>
+                    <div layout="row" layout-xs="column" layout-align="start center" class="protect-plus-search-row" ng-if="!selectedProtectPlusCertificate">
+                        <md-input-container flex="30" flex-xs="100">
+                            <label>Protect+ или телефонен номер</label>
+                            <input ng-model="protectPlusSearch.query" ng-blur="searchProtectPlusCertificates()">
+                        </md-input-container>
+                    </div>
+                    <div ng-if="protectPlusSearchPerformed && protectPlusSearch.query && protectPlusSearch.query.length >= 5 && protectPlusCertificates.length == 0 && !selectedProtectPlusCertificate" class="protect-plus-empty-result">
+                        Няма намерени сертификати.
+                    </div>
+                    <table class="table table-hover table-condensed protect-plus-results-table" ng-if="protectPlusCertificates.length > 0 && !selectedProtectPlusCertificate">
+                        <thead>
+                            <tr>
+                                <th>Сертификат</th>
+                                <th>Модел</th>
+                                <th>Валиден до</th>
+                                <th>Безпл. протектор</th>
+                                <th>Безпл. дисплей</th>
+                                <th>Безпл. батерия</th>
+                                <th>Смяна устройство</th>
+                                <th>Използвания</th>
+                                <th>Статус</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="certificate in protectPlusCertificates track by certificate.id">
+                                <td>{{certificate.certificateNumber}}</td>
+                                <td>{{certificate.deviceModelName}}</td>
+                                <td>{{getProtectPlusCertificateValidUntil(certificate)}}</td>
+                                <td>{{getProtectPlusCertificateFreeProtectorStatus(certificate)}}</td>
+                                <td>{{getProtectPlusCertificateFreeDisplayServiceStatus(certificate)}}</td>
+                                <td>{{getProtectPlusCertificateFreeBatteryServiceStatus(certificate)}}</td>
+                                <td>{{getProtectPlusCertificateDeviceChangeStatus(certificate)}}</td>
+                                <td>{{certificate.usageCount || 0}}</td>
+                                <td ng-class="{'protect-plus-expired-status': isProtectPlusCertificateExpired(certificate) || !isProtectPlusCertificateSelectable(certificate)}">
+                                    {{getProtectPlusCertificateSaleStatus(certificate)}}
+                                    <div class="protect-plus-expiration-notice" ng-if="isProtectPlusCertificateExpired(certificate)">
+                                        {{getProtectPlusCertificateExpirationNotice(certificate)}}
+                                    </div>
+                                </td>
+                                <td>
+                                    <md-button class="md-primary protect-plus-select-button" ng-disabled="!isProtectPlusCertificateSelectable(certificate)" ng-click="selectProtectPlusCertificate(certificate)">Избери</md-button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div layout="row" layout-align="start center" ng-if="selectedProtectPlusCertificate">
+                        <md-button class="md-raised md-primary" ng-click="clearSelectedProtectPlusCertificate()">Премахни сертификата</md-button>
+                    </div>
+                </div>
                 <hr/>
                 <div layout="row">  
                     <span>Цена: <b>{{totalSumReport.totalSum}}€</b></span>
@@ -134,8 +265,8 @@
     <md-dialog-actions layout="row">
       <md-button ng-disabled="loading" ng-click="resetSale()" class="md-raised md-primary">Отмени</md-button>
       <span flex></span>
-      <md-button ng-disabled="loading" ng-click="closeModal()" class="md-raised md-primary">Продължи</md-button>
-      <md-button ng-disabled="saleForm.$invalid || loading" class="md-raised md-primary" ng-click="submitSale()">Потвърди</md-button>
+	      <md-button ng-disabled="loading" ng-click="closeModal()" class="md-raised md-primary">Продължи</md-button>
+	      <md-button ng-disabled="saleForm.$invalid || loading" class="md-raised md-primary" ng-click="submitSale()">Потвърди</md-button>
     </md-dialog-actions>
   </form>
 </md-dialog>

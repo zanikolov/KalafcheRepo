@@ -1,11 +1,11 @@
 <div layout="column" ng-cloak>
      <md-content layout-padding layout="row" layout-xs="column">
         <div flex-xs="100" flex="50">
-            <form name="productForm" server-validation novalidate>                
+	            <form name="productForm" class="product-form" server-validation novalidate>
                  <md-input-container class="md-block" flex="15">
                     <label>Код</label>
                     <input ng-model="product.code" name="code" ng-disabled="product.id" required>
-                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>  
+                    <span ng-message="serverError" class="label label-error">{{serverErrorMessages.code}}</span>
                 </md-input-container>
                 <md-input-container class="md-block">
                     <label>Име</label>
@@ -43,6 +43,9 @@
                     <label>Бонус точки</label>
                     <input type="number" min="0" step="0.1" ng-model="product.bonusPts" name="bonusPts">
                 </md-input-container>
+	                <md-checkbox ng-model="product.soldForDeviceModelRequired" class="md-primary product-sale-device-model-required">
+	                    Изисква модел устройство при продажба
+	                </md-checkbox>
             </form>
         </div>
         <div layout="column" flex-offset="5" flex="45" style="margin-top:5px">
@@ -63,7 +66,7 @@
             <md-input-container style="width:100px">
                 <label>Код</label>
                 <input ng-model="productCode">
-            </md-input-container>  
+            </md-input-container>
         </div>
     </md-content>
     <md-content layout-padding layout="row" layout-xs="column">
@@ -78,6 +81,7 @@
                         <th><label>Доставна цена</label></th>
                         <th><label>Цена</label></th>
                         <th><label>Бонус точки</label></th>
+                        <th><label>Модел при продажба</label></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -90,6 +94,7 @@
                         <td>{{product.purchasePrice}}</td>
                         <td>{{product.price}}</td>
                         <td>{{product.bonusPts}}</td>
+                        <td>{{product.soldForDeviceModelRequired ? 'Да' : 'Не'}}</td>
                         <td>
                             <a href="" ng-click="editProduct(product)">
                                 <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>

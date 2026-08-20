@@ -33,6 +33,8 @@ public class Sale {
 	private Boolean isInitial;
 	private Integer transactionId;
 	private String replacementSaleUSI;
+	private Integer protectPlusCertificateId;
+	private String description;
 
 	public Sale() {
 	}

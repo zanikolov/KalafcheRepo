@@ -6,7 +6,7 @@ angular.module('kalafcheFrontendApp')
 		init();
 
 		function init() {
-            $scope.currentPage = 1; 
+            $scope.currentPage = 1;
             $scope.inStockPerPage = 15;
 			$scope.inStockList = [];
             $scope.brands = [];
@@ -22,7 +22,7 @@ angular.module('kalafcheFrontendApp')
 
             getAllBrands();
             getAllProducts();
-            getAllDeviceModels();         
+            getAllDeviceModels();
             getAllStores();
 		}
 
@@ -41,7 +41,7 @@ angular.module('kalafcheFrontendApp')
 
         function getAllDeviceModels() {
             ModelService.getAllDeviceModels().then(function(response) {
-                $scope.models = response; 
+                $scope.models = response;
             });
         };
 
@@ -61,8 +61,8 @@ angular.module('kalafcheFrontendApp')
 
         };
 
-        $scope.barcodeScanned = function(barcode) {                             
-            $scope.selectedBarcode = barcode;      
+        $scope.barcodeScanned = function(barcode) {
+            $scope.selectedBarcode = barcode;
         }
 
         $scope.filterByProductCode = function() {
@@ -110,7 +110,9 @@ angular.module('kalafcheFrontendApp')
 
         $scope.openSaleModal = function (stock) {
             if (stock) {
-                $scope.currentSale.selectedStocks.push(angular.copy(stock));
+                var saleStock = angular.copy(stock);
+                saleStock.sourceStock = stock;
+                $scope.currentSale.selectedStocks.push(saleStock);
                 stock.quantity -= 1;
             }
 
@@ -153,7 +155,7 @@ angular.module('kalafcheFrontendApp')
             $scope.selectedModel = {};
         }
 
-        $scope.isEmployeeStoreSelected = function(stock) { 
+        $scope.isEmployeeStoreSelected = function(stock) {
             return stock.storeId === SessionService.currentUser.employeeStoreId;
         };
 
@@ -174,24 +176,38 @@ angular.module('kalafcheFrontendApp')
 
             for (var i = 0; i < $scope.inStockList.length; i++) {
                 var currStock = $scope.inStockList[i];
-                    totalSum += currStock.productPrice * currStock.quantity;               
+                    totalSum += currStock.productPrice * currStock.quantity;
             }
 
             return Math.round(totalSum * 100) / 100;
-        }; 
+        };
 
         $scope.printStickersStocks = function() {
             InStockService.printStickersForStocks($scope.selectedStore.id).then(
                     function(response) {
                     }
-                );     
-        }; 
+                );
+        };
+
+        $scope.printEuroOnlyStickersStocks = function() {
+            InStockService.printEuroOnlyStickersForStocks($scope.selectedStore.id).then(
+                    function(response) {
+                    }
+                );
+        };
 
         $scope.printStickersStocksV2 = function() {
             InStockService.printStickersForStocksV2($scope.selectedStore.id).then(
                     function(response) {
                     }
-                );     
+                );
+        };
+
+        $scope.printEuroOnlyStickersStocksV2 = function() {
+            InStockService.printEuroOnlyStickersForStocksV2($scope.selectedStore.id).then(
+                    function(response) {
+                    }
+                );
         };
 
         $scope.printInStocks = function() {
@@ -200,5 +216,5 @@ angular.module('kalafcheFrontendApp')
                     }
                 );
         };
-        
-	});
+
+		});

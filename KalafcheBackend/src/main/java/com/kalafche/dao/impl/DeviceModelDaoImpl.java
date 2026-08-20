@@ -16,16 +16,17 @@ import com.kalafche.model.device.DeviceModel;
 @Service
 public class DeviceModelDaoImpl extends JdbcDaoSupport implements
 		DeviceModelDao {
-	private static final String GET_ALL_MODELS_BY_BRAND_QUERY = "select * from device_model where device_brand_id = ?";
-	private static final String GET_ALL_MODELS = "select * from device_model";
-	private static final String SELECT_DEVICE_MODEL = "select * from device_model where id = ?";
+	private static final String GET_ALL_MODELS_BY_BRAND_QUERY = "select id, device_brand_id, name, is_unknown_model as unknown_model from device_model where device_brand_id = ?";
+	private static final String GET_ALL_MODELS = "select id, device_brand_id, name, is_unknown_model as unknown_model from device_model";
+	private static final String SELECT_DEVICE_MODEL = "select id, device_brand_id, name, is_unknown_model as unknown_model from device_model where id = ?";
+	private static final String IS_UNKNOWN_DEVICE_MODEL = "select is_unknown_model from device_model where id = ?";
 	private static final String INSERT_MODEL = "insert into device_model (name, device_brand_id) values (?, ?)";
 	private static final String UPDATE_MODEL = "update device_model set name = ? where id = ?";
 	private static final String CHECK_IF_MODEL_EXISTS = "select count(*) from device_model where name = ? and device_brand_id = ?";
 	private static final String ID_CLAUSE = " and id <> ?";
 	private static final String SELECT_DEVICE_MODEL_IDS = "select id from device_model"; 
 	private static final String WHERE_CLAUSE_FOR_DAILY_REVISION = " where id > ? order by id asc limit ?;";
-	private static final String SELECT_DEVICE_MODELS_BY_IDS = "select dm.id, db.id as device_brand_id, concat(db.name, ' ', dm.name) as name from device_model dm join device_brand db on dm.device_brand_id = db.id where dm.id in (%s);";
+	private static final String SELECT_DEVICE_MODELS_BY_IDS = "select dm.id, db.id as device_brand_id, concat(db.name, ' ', dm.name) as name, dm.is_unknown_model as unknown_model from device_model dm join device_brand db on dm.device_brand_id = db.id where dm.id in (%s);";
 
 	private BeanPropertyRowMapper<DeviceModel> rowMapper;
 	
@@ -81,6 +82,16 @@ public class DeviceModelDaoImpl extends JdbcDaoSupport implements
 		List<DeviceModel> deviceModel = getJdbcTemplate().query(SELECT_DEVICE_MODEL, getRowMapper(), deviceModelId);
 		
 		return deviceModel.isEmpty() ? null : deviceModel.get(0);
+	}
+
+	@Override
+	public Boolean isUnknownDeviceModel(Integer deviceModelId) {
+		if (deviceModelId == null) {
+			return false;
+		}
+
+		List<Boolean> result = getJdbcTemplate().queryForList(IS_UNKNOWN_DEVICE_MODEL, Boolean.class, deviceModelId);
+		return !result.isEmpty() && Boolean.TRUE.equals(result.get(0));
 	}
 
 	@Override

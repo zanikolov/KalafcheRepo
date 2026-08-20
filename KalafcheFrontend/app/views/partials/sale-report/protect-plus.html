@@ -1,0 +1,204 @@
+<div layout="column" ng-cloak>
+    <md-content layout-padding layout="column">
+        <md-tabs md-dynamic-height md-border-bottom>
+            <md-tab label="Период">
+                <md-content layout-padding layout="column">
+                    <div flex>
+                        <form>
+                            <div layout="row" layout-xs="column" layout-align="start center" layout-align-xs="start stretch" class="md-inline-form">
+                                <div flex-offset="5" flex="17" flex-xs="100" style="margin-right:24px">
+                                    <md-input-container style="width:100%">
+                                        <md-datepicker style="width:100%" ng-model="startDate" md-max-date="endDate" ng-change="changeStartDate()"></md-datepicker>
+                                    </md-input-container>
+                                </div>
+                                <div flex="17" flex-xs="100" style="margin-right:24px">
+                                    <md-input-container style="width:100%">
+                                        <md-datepicker style="width:100%" ng-model="endDate" md-min-date="startDate" ng-change="changeEndDate()"></md-datepicker>
+                                    </md-input-container>
+                                </div>
+                                <div flex="10" flex-xs="100" style="margin-right:24px">
+                                    <md-input-container style="width:100%">
+                                        <label>Мин. използвания</label>
+                                        <input type="number" min="0" step="1" ng-model="utilityUsageThreshold">
+                                    </md-input-container>
+                                </div>
+                                <div layout="row" flex="15" flex-xs="100" layout-align="start center" style="padding-bottom:18px">
+                                    <md-button ng-click="searchProtectPlusKpiReport()" class="md-raised md-primary">Генерирай</md-button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div flex ng-if="report">
+                        <!-- <h3>{{selectedMonthName}}</h3> -->
+                        <table class="table table-hover table-condensed">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th><label>Магазин</label></th>
+                                    <th><label>Active Base</label></th>
+                                    <th><label>Attach Rate</label></th>
+                                    <th><label>Protect+ Turnover</label></th>
+                                    <th><label>Protect+ Share</label></th>
+                                    <th><label>Revenue / 100 Active Base</label></th>
+                                    <th><label>Utility Rate</label></th>
+                                    <th><label>Retention Rate</label></th>
+                                    <th><label>Utility Rate ({{selectedUtilityUsageThreshold}})</label></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr dir-paginate="row in report.selectedMonthRows | itemsPerPage:rowsPerPage" current-page="currentPage" pagination-id="protect-plus-kpi">
+                                    <td>{{(currentPage - 1) * rowsPerPage + $index + 1}}</td>
+                                    <td>{{row.storeName}}</td>
+                                    <td>{{row.activeBase}}</td>
+                                    <td>{{row.attachRate}}%</td>
+                                    <td>{{row.protectPlusTurnover}}€</td>
+                                    <td>{{row.protectPlusShare}}%</td>
+                                    <td>{{row.revenuePer100ActiveBase}}€</td>
+                                    <td>{{row.utilityRate1}}%</td>
+                                    <td>{{row.retentionRate}}%</td>
+                                    <td>{{row.utilityRate}}%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div layout="row" layout-align="center center">
+                            <dir-pagination-controls pagination-id="protect-plus-kpi" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
+                        </div>
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab label="12-месечен тренд">
+                <md-content layout-padding layout="column">
+                    <div flex>
+                        <form>
+                            <div layout="row" layout-xs="column" layout-align="space-between center" layout-align-xs="start stretch" class="md-inline-form">
+                                <div layout-xs="row" flex="25" flex-xs="100">
+                                    <md-input-container style="width:100%">
+                                        <label>Край на периода</label>
+                                        <md-select name="protectPlusKpiTrendMonth" ng-model="selectedTrendMonth" ng-change="onTrendMonthChanged()">
+                                            <md-option ng-repeat="month in months" ng-value="month">
+                                                {{month.fullName}}
+                                            </md-option>
+                                        </md-select>
+                                    </md-input-container>
+                                </div>
+                                <div layout-xs="row" flex="30" flex-xs="100">
+                                    <md-input-container style="width:100%">
+                                        <label>Магазин</label>
+                                        <md-select name="protectPlusKpiTrendStore" ng-model="selectedTrendStore" ng-change="refreshTrendRows()">
+                                            <md-option ng-repeat="store in trendStores" ng-value="store">
+                                                {{store.city ? store.city + ', ' + store.name : store.name}}
+                                            </md-option>
+                                        </md-select>
+                                    </md-input-container>
+                                </div>
+                                <div flex hide-xs></div>
+                                <div layout="row" layout-xs="column" layout-align="end center" layout-align-xs="start stretch" flex="35" flex-xs="100">
+                                    <md-button ng-disabled="trendReportLoading || !selectedTrendStore"
+                                               ng-click="searchProtectPlusKpiTrendReport()"
+                                               class="md-raised md-primary">
+                                            Генерирай
+                                    </md-button>
+                                    <md-button ng-if="selectedTrendStore && selectedTrendStore.id == 0"
+                                               ng-disabled="trendReportLoading"
+                                               ng-click="generateProtectPlusKpiChart()"
+                                               class="md-raised md-primary">
+                                        Генерирай графика
+                                    </md-button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div flex ng-if="trendReportLoading" class="protect-plus-empty-result">
+                        Зареждане...
+                    </div>
+
+                    <div flex ng-if="trendReport">
+                        <div flex>
+                            <table class="table table-hover table-condensed">
+                                <thead>
+                                    <tr>
+                                        <th><label>Месец</label></th>
+                                        <th><label>Active Base</label></th>
+                                        <th><label>Attach Rate</label></th>
+                                        <th><label>Protect+ Turnover</label></th>
+                                        <th><label>Protect+ Share</label></th>
+                                        <th><label>Revenue / 100 Active Base</label></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr ng-repeat="row in trendRows">
+                                        <td>{{getRowMonthName(row)}}</td>
+                                        <td>
+                                            <span ng-class="getBenchmarkClass(row, 'activeBase')">{{row.activeBase}}</span>
+                                            <span ng-if="selectedTrendStore.id != 0"> / {{row.companyValues.activeBase}}</span>
+                                        </td>
+                                        <td>
+                                            <span ng-class="getBenchmarkClass(row, 'attachRate')">{{row.attachRate}}%</span>
+                                            <span ng-if="selectedTrendStore.id != 0"> / {{row.companyValues.attachRate}}%</span>
+                                        </td>
+                                        <td>
+                                            <span ng-class="getBenchmarkClass(row, 'protectPlusTurnover')">{{formatTrendForecastValue(row, 'protectPlusTurnover', 'protectPlusTurnoverForecast', '€')}}</span>
+                                            <span ng-if="selectedTrendStore.id != 0"> / {{formatTrendForecastValue(row.companyValues, 'protectPlusTurnover', 'protectPlusTurnoverForecast', '€')}}</span>
+                                        </td>
+                                        <td>
+                                            <span ng-class="getBenchmarkClass(row, 'protectPlusShare')">{{row.protectPlusShare}}%</span>
+                                            <span ng-if="selectedTrendStore.id != 0"> / {{row.companyValues.protectPlusShare}}%</span>
+                                        </td>
+                                        <td>
+                                            <span ng-class="getBenchmarkClass(row, 'revenuePer100ActiveBase')">{{formatTrendForecastValue(row, 'revenuePer100ActiveBase', 'revenuePer100ActiveBaseForecast', '€')}}</span>
+                                            <span ng-if="selectedTrendStore.id != 0"> / {{formatTrendForecastValue(row.companyValues, 'revenuePer100ActiveBase', 'revenuePer100ActiveBaseForecast', '€')}}</span>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div flex class="protect-plus-kpi-chart-container" ng-if="chartReport">
+                        <!-- <h3>{{selectedChartKpi.label}}</h3> -->
+                        <svg viewBox="0 0 820 320" preserveAspectRatio="xMidYMid meet" class="protect-plus-kpi-chart" ng-if="chartSeries.length">
+                            <g ng-repeat="tick in chartYAxisTicks">
+                                <line x1="80" y1="{{tick.y}}" x2="780" y2="{{tick.y}}" class="protect-plus-kpi-chart-grid"></line>
+                                <text x="70" y="{{tick.y + 4}}" text-anchor="end" class="protect-plus-kpi-chart-label">{{formatChartValue(tick.label)}}</text>
+                            </g>
+                            <line x1="80" y1="260" x2="780" y2="260" class="protect-plus-kpi-chart-axis"></line>
+                            <line x1="80" y1="40" x2="80" y2="260" class="protect-plus-kpi-chart-axis"></line>
+                            <g ng-repeat="month in chartMonths track by month.key">
+                                <text x="{{80 + $index * (700 / (chartMonths.length - 1))}}" y="290" text-anchor="middle" class="protect-plus-kpi-chart-label">{{month.label}}</text>
+                            </g>
+                            <g ng-repeat="series in chartSeries">
+                                <polyline points="{{series.polylinePoints}}" fill="none" stroke="{{series.color}}" stroke-width="{{series.lineWidth}}"></polyline>
+                                <circle ng-repeat="point in series.points" cx="{{point.x}}" cy="{{point.y}}" r="2.5" fill="{{series.color}}">
+                                    <title>{{series.storeName}}: {{point.value}}{{selectedChartKpi.suffix}}</title>
+                                </circle>
+                            </g>
+                        </svg>
+                        <div class="protect-plus-kpi-chart-empty" ng-if="!chartSeries.length">
+                            Изберете поне един магазин, за да се визуализира графика.
+                        </div>
+                        <div layout="row" layout-wrap class="protect-plus-kpi-chart-controls">
+                            <md-button ng-repeat="kpi in chartKpis" ng-click="selectChartKpi(kpi)" class="md-raised" ng-class="{'md-primary': selectedChartKpi.code == kpi.code}">
+                                {{kpi.label}}
+                            </md-button>
+                        </div>
+                        <div class="protect-plus-kpi-company-legend" ng-if="shouldShowCompanyBenchmarkLine()">
+                            <span class="protect-plus-kpi-chart-legend-color" style="background-color:#222222"></span>
+                            Компания
+                        </div>
+                        <md-button ng-click="toggleAllChartStores()" class="md-raised md-primary protect-plus-kpi-select-all">
+                            {{chartAllStoresSelected ? 'Изключи всички магазини' : 'Избери всички магазини'}}
+                        </md-button>
+                        <div class="protect-plus-kpi-chart-legend">
+                            <md-checkbox ng-repeat="store in chartStores" ng-model="store.selected" ng-change="refreshChartSeries()" class="protect-plus-kpi-chart-store-checkbox md-primary">
+                                <span class="protect-plus-kpi-chart-legend-color" ng-style="{'background-color': store.color}"></span>
+                                {{store.storeName}}
+                            </md-checkbox>
+                        </div>
+                    </div>
+                </md-content>
+            </md-tab>
+        </md-tabs>
+    </md-content>
+</div>

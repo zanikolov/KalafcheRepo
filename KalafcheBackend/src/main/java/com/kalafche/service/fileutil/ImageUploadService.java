@@ -7,5 +7,11 @@ public interface ImageUploadService {
 	public String uploadWasteImage(MultipartFile image);
 	
 	public String uploadExpenseImage(MultipartFile image);
+
+	public String uploadProtectPlusGdprConsentImage(MultipartFile image);
+
+	public String uploadProtectPlusCallRecording(MultipartFile audio);
+
+	public byte[] downloadFile(String fileId);
 	
 }

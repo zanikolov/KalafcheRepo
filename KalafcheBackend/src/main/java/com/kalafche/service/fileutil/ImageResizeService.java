@@ -25,6 +25,9 @@ public class ImageResizeService {
 		try {
 
 			origImage = ImageIO.read(image);
+			if (origImage == null) {
+				throw new IllegalArgumentException("Unsupported image format.");
+			}
 			int type = origImage.getType() == 0? BufferedImage.TYPE_INT_ARGB : origImage.getType();
 
 			int fHeight = IMG_HEIGHT;
@@ -59,10 +62,10 @@ public class ImageResizeService {
 			ByteArrayOutputStream baos = new ByteArrayOutputStream();
 			ImageIO.write(resizedImage, "jpg", baos);
 			baos.flush();
-			File out = new File("test");
-			FileUtils.writeByteArrayToFile(out, baos.toByteArray());
+			File resizedImageFile = File.createTempFile("keysoo-resized-image-", ".jpg");
+			FileUtils.writeByteArrayToFile(resizedImageFile, baos.toByteArray());
 			baos.close();
-			return out;
+			return resizedImageFile;
 
 		} catch (IOException ex) {
 			ex.printStackTrace();

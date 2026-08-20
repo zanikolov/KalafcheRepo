@@ -178,7 +178,15 @@ angular.module('kalafcheFrontendApp')
           admin: true,
           manager: false,
           user: false
-        },        
+        },
+        {
+          link : 'protectPlus',
+          title: 'Protect+',
+          icon: 'dashboard',
+          admin: true,
+          manager: true,
+          user: true
+        },
         {
           link : 'partner',
           title: 'Партньори',

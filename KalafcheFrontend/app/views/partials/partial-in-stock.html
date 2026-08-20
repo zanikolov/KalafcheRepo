@@ -141,7 +141,9 @@
         <div layout="row" layout-xs="column" layout-align="start center" layout-align-xs="start stretch" layout-wrap ng-if="inStockList.length > 0">
             <md-button type="submit" class="md-raised md-primary" ng-click="printInStocks()">Принтирай наличности</md-button>
             <md-button type="submit" class="md-raised md-primary" ng-if="selectedStore.id != 0" ng-click="printStickersStocks()">Принтирай етикети</md-button>
-            <md-button type="submit" class="md-raised md-primary" ng-if="selectedStore.id != 0" ng-click="printStickersStocksV2()">Принтирай етикети V2</md-button>
+            <md-button type="submit" class="md-raised md-primary" ng-if="selectedStore.id != 0" ng-click="printEuroOnlyStickersStocks()">Принтирай етикети EUR</md-button>
+            <md-button type="submit" class="md-raised md-primary" ng-if="selectedStore.id != 0" ng-click="printStickersStocksV2()">Принтирай етикетиV2</md-button>
+            <md-button type="submit" class="md-raised md-primary" ng-if="selectedStore.id != 0" ng-click="printEuroOnlyStickersStocksV2()">Принтирай етикетиV2 EUR</md-button>
         </div>
 
     </md-content>

@@ -5,15 +5,15 @@ public class LoyalCustomer {
 	private Integer id;
 	private String name;
 	private String phoneNumber;
+	private String email;
 	private Integer discountCodeId;
 	private Integer discountCodeCode;
-	private Integer deviceModelId;
-	private String deviceModelName;
-	private Integer deviceBrandId;
-	private String deviceBrandName;
 	private Integer createdById;
 	private String createdByName;
 	private Long createdTimestamp;
+	private Integer updatedById;
+	private String updatedByName;
+	private Long lastUpdateTimestamp;
 
 	public Integer getId() {
 		return id;
@@ -39,6 +39,14 @@ public class LoyalCustomer {
 		this.phoneNumber = phoneNumber;
 	}
 
+	public String getEmail() {
+		return email;
+	}
+
+	public void setEmail(String email) {
+		this.email = email;
+	}
+
 	public Integer getDiscountCodeId() {
 		return discountCodeId;
 	}
@@ -53,38 +61,6 @@ public class LoyalCustomer {
 
 	public void setDiscountCodeCode(Integer discountCodeCode) {
 		this.discountCodeCode = discountCodeCode;
-	}
-
-	public Integer getDeviceModelId() {
-		return deviceModelId;
-	}
-
-	public void setDeviceModelId(Integer deviceModelId) {
-		this.deviceModelId = deviceModelId;
-	}
-
-	public String getDeviceModelName() {
-		return deviceModelName;
-	}
-
-	public void setDeviceModelName(String deviceModelName) {
-		this.deviceModelName = deviceModelName;
-	}
-
-	public Integer getDeviceBrandId() {
-		return deviceBrandId;
-	}
-
-	public void setDeviceBrandId(Integer deviceBrandId) {
-		this.deviceBrandId = deviceBrandId;
-	}
-
-	public String getDeviceBrandName() {
-		return deviceBrandName;
-	}
-
-	public void setDeviceBrandName(String deviceBrandName) {
-		this.deviceBrandName = deviceBrandName;
 	}
 
 	public Integer getCreatedById() {
@@ -109,6 +85,30 @@ public class LoyalCustomer {
 
 	public void setCreatedTimestamp(Long createdTimestamp) {
 		this.createdTimestamp = createdTimestamp;
+	}
+
+	public Integer getUpdatedById() {
+		return updatedById;
+	}
+
+	public void setUpdatedById(Integer updatedById) {
+		this.updatedById = updatedById;
+	}
+
+	public String getUpdatedByName() {
+		return updatedByName;
+	}
+
+	public void setUpdatedByName(String updatedByName) {
+		this.updatedByName = updatedByName;
+	}
+
+	public Long getLastUpdateTimestamp() {
+		return lastUpdateTimestamp;
+	}
+
+	public void setLastUpdateTimestamp(Long lastUpdateTimestamp) {
+		this.lastUpdateTimestamp = lastUpdateTimestamp;
 	}
 
 }

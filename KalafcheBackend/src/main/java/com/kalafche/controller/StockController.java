@@ -23,10 +23,10 @@ import com.kalafche.service.StockService;
 @RestController
 @RequestMapping({ "/stock" })
 public class StockController {
-	
+
 	@Autowired
 	private StockService stockService;
-	
+
 	@GetMapping
 	public List<Stock> getStocksByStoreId(
 			@RequestParam(value = "userStoreId", required = false) Integer userStoreId,
@@ -39,58 +39,62 @@ public class StockController {
 			) {
 		return stockService.getAllApprovedStocks(userStoreId, selectedStoreId, deviceBrandId, deviceModelId, productCodes, barcode, showZeroInStocks);
 	}
-	
+
 	@GetMapping("/getAllStocksForReport")
 	public List<Stock> getAllStocksForReport() {
 		List<Stock> stocks = stockService.generateStockReport();
 
 		return stocks;
 	}
-	
+
 	@GetMapping("/printStickers/{storeId}")
-	public ResponseEntity<byte[]> printStockStickersByStoreId(@PathVariable(value = "storeId") Integer storeId) {
-	
+	public ResponseEntity<byte[]> printStockStickersByStoreId(
+			@PathVariable(value = "storeId") Integer storeId,
+			@RequestParam(value = "euroOnly", required = false) Boolean euroOnly) {
+
 		byte[] pdfBytes = new byte[1];
-		
+
 		if (storeId != null && storeId != 0) {
-			pdfBytes = stockService.printStockStickersByStoreId(storeId);
+			pdfBytes = stockService.printStockStickersByStoreId(storeId, Boolean.TRUE.equals(euroOnly));
 		}
-	
+
 	    HttpHeaders headers = new HttpHeaders();
 	    headers.setContentType(MediaType.parseMediaType("application/pdf"));
 	    String filename = "stickers.pdf";
 	    headers.setContentDispositionFormData(filename, filename);
 	    headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 	    ResponseEntity<byte[]> response = new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-	    
+
 	    return response;
 	}
-	
+
 	@GetMapping("/printStickers/v2/{storeId}")
-	public ResponseEntity<byte[]> printStockStickersV2ByStoreId(@PathVariable(value = "storeId") Integer storeId) {
-		
+	public ResponseEntity<byte[]> printStockStickersV2ByStoreId(
+			@PathVariable(value = "storeId") Integer storeId,
+			@RequestParam(value = "euroOnly", required = false) Boolean euroOnly) {
+
 		byte[] pdfBytes = new byte[1];
-		
+
 		if (storeId != null && storeId != 0) {
-			pdfBytes = stockService.printStockStickersV2ByStoreId(storeId);
+			pdfBytes = stockService.printStockStickersV2ByStoreId(storeId, Boolean.TRUE.equals(euroOnly));
 		}
-		
+
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType("application/pdf"));
 		String filename = "stickers.pdf";
 		headers.setContentDispositionFormData(filename, filename);
 		headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
 		ResponseEntity<byte[]> response = new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-		
+
 		return response;
 	}
 
 	@PostMapping("/excel")
-	public ResponseEntity<byte[]> printInStockExcel(@RequestBody List<Stock> stocks) {
-		byte[] excelBytes = stockService.printInStockExcel(stocks);
+	public ResponseEntity<byte[]> generateInStockExcel(@RequestBody List<Stock> stocks) {
+		byte[] excelBytes = stockService.generateInStockExcel(stocks);
 
 		HttpHeaders headers = new HttpHeaders();
-		headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+		headers.setContentType(MediaType.parseMediaType("application/vnd.ms-excel"));
 		String filename = "in-stock.xlsx";
 		headers.setContentDispositionFormData(filename, filename);
 		headers.set("Content-Transfer-Encoding", "binary");
@@ -98,5 +102,5 @@ public class StockController {
 
 		return new ResponseEntity<>(excelBytes, headers, HttpStatus.OK);
 	}
-	
+
 }

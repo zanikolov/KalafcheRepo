@@ -11,4 +11,6 @@ public interface RefundService {
 
 	void submitRefund(Refund refund);
 
+	void submitProtectPlusCancellationRefund(Refund refund);
+
 }

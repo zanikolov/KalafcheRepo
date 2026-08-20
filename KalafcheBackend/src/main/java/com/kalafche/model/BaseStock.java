@@ -20,6 +20,7 @@ public class BaseStock {
 	private String deviceModelName;
 	private Integer quantity;
 	private BigDecimal productPrice;
+	private Boolean soldForDeviceModelRequired;
 	private String barcode;
 	private String productFabric;
 	private Integer productTypeId;

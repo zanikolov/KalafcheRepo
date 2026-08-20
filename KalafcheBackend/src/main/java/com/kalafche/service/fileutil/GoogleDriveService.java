@@ -2,6 +2,7 @@ package com.kalafche.service.fileutil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ByteArrayOutputStream;
 import java.security.GeneralSecurityException;
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +39,10 @@ public class GoogleDriveService implements ImageUploadService {
     private static final String WASTE_FOLDER_ID = "1IXDUStO44muwe9UDkaRe3-gOqv01VRD4";
 
 	private static final String EXPENSE_FOLDER_ID = "1_LR6mwNh5mjiuyryJC8EeaHVGEMXdiUH";
+
+	private static final String PROTECT_PLUS_GDPR_CONSENT_FOLDER_ID = "1wkD9HCpsV2ynsM43lge6gltwS1lqt8od";
+
+	private static final String PROTECT_PLUS_CALL_RECORDING_FOLDER_ID = "1PdqdnRBgw1vcZrOWvOcZIgRFbrJD3yC8";
 	
     private static Credential getAPICredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
     	InputStream in = GoogleDriveService.class.getResourceAsStream(CLIENT_SECRET_FILE_PATH);    	
@@ -135,45 +140,75 @@ public class GoogleDriveService implements ImageUploadService {
 	}
 	
 	private java.io.File multipartToFile(MultipartFile multipart) throws IllegalStateException, IOException {
-	    java.io.File convFile = new java.io.File(multipart.getOriginalFilename());
+	    java.io.File convFile = java.io.File.createTempFile("keysoo-upload-", "-" + multipart.getOriginalFilename());
 	    multipart.transferTo(convFile);
 	    return convFile;
 	}
 
-	private String uploadImage(MultipartFile wasteImage, String parentFolder) throws IllegalStateException, IOException, GeneralSecurityException {
+	private String uploadFile(MultipartFile file, String parentFolder, boolean resizeImage) throws IllegalStateException, IOException, GeneralSecurityException {
 		File fileMetadata = new File();
 		List<String> parents = Lists.newArrayList(parentFolder);
 		fileMetadata.setParents(parents);
+		fileMetadata.setName(file.getOriginalFilename());
 
-		FileContent mediaContent = new FileContent(wasteImage.getContentType(), imageResizeService.resizeImage(multipartToFile(wasteImage)));
-		
+		java.io.File convertedFile = multipartToFile(file);
+		java.io.File uploadFile = resizeImage ? imageResizeService.resizeImage(convertedFile) : convertedFile;
+		FileContent mediaContent = new FileContent(file.getContentType(), uploadFile);
+
 		Drive service = createService();
 		File uploadedFile = service.files().create(fileMetadata, mediaContent).setFields("id").execute();
-		
+		convertedFile.delete();
+		if (resizeImage && uploadFile != null) {
+			uploadFile.delete();
+		}
+
 		return uploadedFile.getId();
 	}
 	
-	private String uploadImageHandleExceptions(MultipartFile image, String parentFolder) {
+	private String uploadFileHandleExceptions(MultipartFile file, String parentFolder, String contentTypePrefix,
+			String errorField, boolean resizeImage) {
 		try {
-			if (image.getContentType().startsWith("image/")) {
-				return uploadImage(image, parentFolder);
+			if (file != null && file.getContentType() != null && file.getContentType().startsWith(contentTypePrefix)) {
+				return uploadFile(file, parentFolder, resizeImage);
 			} else {
-				throw new ImageUploadException("image", "Incorrect file type.");
+				throw new ImageUploadException(errorField, "Incorrect file type.");
 			}
-		} catch (IllegalStateException | IOException | GeneralSecurityException e) {
+		} catch (IllegalArgumentException | IllegalStateException | IOException | GeneralSecurityException e) {
 			e.printStackTrace();
-			throw new ImageUploadException("image", "Error during image upload.");
+			throw new ImageUploadException(errorField, "Error during file upload.");
 		}
 	}
 	
 	@Override
 	public String uploadWasteImage(MultipartFile image) {
-		return uploadImageHandleExceptions(image, WASTE_FOLDER_ID);
+		return uploadFileHandleExceptions(image, WASTE_FOLDER_ID, "image/", "image", true);
 	}
 	
 	@Override
 	public String uploadExpenseImage(MultipartFile image) {
-		return uploadImageHandleExceptions(image, EXPENSE_FOLDER_ID);
+		return uploadFileHandleExceptions(image, EXPENSE_FOLDER_ID, "image/", "image", true);
+	}
+
+	@Override
+	public String uploadProtectPlusGdprConsentImage(MultipartFile image) {
+		return uploadFileHandleExceptions(image, PROTECT_PLUS_GDPR_CONSENT_FOLDER_ID, "image/", "gdprConsentImage", true);
+	}
+
+	@Override
+	public String uploadProtectPlusCallRecording(MultipartFile audio) {
+		return uploadFileHandleExceptions(audio, PROTECT_PLUS_CALL_RECORDING_FOLDER_ID, "audio/", "audio", false);
+	}
+
+	@Override
+	public byte[] downloadFile(String fileId) {
+		try {
+			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+			createService().files().get(fileId).executeMediaAndDownloadTo(outputStream);
+			return outputStream.toByteArray();
+		} catch (IOException | GeneralSecurityException e) {
+			e.printStackTrace();
+			throw new ImageUploadException("callRecording", "Error during file download.");
+		}
 	}
 	
 }

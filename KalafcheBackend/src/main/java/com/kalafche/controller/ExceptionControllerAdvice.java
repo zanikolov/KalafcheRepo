@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +20,7 @@ import com.kalafche.exceptions.DuplicationException;
 import com.kalafche.exceptions.ErrorResponse;
 import com.kalafche.exceptions.ExcelInvalidFormatException;
 import com.kalafche.exceptions.ImageUploadException;
+import com.kalafche.exceptions.IllegalStateTransferException;
 import com.kalafche.exceptions.NoRefundedItemException;
 
 /**
@@ -26,6 +28,15 @@ import com.kalafche.exceptions.NoRefundedItemException;
  */
 @RestControllerAdvice
 public class ExceptionControllerAdvice extends  ResponseEntityExceptionHandler {
+
+	private static final MediaType APPLICATION_JSON_UTF8 = MediaType.parseMediaType("application/json;charset=UTF-8");
+
+	private ResponseEntity<String> createErrorResponse(ErrorResponse errorResponse, HttpStatus httpStatus)
+			throws JsonProcessingException {
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(APPLICATION_JSON_UTF8);
+		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), headers, httpStatus);
+	}
 	
 	/**
 	 * Handles exceptions related to domain object non-existence.
@@ -39,7 +50,7 @@ public class ExceptionControllerAdvice extends  ResponseEntityExceptionHandler {
 		Map<String, String> errors = Maps.newHashMap();
 		errors.put(exception.getField(), exception.getMessage());
 		ErrorResponse errorResponse = new ErrorResponse(errors);		
-		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), HttpStatus.BAD_REQUEST);
+		return createErrorResponse(errorResponse, HttpStatus.BAD_REQUEST);
 	}
 	
 	/**
@@ -54,7 +65,7 @@ public class ExceptionControllerAdvice extends  ResponseEntityExceptionHandler {
 		Map<String, String> errors = Maps.newHashMap();
 		errors.put(exception.getField(), exception.getMessage());
 		ErrorResponse errorResponse = new ErrorResponse(errors);
-		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), HttpStatus.CONFLICT);
+		return createErrorResponse(errorResponse, HttpStatus.CONFLICT);
 	}
 	
 	@ExceptionHandler(ExcelInvalidFormatException.class)
@@ -62,7 +73,7 @@ public class ExceptionControllerAdvice extends  ResponseEntityExceptionHandler {
 		Map<String, String> errors = Maps.newHashMap();
 		errors.put(exception.getField(), exception.getMessage());
 		ErrorResponse errorResponse = new ErrorResponse(errors);
-		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), HttpStatus.BAD_REQUEST);
+		return createErrorResponse(errorResponse, HttpStatus.BAD_REQUEST);
 	}
 	
 	@ExceptionHandler(ImageUploadException.class)
@@ -70,7 +81,7 @@ public class ExceptionControllerAdvice extends  ResponseEntityExceptionHandler {
 		Map<String, String> errors = Maps.newHashMap();
 		errors.put(exception.getField(), exception.getMessage());
 		ErrorResponse errorResponse = new ErrorResponse(errors);
-		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), HttpStatus.BAD_REQUEST);
+		return createErrorResponse(errorResponse, HttpStatus.BAD_REQUEST);
 	}
 	
 	@ExceptionHandler(NoRefundedItemException.class)
@@ -78,7 +89,23 @@ public class ExceptionControllerAdvice extends  ResponseEntityExceptionHandler {
 		Map<String, String> errors = Maps.newHashMap();
 		errors.put(exception.getField(), exception.getMessage());
 		ErrorResponse errorResponse = new ErrorResponse(errors);		
-		return new ResponseEntity<>(new ObjectMapper().writeValueAsString(errorResponse), HttpStatus.BAD_REQUEST);
+		return createErrorResponse(errorResponse, HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(IllegalStateTransferException.class)
+	public ResponseEntity<String> handleIllegalStateTransferException(IllegalStateTransferException exception) throws JsonProcessingException {
+		Map<String, String> errors = Maps.newHashMap();
+		errors.put(exception.getField(), exception.getMessage());
+		ErrorResponse errorResponse = new ErrorResponse(errors);
+		return createErrorResponse(errorResponse, HttpStatus.BAD_REQUEST);
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException exception) throws JsonProcessingException {
+		Map<String, String> errors = Maps.newHashMap();
+		errors.put("request", exception.getMessage());
+		ErrorResponse errorResponse = new ErrorResponse(errors);
+		return createErrorResponse(errorResponse, HttpStatus.BAD_REQUEST);
 	}
 
 	@Override

@@ -26,6 +26,7 @@ public class Product extends BaseModel {
 	private BigDecimal price;
 	private BigDecimal purchasePrice;
 	private int bonusPts;
+	private Boolean soldForDeviceModelRequired;
 	private List<ProductSpecificPrice> specificPrices;
 	private MultipartFile pic;
 

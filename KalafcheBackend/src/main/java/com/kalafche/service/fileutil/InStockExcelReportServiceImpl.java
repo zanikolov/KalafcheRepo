@@ -34,7 +34,7 @@ public class InStockExcelReportServiceImpl implements InStockExcelReportService 
 			"Склад"
 	};
 
-	private static final int[] COLUMN_WIDTHS = { 8, 35, 45, 24, 28, 12, 10, 12, 22 };
+	private static final int[] COLUMN_WIDTHS = { 8, 35, 45, 28, 28, 12, 10, 12, 22 };
 
 	@Override
 	public byte[] generateExcel(List<Stock> stocks) {

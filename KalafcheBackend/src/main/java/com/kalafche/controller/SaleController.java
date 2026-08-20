@@ -19,9 +19,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.kalafche.model.sale.PastPeriodSaleReport;
+import com.kalafche.model.sale.ProtectPlusKpiReport;
 import com.kalafche.model.sale.Sale;
 import com.kalafche.model.sale.SaleItem;
 import com.kalafche.model.sale.SaleItemExcelReportRequest;
+import com.kalafche.model.sale.SaleItemSoldForDeviceModelUpdateRequest;
 import com.kalafche.model.sale.SaleReport;
 import com.kalafche.model.sale.SaleSplitReportRequest;
 import com.kalafche.model.sale.TotalSumRequest;
@@ -45,7 +47,7 @@ public class SaleController {
 			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds, @RequestParam(value = "storeIds") String storeIds) {
 		return saleService.searchSales(startDateMilliseconds, endDateMilliseconds, storeIds);
 	}
-	
+
 	@GetMapping("/saleItem")
 	public SaleReport searchSaleItems(@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds,
 			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds,
@@ -55,11 +57,14 @@ public class SaleController {
 			@RequestParam(value = "deviceModelId", required = false) Integer deviceModelId,
 			@RequestParam(value = "masterProductTypeId", required = false) Integer masterProductTypeId,
 			@RequestParam(value = "productTypeId", required = false) Integer productTypeId,
-			@RequestParam(value = "priceFrom", required = false) Float priceFrom,	
-			@RequestParam(value = "priceTo", required = false) Float priceTo,	
-			@RequestParam(value = "discountCampaignCode", required = false) String discountCampaignCode) {
+			@RequestParam(value = "priceFrom", required = false) Float priceFrom,
+			@RequestParam(value = "priceTo", required = false) Float priceTo,
+			@RequestParam(value = "discountCampaignCode", required = false) String discountCampaignCode,
+			@RequestParam(value = "onlyUnknownSoldForDeviceModel", required = false) Boolean onlyUnknownSoldForDeviceModel,
+			@RequestParam(value = "onlyProtectPlusApplied", required = false) Boolean onlyProtectPlusApplied) {
 		return saleService.searchSaleItems(startDateMilliseconds, endDateMilliseconds, storeIds, productCode,
-				deviceBrandId, deviceModelId, masterProductTypeId, productTypeId, priceFrom, priceTo, discountCampaignCode);
+				deviceBrandId, deviceModelId, masterProductTypeId, productTypeId, priceFrom, priceTo,
+				discountCampaignCode, onlyUnknownSoldForDeviceModel, onlyProtectPlusApplied);
 	}
 	
 	@GetMapping("/store")
@@ -74,6 +79,27 @@ public class SaleController {
 	public PastPeriodSaleReport searchSalesByStores(@RequestParam(value = "month") String month) {
 		return saleService.searchSalesForPastPeriodsByStores(month);
 	}
+
+	@GetMapping("/protectPlusKpi")
+	public ProtectPlusKpiReport searchProtectPlusKpiMonthReport(@RequestParam(value = "month") String month) {
+		return saleService.searchProtectPlusKpiMonthReport(month);
+	}
+
+	@GetMapping("/protectPlusKpi/period")
+	public ProtectPlusKpiReport searchProtectPlusKpiPeriodReport(
+			@RequestParam(value = "startDateMilliseconds") Long startDateMilliseconds,
+			@RequestParam(value = "endDateMilliseconds") Long endDateMilliseconds,
+			@RequestParam(value = "utilityUsageThreshold", required = false) Integer utilityUsageThreshold) {
+		return saleService.searchProtectPlusKpiPeriodReport(startDateMilliseconds, endDateMilliseconds,
+				utilityUsageThreshold);
+	}
+
+	@GetMapping("/protectPlusKpi/trend")
+	public ProtectPlusKpiReport searchProtectPlusKpiTrendReport(@RequestParam(value = "month") String month,
+			@RequestParam(value = "storeId") Integer storeId,
+			@RequestParam(value = "includeStoreRows", required = false) Boolean includeStoreRows) {
+		return saleService.searchProtectPlusKpiTrendReport(month, storeId, includeStoreRows);
+	}
 	
 	@PutMapping
 	public Sale insertSale(@RequestBody Sale sale) throws SQLException, InterruptedException {
@@ -84,7 +110,13 @@ public class SaleController {
 	public List<SaleItem> getSaleItems(@PathVariable(value = "saleId") Integer saleId) {
 		return saleService.getSaleItems(saleId);
 	}
-	
+
+	@PutMapping("/saleItem/{saleItemId}/soldForDeviceModel")
+	public void updateSaleItemSoldForDeviceModel(@PathVariable(value = "saleItemId") Integer saleItemId,
+			@RequestBody SaleItemSoldForDeviceModelUpdateRequest request) {
+		saleService.updateSaleItemSoldForDeviceModel(saleItemId, request.getDeviceModelId());
+	}
+
 	@GetMapping("/usi/{uniqueSaleId}")
 	public Sale getSaleByUSI(@PathVariable(value = "uniqueSaleId") String uniqueSaleId) {
 		return saleService.getSaleByUSI(uniqueSaleId);

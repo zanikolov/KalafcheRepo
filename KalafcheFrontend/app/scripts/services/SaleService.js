@@ -3,26 +3,33 @@
 angular.module('kalafcheFrontendApp')
 	.service('SaleService', function($http, Environment, FileSaver) {
 		angular.extend(this, {
-			submitSale: submitSale,
-            getSaleItems: getSaleItems,
+				submitSale: submitSale,
+	            getSaleItems: getSaleItems,
+	            updateSaleItemSoldForDeviceModel: updateSaleItemSoldForDeviceModel,
             getSalesByStores: getSalesByStores,
             searchSales: searchSales,
             searchSaleItems: searchSaleItems,
             getTotalSum: getTotalSum,
             generateExcel: generateExcel,
             getMonthlyTurnover: getMonthlyTurnover,
+            getProtectPlusKpiReport: getProtectPlusKpiReport,
+            getProtectPlusKpiPeriodReport: getProtectPlusKpiPeriodReport,
+            getProtectPlusKpiTrendReport: getProtectPlusKpiTrendReport,
             getProductTypeSplitReport: getProductTypeSplitReport,
             getTransactionSplitReport: getTransactionSplitReport,
             getSaleByUSI: getSaleByUSI
 		});
 
-        function getTotalSum(sale) {
+	        function getTotalSum(sale) {
             var items = sale.selectedStocks;
             var selectedSaleItems = [];
             angular.forEach(items, function(item) {
                 var selectedSaleItem = {};
-                selectedSaleItem.itemPrice = item.productPrice;
-                if (item.discountCode) {
+	                selectedSaleItem.itemId = item.itemId;
+	                selectedSaleItem.itemPrice = item.productPrice;
+	                selectedSaleItem.soldForDeviceModelId = item.soldForDeviceModelId;
+	                selectedSaleItem.soldForDeviceModelRequired = item.soldForDeviceModelRequired;
+	                if (item.discountCode) {
                     selectedSaleItem.discountValue = item.discountCode.discountValue;
                     selectedSaleItem.discountType = item.discountCode.discountTypeCode;
                     selectedSaleItem.discountCode = item.discountCode.code;
@@ -34,6 +41,7 @@ angular.module('kalafcheFrontendApp')
             totalSumRequest.paid = sale.paid;
             totalSumRequest.currency = sale.currency;
             totalSumRequest.selectedSaleItems = selectedSaleItems;
+            totalSumRequest.protectPlusCertificateId = sale.protectPlusCertificateId;
 
             return $http.post(Environment.apiEndpoint + '/KalafcheBackend/sale/totalSum', totalSumRequest)
                 .then(
@@ -41,7 +49,15 @@ angular.module('kalafcheFrontendApp')
                         return response.data
                     }
                 );
-        };
+	        };
+
+	        function updateSaleItemSoldForDeviceModel(saleItemId, deviceModelId) {
+	            return $http.put(Environment.apiEndpoint + '/KalafcheBackend/sale/saleItem/' + saleItemId + '/soldForDeviceModel', {
+	                deviceModelId: deviceModelId
+	            }).then(function(response) {
+	                return response.data
+	            });
+	        }
 
         function submitSale(sale) { 
             return $http.put(Environment.apiEndpoint + '/KalafcheBackend/sale', sale)
@@ -73,10 +89,12 @@ angular.module('kalafcheFrontendApp')
                 );
         }
 
-        function searchSaleItems(startDateMilliseconds, endDateMilliseconds, storeIds, selectedBrandId, selectedModelId, productCode, productTypeId, masterProductTypeId, priceFrom, priceTo, discountCampaignCode) { 
+        function searchSaleItems(startDateMilliseconds, endDateMilliseconds, storeIds, selectedBrandId, selectedModelId, productCode, productTypeId, masterProductTypeId, priceFrom, priceTo, discountCampaignCode, onlyUnknownSoldForDeviceModel, onlyProtectPlusApplied) {
             var params = {"params" : {"startDateMilliseconds": startDateMilliseconds, "endDateMilliseconds": endDateMilliseconds, 
                 "storeIds": storeIds, "deviceBrandId": selectedBrandId, "deviceModelId": selectedModelId, "productCode": productCode, "productTypeId": productTypeId, "masterProductTypeId": masterProductTypeId,
-                "priceFrom": priceFrom, "priceTo": priceTo, "discountCampaignCode": discountCampaignCode}};
+                "priceFrom": priceFrom, "priceTo": priceTo, "discountCampaignCode": discountCampaignCode,
+                "onlyUnknownSoldForDeviceModel": onlyUnknownSoldForDeviceModel,
+                "onlyProtectPlusApplied": onlyProtectPlusApplied}};
 
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/saleItem', params)
                 .then(
@@ -102,6 +120,40 @@ angular.module('kalafcheFrontendApp')
             var params = {"params" : {"month": month}};
 
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/pastPeriods', params)
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                );
+        }
+
+        function getProtectPlusKpiReport(month) {
+            var params = {"params" : {"month": month}};
+
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/protectPlusKpi', params)
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                );
+        }
+
+        function getProtectPlusKpiPeriodReport(startDateMilliseconds, endDateMilliseconds, utilityUsageThreshold) {
+            var params = {"params" : {"startDateMilliseconds": startDateMilliseconds, "endDateMilliseconds": endDateMilliseconds,
+                "utilityUsageThreshold": utilityUsageThreshold}};
+
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/protectPlusKpi/period', params)
+                .then(
+                    function(response) {
+                        return response.data
+                    }
+                );
+        }
+
+        function getProtectPlusKpiTrendReport(month, storeId, includeStoreRows) {
+            var params = {"params" : {"month": month, "storeId": storeId, "includeStoreRows": includeStoreRows}};
+
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/sale/protectPlusKpi/trend', params)
                 .then(
                     function(response) {
                         return response.data

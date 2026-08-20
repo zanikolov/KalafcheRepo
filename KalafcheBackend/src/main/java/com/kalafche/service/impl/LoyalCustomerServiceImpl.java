@@ -51,6 +51,8 @@ public class LoyalCustomerServiceImpl implements LoyalCustomerService {
 
 	@Override
 	public void updateLoyalCustomer(LoyalCustomer loyalCustomer) {
+		loyalCustomer.setLastUpdateTimestamp(dateService.getCurrentMillisBGTimezone());
+		loyalCustomer.setUpdatedById(employeeService.getLoggedInEmployee().getId());
 		loyalCustomerDao.updateLoyalCustomer(loyalCustomer);
 	}
 	

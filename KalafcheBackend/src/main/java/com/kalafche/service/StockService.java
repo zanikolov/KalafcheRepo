@@ -15,31 +15,31 @@ import com.kalafche.service.fileutil.StickerPDFGeneratorService;
 
 @Service
 public class StockService {
-	
+
 	@Autowired
 	StockDaoImpl stockDao;
-	
+
 	@Autowired
 	StockOrderDao stockOrderDao;
-	
+
 	@Autowired
 	StickerPDFGeneratorService pdfGeneratorService;
 
 	@Autowired
 	InStockExcelReportService inStockExcelReportService;
-	
-	public void updateTheQuantitiyOfSoldStock(int itemId, int storeId) {				
+
+	public void updateTheQuantitiyOfSoldStock(int itemId, int storeId) {
 		stockDao.updateTheQuantitiyOfSoldStock(itemId, storeId);
 	}
-	
-	public void updateTheQuantitiyOfRefundStock(Integer saleItemId, int storeId) {				
+
+	public void updateTheQuantitiyOfRefundStock(Integer saleItemId, int storeId) {
 		stockDao.updateTheQuantitiyOfRefundStock(saleItemId, storeId);
 	}
-	
-	public void updateTheQuantitiyOfRevisedStock(Integer itemId, Integer revisionId, Integer difference) {				
+
+	public void updateTheQuantitiyOfRevisedStock(Integer itemId, Integer revisionId, Integer difference) {
 		stockDao.updateTheQuantitiyOfRevisedStock(itemId, revisionId, difference);
 	}
-	
+
 	public List<Stock> generateStockReport() {
 		StockOrder stockOrder;
 		int stockOrderId = 0;
@@ -50,9 +50,9 @@ public class StockService {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		List<Stock> stockList = stockDao.getAllStocksForReport(stockOrderId);
-		
+
 		return stockList;
 	}
 
@@ -65,8 +65,12 @@ public class StockService {
 	}
 
 	public byte[] printStockStickersByStoreId(Integer storeId) {
+		return printStockStickersByStoreId(storeId, false);
+	}
+
+	public byte[] printStockStickersByStoreId(Integer storeId, boolean euroOnly) {
 		List<Stock> stocks = stockDao.getAllApprovedStocksForStickerPrinting(storeId);
-		return pdfGeneratorService.generateFullStickers(stocks);
+		return pdfGeneratorService.generateFullStickers(stocks, euroOnly);
 	}
 
 	public List<Stock> getAllApprovedStocks(Integer userStoreId, Integer selectedStoreId, Integer deviceBrandId, Integer deviceModelId, String productCodes, String barcode, Boolean showZeroInStocks) {
@@ -74,12 +78,16 @@ public class StockService {
 	}
 
 	public byte[] printStockStickersV2ByStoreId(Integer storeId) {
-		List<Stock> stocks = stockDao.getAllApprovedStocksForStickerPrinting(storeId);
-		return pdfGeneratorService.generatePartialStickers(stocks);
+		return printStockStickersV2ByStoreId(storeId, false);
 	}
 
-	public byte[] printInStockExcel(List<Stock> stocks) {
+	public byte[] printStockStickersV2ByStoreId(Integer storeId, boolean euroOnly) {
+		List<Stock> stocks = stockDao.getAllApprovedStocksForStickerPrinting(storeId);
+		return pdfGeneratorService.generatePartialStickers(stocks, euroOnly);
+	}
+
+	public byte[] generateInStockExcel(List<Stock> stocks) {
 		return inStockExcelReportService.generateExcel(stocks);
 	}
-	
+
 }

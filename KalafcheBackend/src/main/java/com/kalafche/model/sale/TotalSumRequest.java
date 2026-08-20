@@ -13,5 +13,6 @@ public class TotalSumRequest {
 	private List<SaleItem> selectedSaleItems;
 	private BigDecimal paid;
 	private String currency;
+	private Integer protectPlusCertificateId;
 	
 }

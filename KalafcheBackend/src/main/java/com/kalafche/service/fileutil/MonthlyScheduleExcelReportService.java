@@ -30,22 +30,22 @@ import com.kalafche.model.schedule.WorkingShift;
 @Service
 public class MonthlyScheduleExcelReportService {
 	
-	private String CONSENT = "Запознах се с графика.";
-	private static XSSFWorkbook workbook;
-	private static Font calibriFont;
-	private static CellStyle titleCellStyle;
-	private static CellStyle storeCellStyle;
-	private static CellStyle defaultCellStyleWithBorder;
-	private static CellStyle defaultCellStyle;
-	private static CellStyle totalsCellStyle;
-	private static CellStyle totalsHeaderCellStyle;
-	private static CellStyle orangeDayCellStyle;
-	private static CellStyle goldDayCellStyle;
-	private static CellStyle blueDayCellStyle;
-	private static CellStyle defaultDayCellStyle;
-	private static CellStyle legendTableHeaderCellStyle;
+	private static final String CONSENT = "Запознах се с графика.";
+	private XSSFWorkbook workbook;
+	private Font calibriFont;
+	private CellStyle titleCellStyle;
+	private CellStyle storeCellStyle;
+	private CellStyle defaultCellStyleWithBorder;
+	private CellStyle defaultCellStyle;
+	private CellStyle totalsCellStyle;
+	private CellStyle totalsHeaderCellStyle;
+	private CellStyle orangeDayCellStyle;
+	private CellStyle goldDayCellStyle;
+	private CellStyle blueDayCellStyle;
+	private CellStyle defaultDayCellStyle;
+	private CellStyle legendTableHeaderCellStyle;
 	
-	public byte[] createMonthlyScheduleReportExcel(List<MonthlySchedule> monthlySchedules, List<DayDto> days, List<WorkingShift> workingShifts, Integer month,
+	public synchronized byte[] createMonthlyScheduleReportExcel(List<MonthlySchedule> monthlySchedules, List<DayDto> days, List<WorkingShift> workingShifts, Integer month,
 			Integer year, boolean isPresentFormReport) {
 		workbook = new XSSFWorkbook();
 		XSSFSheet sheet = workbook.createSheet(isPresentFormReport ? "Присъствена форма " : "График " + month + "-" + year);
@@ -64,7 +64,7 @@ public class MonthlyScheduleExcelReportService {
 			createConsentArea(monthlySchedules, rowNum, sheet);
 		}
 		
-		fitColumnsWidth(days.size() + 7, sheet);
+			setColumnsWidth(days.size() + 7, sheet, monthlySchedules);
 
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
 		try {
@@ -158,18 +158,20 @@ public class MonthlyScheduleExcelReportService {
 		return rowNum;
 	}	
 
-	private  static CellStyle initializeDefaultCellWithBorderStyle() {
+	private CellStyle initializeDefaultCellWithBorderStyle() {
 		CellStyle cellStyle = workbook.createCellStyle();
 		cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+		cellStyle.setWrapText(true);
 		setBorder(cellStyle);
 		cellStyle.setFont(calibriFont);
 		
 		return cellStyle;
 	}
 	
-	private static CellStyle initializeDefaultCellStyle() {
+	private CellStyle initializeDefaultCellStyle() {
 		CellStyle cellStyle = workbook.createCellStyle();
 		cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+		cellStyle.setWrapText(true);
 		cellStyle.setFont(calibriFont);
 		
 		return cellStyle;
@@ -196,7 +198,7 @@ public class MonthlyScheduleExcelReportService {
 		return rowNum;
 	}
 
-	private static CellStyle initializeLegendTableHeaderStyle() {
+	private CellStyle initializeLegendTableHeaderStyle() {
 		CellStyle headerCellStyle = initializeDefaultCellWithBorderStyle();
 		headerCellStyle.setFillForegroundColor(IndexedColors.LIGHT_YELLOW.getIndex());
 		headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -206,13 +208,53 @@ public class MonthlyScheduleExcelReportService {
 		return headerCellStyle;
 	}
 
-	private void fitColumnsWidth(int columnsCount, XSSFSheet sheet) {
+	private void setColumnsWidth(int columnsCount, XSSFSheet sheet, List<MonthlySchedule> monthlySchedules) {
 		for (int i = 0; i < columnsCount; i++) {
-			sheet.autoSizeColumn(i, true);
+			sheet.setColumnWidth(i, getColumnWidth(i, columnsCount, monthlySchedules) * 256);
 		}
 	}
 
-	private static Font initializeFont() {
+	private int getColumnWidth(int columnIndex, int columnsCount, List<MonthlySchedule> monthlySchedules) {
+		if (columnIndex == 0) {
+			return getStoreColumnWidth(monthlySchedules);
+		}
+		if (columnIndex == 1) {
+			return getEmployeeColumnWidth(monthlySchedules);
+		}
+		if (columnIndex >= columnsCount - 5) {
+			return 10;
+		}
+		return 6;
+	}
+
+	private int getStoreColumnWidth(List<MonthlySchedule> monthlySchedules) {
+		int maxLength = "Магазин".length();
+		for (MonthlySchedule monthlySchedule : monthlySchedules) {
+			maxLength = Math.max(maxLength, getLength(monthlySchedule.getStoreName()));
+			maxLength = Math.max(maxLength, getLength(monthlySchedule.getCompanyName()));
+		}
+		return clampColumnWidth(maxLength + 2, 18, 45);
+	}
+
+	private int getEmployeeColumnWidth(List<MonthlySchedule> monthlySchedules) {
+		int maxLength = "Служител".length();
+		for (MonthlySchedule monthlySchedule : monthlySchedules) {
+			for (EmployeeHours employeeHours : monthlySchedule.getEmployeesHours()) {
+				maxLength = Math.max(maxLength, getLength(employeeHours.getEmployee().getName()));
+			}
+		}
+		return clampColumnWidth(maxLength + 2, 18, 45);
+	}
+
+	private int getLength(String value) {
+		return value == null ? 0 : value.length();
+	}
+
+	private int clampColumnWidth(int width, int minWidth, int maxWidth) {
+		return Math.max(minWidth, Math.min(width, maxWidth));
+	}
+
+	private Font initializeFont() {
 		Font calibriFont = workbook.createFont();
 		calibriFont.setFontHeightInPoints((byte)9);
 		calibriFont.setFontName("Calibri");
@@ -267,7 +309,7 @@ public class MonthlyScheduleExcelReportService {
 		}
 	}
 	
-	private static CellStyle initializeOrangeDayCellStyle() {
+	private CellStyle initializeOrangeDayCellStyle() {
 		CellStyle totalsCellStyle = createCenterCellStyle();
 		totalsCellStyle.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.getIndex());
 		totalsCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -275,7 +317,7 @@ public class MonthlyScheduleExcelReportService {
 		return totalsCellStyle;
 	}
 	
-	private static CellStyle initializeGoldDayCellStyle() {
+	private CellStyle initializeGoldDayCellStyle() {
 		CellStyle totalsCellStyle = createCenterCellStyle();
 		totalsCellStyle.setFillForegroundColor(IndexedColors.GOLD.getIndex());
 		totalsCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -283,7 +325,7 @@ public class MonthlyScheduleExcelReportService {
 		return totalsCellStyle;
 	}
 	
-	private static CellStyle initializeBlueDayCellStyle() {
+	private CellStyle initializeBlueDayCellStyle() {
 		CellStyle totalsCellStyle = createCenterCellStyle();
 		totalsCellStyle.setFillForegroundColor(IndexedColors.SKY_BLUE.getIndex());
 		totalsCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -291,16 +333,17 @@ public class MonthlyScheduleExcelReportService {
 		return totalsCellStyle;
 	}
 	
-	private static CellStyle initializeDefaultDayCellStyle() {
+	private CellStyle initializeDefaultDayCellStyle() {
 		CellStyle totalsCellStyle = createCenterCellStyle();
 		
 		return totalsCellStyle;
 	}	
 	
-	private static CellStyle createCenterCellStyle() {
+	private CellStyle createCenterCellStyle() {
 		CellStyle cellStyle = workbook.createCellStyle();
 		cellStyle.setAlignment(HorizontalAlignment.CENTER);
 		cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+		cellStyle.setWrapText(true);
 		cellStyle.setFont(calibriFont);
 		setBorder(cellStyle);
 		
@@ -358,7 +401,7 @@ public class MonthlyScheduleExcelReportService {
 		return rowNum;
 	}
 
-	private static CellStyle initializeTotalsCellStyle() {
+	private CellStyle initializeTotalsCellStyle() {
 		CellStyle totalsCellStyle = createCenterCellStyle();
 
 		totalsCellStyle.setFont(calibriFont);
@@ -366,7 +409,7 @@ public class MonthlyScheduleExcelReportService {
 		return totalsCellStyle;
 	}
 	
-	private static CellStyle initializeTotalsHeaderCellStyle() {
+	private CellStyle initializeTotalsHeaderCellStyle() {
 		CellStyle totalsCellStyle = createCenterCellStyle();
 		totalsCellStyle.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
 		totalsCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -389,9 +432,10 @@ public class MonthlyScheduleExcelReportService {
 		storeCell.setCellStyle(storeCellStyle);
 	}
 
-	private static CellStyle initializeStoreCellStyle() {
+	private CellStyle initializeStoreCellStyle() {
 		CellStyle storeCellStyle = workbook.createCellStyle();
 		storeCellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+		storeCellStyle.setWrapText(true);
 		
 		storeCellStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
 		storeCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
@@ -425,10 +469,11 @@ public class MonthlyScheduleExcelReportService {
 		titleCell.setCellStyle(titleCellStyle);
 	}
 
-	private static CellStyle initializeTitleCellStyle() {
+	private CellStyle initializeTitleCellStyle() {
 		CellStyle cellStyle = workbook.createCellStyle();
 		cellStyle.setAlignment(HorizontalAlignment.CENTER);
 		cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+		cellStyle.setWrapText(true);
 
 		Font newFont = workbook.createFont();
 		newFont.setFontHeightInPoints((short) 18);

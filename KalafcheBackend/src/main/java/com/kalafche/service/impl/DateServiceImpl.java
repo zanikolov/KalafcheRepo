@@ -92,6 +92,57 @@ public class DateServiceImpl implements DateService {
 		
 		return monthInMillis;
 	}
+
+	@Override
+	public PeriodInMillis getMonthInMillis(Integer year, Integer monthNumber, Integer day) {
+		Calendar startDate = Calendar.getInstance(TimeZone.getTimeZone("Europe/Sofia"));
+		startDate.set(Calendar.YEAR, year);
+		startDate.set(Calendar.MONTH, monthNumber);
+		startDate.set(Calendar.DAY_OF_MONTH, 1);
+		startDate.set(Calendar.HOUR_OF_DAY, 0);
+		startDate.set(Calendar.MINUTE, 0);
+		startDate.set(Calendar.SECOND, 0);
+		startDate.set(Calendar.MILLISECOND, 0);
+
+		Calendar endDate = Calendar.getInstance(TimeZone.getTimeZone("Europe/Sofia"));
+		endDate.set(Calendar.YEAR, year);
+		endDate.set(Calendar.MONTH, monthNumber);
+		if (endDate.getActualMaximum(Calendar.DAY_OF_MONTH) < day) {
+			endDate.set(Calendar.DAY_OF_MONTH, endDate.getActualMaximum(Calendar.DAY_OF_MONTH));
+		} else {
+			endDate.set(Calendar.DAY_OF_MONTH, day);
+		}
+		endDate.set(Calendar.HOUR_OF_DAY, 23);
+		endDate.set(Calendar.MINUTE, 59);
+		endDate.set(Calendar.SECOND, 59);
+		endDate.set(Calendar.MILLISECOND, 999);
+
+		return new PeriodInMillis(startDate.getTimeInMillis(), endDate.getTimeInMillis());
+	}
+
+	@Override
+	public PeriodInMillis getFullMonthInMillis(Integer year, Integer monthNumber) {
+		PeriodInMillis monthInMillis = new PeriodInMillis();
+		Calendar month = Calendar.getInstance(TimeZone.getTimeZone("Europe/Sofia"));
+		month.set(Calendar.YEAR, year);
+		month.set(Calendar.MONTH, monthNumber);
+
+		month.set(Calendar.DATE, 1);
+		month.set(Calendar.HOUR_OF_DAY, 0);
+		month.set(Calendar.MINUTE, 0);
+		month.set(Calendar.SECOND, 0);
+		month.set(Calendar.MILLISECOND, 0);
+		monthInMillis.setStartDateTime(month.getTimeInMillis());
+
+		month.set(Calendar.DATE, month.getActualMaximum(Calendar.DAY_OF_MONTH));
+		month.set(Calendar.HOUR_OF_DAY, 23);
+		month.set(Calendar.MINUTE, 59);
+		month.set(Calendar.SECOND, 59);
+		month.set(Calendar.MILLISECOND, 999);
+		monthInMillis.setEndDateTime(month.getTimeInMillis());
+
+		return monthInMillis;
+	}
 	
 	@Override
 	public PeriodInMillis getPeriodInMillis(Integer monthShift, Integer startDay, Integer endDay) {
@@ -157,6 +208,24 @@ public class DateServiceImpl implements DateService {
         zonedDateTime = zonedDateTime.minusYears(1);
         
         return zonedDateTime.toEpochSecond() * 1000;
+	}
+
+	@Override
+	public long addMonthsInMillisBGTimezone(long millisTimestamp, int months) {
+		Instant instant = Instant.ofEpochMilli(millisTimestamp);
+		ZonedDateTime zonedDateTime = instant.atZone(ZoneId.of("Europe/Sofia"));
+		zonedDateTime = zonedDateTime.plusMonths(months);
+
+		return zonedDateTime.toEpochSecond() * 1000;
+	}
+
+	@Override
+	public long endOfDayInMillisBGTimezone(long millisTimestamp) {
+		Instant instant = Instant.ofEpochMilli(millisTimestamp);
+		ZonedDateTime zonedDateTime = instant.atZone(ZoneId.of("Europe/Sofia"));
+		zonedDateTime = zonedDateTime.withHour(23).withMinute(59).withSecond(59).withNano(999000000);
+
+		return zonedDateTime.toInstant().toEpochMilli();
 	}
 	
 }

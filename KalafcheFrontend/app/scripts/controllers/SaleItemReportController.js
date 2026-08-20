@@ -27,7 +27,9 @@ angular.module('kalafcheFrontendApp')
             $scope.selectedStore = {};
             $scope.selectedProductType = {};
             $scope.selectedMasterProductType = {};
-            $scope.productCode = "";
+	        $scope.productCode = "";
+	        $scope.onlyUnknownSoldForDeviceModel = false;
+	        $scope.onlyProtectPlusApplied = false;
             
             $scope.dateFormat = 'dd-MMMM-yyyy';
             $scope.startDate = {};
@@ -112,7 +114,8 @@ angular.module('kalafcheFrontendApp')
         function getSaleItems() {
             SaleService.searchSaleItems($scope.startDateMilliseconds, $scope.endDateMilliseconds, $scope.selectedStore.id,
                 $scope.selectedBrand.id, $scope.selectedModel.id, $scope.productCode, $scope.selectedProductType.id, $scope.selectedMasterProductType.id,
-                $scope.priceFrom, $scope.priceTo, $scope.discountCampaignCode).then(function(response) {
+                $scope.priceFrom, $scope.priceTo, $scope.discountCampaignCode, $scope.onlyUnknownSoldForDeviceModel,
+                $scope.onlyProtectPlusApplied).then(function(response) {
                 $scope.report = response;
 
                 if ($scope.selectedModel.id && $scope.productCode) {
@@ -172,15 +175,69 @@ angular.module('kalafcheFrontendApp')
             return ApplicationService.convertEpochToDate(reportTimestamp)
         };
 
-        $scope.filterByProductCode = function() {
-            var productCodesString = $scope.productCode;
-            var productCodes = productCodesString.split(" ");
-            return function predicateFunc(sale) {
-                return productCodes.indexOf(sale.productCode) !== -1 ;
-            };
-        };
+	        $scope.filterByProductCode = function() {
+	            var productCodesString = $scope.productCode;
+	            var productCodes = productCodesString.split(" ");
+	            return function predicateFunc(sale) {
+	                return productCodes.indexOf(sale.productCode) !== -1 ;
+	            };
+	        };
 
-        $scope.resetCurrentPage = function() {
+	        $scope.startSoldForDeviceModelEdit = function(saleItem) {
+	            saleItem.soldForDeviceModelEdit = {
+	                brandId: getDeviceBrandId(saleItem.soldForDeviceModelId),
+	                deviceModelId: saleItem.soldForDeviceModelId
+	            };
+	        };
+
+	        $scope.cancelSoldForDeviceModelEdit = function(saleItem) {
+	            saleItem.soldForDeviceModelEdit = null;
+	        };
+
+	        $scope.updateSoldForDeviceModel = function(saleItem) {
+	            SaleService.updateSaleItemSoldForDeviceModel(saleItem.id, saleItem.soldForDeviceModelEdit.deviceModelId)
+	                .then(function() {
+	                    var model = getDeviceModel(saleItem.soldForDeviceModelEdit.deviceModelId);
+	                    saleItem.soldForDeviceModelId = model.id;
+	                    saleItem.soldForDeviceModelName = getDeviceBrandName(model.deviceBrandId) + ' ' + model.name;
+	                    saleItem.soldForDeviceModelUnknown = model.unknownModel === true;
+	                    saleItem.saleDescriptionVisible = false;
+	                    saleItem.soldForDeviceModelEdit = null;
+	                });
+	        };
+
+	        $scope.toggleSaleDescription = function(saleItem) {
+	            saleItem.saleDescriptionVisible = !saleItem.saleDescriptionVisible;
+	        };
+
+	        function getDeviceBrandId(deviceModelId) {
+	            var model = getDeviceModel(deviceModelId);
+	            return model ? model.deviceBrandId : null;
+	        }
+
+	        function getDeviceModel(deviceModelId) {
+	            var selectedModel = null;
+	            angular.forEach($scope.models, function(model) {
+	                if (model.id == deviceModelId) {
+	                    selectedModel = model;
+	                }
+	            });
+
+	            return selectedModel;
+	        }
+
+	        function getDeviceBrandName(deviceBrandId) {
+	            var selectedBrandName = '';
+	            angular.forEach($scope.brands, function(brand) {
+	                if (brand.id == deviceBrandId) {
+	                    selectedBrandName = brand.name;
+	                }
+	            });
+
+	            return selectedBrandName;
+	        }
+
+	        $scope.resetCurrentPage = function() {
             $scope.currentPage = 1;
         };
 
@@ -214,4 +271,3 @@ angular.module('kalafcheFrontendApp')
         }
 
     };
-
