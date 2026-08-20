@@ -48,12 +48,14 @@ public class StockController {
 	}
 
 	@GetMapping("/printStickers/{storeId}")
-	public ResponseEntity<byte[]> printStockStickersByStoreId(@PathVariable(value = "storeId") Integer storeId) {
+	public ResponseEntity<byte[]> printStockStickersByStoreId(
+			@PathVariable(value = "storeId") Integer storeId,
+			@RequestParam(value = "euroOnly", required = false) Boolean euroOnly) {
 
 		byte[] pdfBytes = new byte[1];
 
 		if (storeId != null && storeId != 0) {
-			pdfBytes = stockService.printStockStickersByStoreId(storeId);
+			pdfBytes = stockService.printStockStickersByStoreId(storeId, Boolean.TRUE.equals(euroOnly));
 		}
 
 	    HttpHeaders headers = new HttpHeaders();
@@ -67,12 +69,14 @@ public class StockController {
 	}
 
 	@GetMapping("/printStickers/v2/{storeId}")
-	public ResponseEntity<byte[]> printStockStickersV2ByStoreId(@PathVariable(value = "storeId") Integer storeId) {
+	public ResponseEntity<byte[]> printStockStickersV2ByStoreId(
+			@PathVariable(value = "storeId") Integer storeId,
+			@RequestParam(value = "euroOnly", required = false) Boolean euroOnly) {
 
 		byte[] pdfBytes = new byte[1];
 
 		if (storeId != null && storeId != 0) {
-			pdfBytes = stockService.printStockStickersV2ByStoreId(storeId);
+			pdfBytes = stockService.printStockStickersV2ByStoreId(storeId, Boolean.TRUE.equals(euroOnly));
 		}
 
 		HttpHeaders headers = new HttpHeaders();

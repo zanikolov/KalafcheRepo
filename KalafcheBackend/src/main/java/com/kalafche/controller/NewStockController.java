@@ -80,8 +80,10 @@ public class NewStockController {
 	}
 		
 	@GetMapping("/print/{storeId}")
-	public ResponseEntity<byte[]> printNewStockStickers(@PathVariable(value = "storeId") Integer storeId) {
-		byte[] pdfBytes = newStockService.printNewStockStickers(storeId);
+	public ResponseEntity<byte[]> printNewStockStickers(
+			@PathVariable(value = "storeId") Integer storeId,
+			@RequestParam(value = "euroOnly", required = false) Boolean euroOnly) {
+		byte[] pdfBytes = newStockService.printNewStockStickers(storeId, Boolean.TRUE.equals(euroOnly));
 
 	    HttpHeaders headers = new HttpHeaders();
 	    headers.setContentType(MediaType.parseMediaType("application/pdf"));
@@ -94,8 +96,10 @@ public class NewStockController {
 	}
 	
 	@GetMapping("/print/v2/{storeId}")
-	public ResponseEntity<byte[]> printNewStockPartialStickers(@PathVariable(value = "storeId") Integer storeId) {
-		byte[] pdfBytes = newStockService.printNewStockPartialStickers(storeId);
+	public ResponseEntity<byte[]> printNewStockPartialStickers(
+			@PathVariable(value = "storeId") Integer storeId,
+			@RequestParam(value = "euroOnly", required = false) Boolean euroOnly) {
+		byte[] pdfBytes = newStockService.printNewStockPartialStickers(storeId, Boolean.TRUE.equals(euroOnly));
 		
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.parseMediaType("application/pdf"));

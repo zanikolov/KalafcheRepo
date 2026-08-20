@@ -30,5 +30,9 @@ public interface DateService {
 
 	public PeriodInMillis getMonthInMillis(Integer monthShift);
 
+	public PeriodInMillis getMonthInMillis(Integer year, Integer month, Integer day);
+
+	public PeriodInMillis getFullMonthInMillis(Integer year, Integer month);
+
 	PeriodInMillis getPeriodInMillis(Integer monthShift, Integer startDay, Integer endDay);
 }

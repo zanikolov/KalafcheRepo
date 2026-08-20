@@ -104,7 +104,7 @@
                                         <td style="width:8%;">{{saleItem.salePrice}}€</td>
                                         <td style="width:8%;">{{saleItem.bonusPts}}т.</td>
                                         <td style="width:8%;">
-                                            <a href="" ng-if="!saleItem.isRefunded" ng-click="openRefundModal(saleItem)">
+                                            <a href="" ng-if="canRefundSaleItem(saleItem)" ng-click="openRefundModal(saleItem)">
                                                 <md-icon class="primary-icon" md-svg-src="images/icons/arrow_back.svg"></md-icon>
                                             </a>
                                         </td>

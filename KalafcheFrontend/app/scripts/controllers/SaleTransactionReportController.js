@@ -140,7 +140,14 @@ angular.module('kalafcheFrontendApp')
             return AuthService.isUser();
         }
 
+        $scope.canRefundSaleItem = function(saleItem) {
+            return saleItem && !saleItem.isRefunded && saleItem.productCode !== '0500';
+        };
+
         $scope.openRefundModal = function(saleItem) {
+            if (!$scope.canRefundSaleItem(saleItem)) {
+                return;
+            }
             $scope.selectedSaleItem = saleItem;
             $mdDialog.show({
               locals:{selectedSaleItem: $scope.selectedSaleItem},

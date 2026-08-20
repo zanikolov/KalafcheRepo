@@ -7,6 +7,8 @@ angular.module('kalafcheFrontendApp')
             getAllInStockForReport: getAllInStockForReport,
             printStickersForStocks: printStickersForStocks,
             printStickersForStocksV2: printStickersForStocksV2,
+            printEuroOnlyStickersForStocks: printEuroOnlyStickersForStocks,
+            printEuroOnlyStickersForStocksV2: printEuroOnlyStickersForStocksV2,
             printInStocks: printInStocks
 
 		});
@@ -48,6 +50,22 @@ angular.module('kalafcheFrontendApp')
           );
     }
 
+    function printEuroOnlyStickersForStocks(storeId) {
+      return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock/printStickers/' + storeId, {
+          responseType: "blob",
+          params: {
+            euroOnly: true
+          }
+      })
+          .then(
+              function(response) {
+                console.log(response.data);
+                  var blob = new Blob([response.data], {type: "application/pdf"});
+                  FileSaver.saveAs(blob, 'Етикети наличност EUR.pdf')
+              }
+          );
+    }
+
     function printStickersForStocksV2(storeId) {
       return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock/printStickers/v2/' + storeId, {responseType: "blob"})
           .then(
@@ -55,6 +73,22 @@ angular.module('kalafcheFrontendApp')
                 console.log(response.data);
                   var blob = new Blob([response.data], {type: "application/pdf"});
                   FileSaver.saveAs(blob, 'Етикети наличност V2.pdf')
+              }
+          );
+    }
+
+    function printEuroOnlyStickersForStocksV2(storeId) {
+      return $http.get(Environment.apiEndpoint + '/KalafcheBackend/stock/printStickers/v2/' + storeId, {
+          responseType: "blob",
+          params: {
+            euroOnly: true
+          }
+      })
+          .then(
+              function(response) {
+                console.log(response.data);
+                  var blob = new Blob([response.data], {type: "application/pdf"});
+                  FileSaver.saveAs(blob, 'Етикети наличност V2 EUR.pdf')
               }
           );
     }

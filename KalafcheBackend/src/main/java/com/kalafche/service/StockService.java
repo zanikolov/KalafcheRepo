@@ -65,8 +65,12 @@ public class StockService {
 	}
 
 	public byte[] printStockStickersByStoreId(Integer storeId) {
+		return printStockStickersByStoreId(storeId, false);
+	}
+
+	public byte[] printStockStickersByStoreId(Integer storeId, boolean euroOnly) {
 		List<Stock> stocks = stockDao.getAllApprovedStocksForStickerPrinting(storeId);
-		return pdfGeneratorService.generateFullStickers(stocks);
+		return pdfGeneratorService.generateFullStickers(stocks, euroOnly);
 	}
 
 	public List<Stock> getAllApprovedStocks(Integer userStoreId, Integer selectedStoreId, Integer deviceBrandId, Integer deviceModelId, String productCodes, String barcode, Boolean showZeroInStocks) {
@@ -74,8 +78,12 @@ public class StockService {
 	}
 
 	public byte[] printStockStickersV2ByStoreId(Integer storeId) {
+		return printStockStickersV2ByStoreId(storeId, false);
+	}
+
+	public byte[] printStockStickersV2ByStoreId(Integer storeId, boolean euroOnly) {
 		List<Stock> stocks = stockDao.getAllApprovedStocksForStickerPrinting(storeId);
-		return pdfGeneratorService.generatePartialStickers(stocks);
+		return pdfGeneratorService.generatePartialStickers(stocks, euroOnly);
 	}
 
 	public byte[] generateInStockExcel(List<Stock> stocks) {

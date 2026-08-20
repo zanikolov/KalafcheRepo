@@ -13,6 +13,8 @@ angular.module('kalafcheFrontendApp')
             approveAllNewStocks: approveAllNewStocks,
             printStickersForNewStocks: printStickersForNewStocks,
             printStickersForNewStocksV2: printStickersForNewStocksV2,
+            printEuroOnlyStickersForNewStocks: printEuroOnlyStickersForNewStocks,
+            printEuroOnlyStickersForNewStocksV2: printEuroOnlyStickersForNewStocksV2,
             relocateNewStocks: relocateNewStocks
 		});
 
@@ -81,12 +83,42 @@ angular.module('kalafcheFrontendApp')
                 ); 
         }
 
+        function printEuroOnlyStickersForNewStocks(storeId) {
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/newStock/print/' + storeId, {
+                responseType: "arraybuffer",
+                params: {
+                    euroOnly: true
+                }
+            })
+                .then(
+                    function(response) {
+                        var blob = new Blob([response.data], {type: "application/pdf"});
+                        FileSaver.saveAs(blob, 'Етикети за нова стока EUR.pdf')
+                    }
+                ); 
+        }
+
         function printStickersForNewStocksV2(storeId) {
             return $http.get(Environment.apiEndpoint + '/KalafcheBackend/newStock/print/v2/' + storeId, {responseType: "arraybuffer"})
                 .then(
                     function(response) {
                         var blob = new Blob([response.data], {type: "application/pdf"});
                         FileSaver.saveAs(blob, 'Етикети за нова стока V2.pdf')
+                    }
+                ); 
+        }
+
+        function printEuroOnlyStickersForNewStocksV2(storeId) {
+            return $http.get(Environment.apiEndpoint + '/KalafcheBackend/newStock/print/v2/' + storeId, {
+                responseType: "arraybuffer",
+                params: {
+                    euroOnly: true
+                }
+            })
+                .then(
+                    function(response) {
+                        var blob = new Blob([response.data], {type: "application/pdf"});
+                        FileSaver.saveAs(blob, 'Етикети за нова стока V2 EUR.pdf')
                     }
                 ); 
         }

@@ -104,8 +104,22 @@ angular.module('kalafcheFrontendApp')
                 );     
         };
 
+        $scope.printEuroOnlyStickersForNewStocks = function() {
+            NewStockService.printEuroOnlyStickersForNewStocks($scope.selectedStore.id).then(
+                    function(response) {
+                    }
+                );     
+        };
+
         $scope.printStickersForNewStocksV2 = function() {
             NewStockService.printStickersForNewStocksV2($scope.selectedStore.id).then(
+                    function(response) {
+                    }
+                );     
+        };
+
+        $scope.printEuroOnlyStickersForNewStocksV2 = function() {
+            NewStockService.printEuroOnlyStickersForNewStocksV2($scope.selectedStore.id).then(
                     function(response) {
                     }
                 );     

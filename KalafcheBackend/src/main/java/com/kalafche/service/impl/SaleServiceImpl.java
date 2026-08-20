@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.SQLException;
 import java.time.YearMonth;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Comparator;
@@ -38,8 +39,11 @@ import com.kalafche.model.discount.DiscountCode;
 import com.kalafche.model.employee.Employee;
 import com.kalafche.model.product.Item;
 import com.kalafche.model.protectplus.ProtectPlusCertificate;
+import com.kalafche.model.protectplus.ProtectPlusDiscountPolicy;
 import com.kalafche.model.sale.PastPeriodSaleReport;
 import com.kalafche.model.sale.PastPeriodTurnover;
+import com.kalafche.model.sale.ProtectPlusKpiReport;
+import com.kalafche.model.sale.ProtectPlusKpiRow;
 import com.kalafche.model.sale.Sale;
 import com.kalafche.model.sale.SaleItem;
 import com.kalafche.model.sale.SaleReport;
@@ -55,6 +59,7 @@ import com.kalafche.service.EntityService;
 import com.kalafche.service.SaleService;
 import com.kalafche.service.StockService;
 import com.kalafche.service.ProtectPlusCertificateService;
+import com.kalafche.service.ProtectPlusDiscountPolicyService;
 import com.kalafche.service.fileutil.SplitReportExcelWriterService;
 
 @Service
@@ -96,15 +101,16 @@ public class SaleServiceImpl implements SaleService {
 	@Autowired
 	ProtectPlusCertificateService protectPlusCertificateService;
 
+	@Autowired
+	ProtectPlusDiscountPolicyService protectPlusDiscountPolicyService;
+
 	private static final TimeZone timeZone = TimeZone.getTimeZone("Europe/Sofia");
 
 	private static final BigDecimal ZERO = BigDecimal.ZERO;
 	private static final BigDecimal ONE_HUNDRED = new BigDecimal(100);
-	private static final BigDecimal PROTECT_PLUS_DISCOUNT_PERCENT = new BigDecimal(50);
-	private static final BigDecimal PROTECT_PLUS_OTHER_PRODUCTS_DISCOUNT_PERCENT = new BigDecimal(15);
-	private static final BigDecimal PROTECT_PLUS_FREE_PROTECTOR_DISCOUNT_PERCENT = new BigDecimal(100);
 	private static final String PROTECTOR_MASTER_TYPE = "PROTECTOR";
 	private static final String PROTECT_PLUS_PRODUCT_CODE = "0500";
+	private static final int DEFAULT_PROTECT_PLUS_UTILITY_USAGE_THRESHOLD = 0;
 	private static final String FREE_DISPLAY_REPLACEMENT_SERVICE_PRODUCT_CODE = "90001";
 	private static final String FREE_BATTERY_REPLACEMENT_SERVICE_PRODUCT_CODE = "90002";
 
@@ -127,7 +133,6 @@ public class SaleServiceImpl implements SaleService {
 			sale.setIsInitial(true);
 		} else {
 			Integer transactionId = saleDao.getSaleTransactionId(sale.getReplacementSaleUSI());
-			saleDao.udpateTransaction(transactionId, currentMillis, saleEmployeeId);
 			sale.setTransactionId(transactionId);
 			sale.setIsInitial(false);
 		}
@@ -138,8 +143,8 @@ public class SaleServiceImpl implements SaleService {
 
 		Map<Integer, Item> itemsById = getItemsById(sale.getSaleItems());
 		boolean containsProtectPlusProduct = containsProtectPlusProduct(itemsById);
-		validateRequiredSoldForDeviceModels(sale.getSaleItems(), itemsById);
-		validateProtectPlusSaleRequest(itemsById, containsProtectPlusProduct);
+		validateRequiredSoldForDeviceModels(sale, itemsById);
+		validateProtectPlusSaleRequest(sale, itemsById, containsProtectPlusProduct);
 
 		ProtectPlusCertificate protectPlusCertificate = null;
 		if (sale.getProtectPlusCertificateId() != null) {
@@ -151,7 +156,10 @@ public class SaleServiceImpl implements SaleService {
 		String usi = generateUSI(store.getFdSerialNo(), saleEmployeeId, saleId);
 		saleDao.updateSaleUSI(saleId, usi);
 
-		ProtectPlusDiscountUsage protectPlusDiscountUsage = saveSaleItems(sale, saleId, protectPlusCertificate, itemsById);
+		ProtectPlusDiscountPolicy protectPlusDiscountPolicy = getProtectPlusDiscountPolicy(protectPlusCertificate,
+				currentMillis);
+		ProtectPlusDiscountUsage protectPlusDiscountUsage = saveSaleItems(sale, saleId, protectPlusCertificate,
+				protectPlusDiscountPolicy, itemsById);
 		if (protectPlusCertificate != null) {
 			protectPlusCertificateService.registerCertificateUsage(protectPlusCertificate,
 					protectPlusDiscountUsage.isFreeProtectorUsed(),
@@ -161,8 +169,7 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		if (containsProtectPlusProduct) {
-			protectPlusCertificateService.createPendingCertificateForSale(saleId, sale.getStoreId(), saleEmployeeId,
-					resolvePendingCertificateDeviceModelId(sale.getSaleItems(), itemsById));
+			createPendingCertificatesForSale(sale.getSaleItems(), itemsById, saleId, sale.getStoreId(), saleEmployeeId);
 		}
 
 		Sale insertedSale = saleDao.selectSaleByUniqueSaleId(usi);
@@ -208,25 +215,67 @@ public class SaleServiceImpl implements SaleService {
 		return itemsById.values().stream().anyMatch(this::isProtectPlusProduct);
 	}
 
-	private void validateProtectPlusSaleRequest(Map<Integer, Item> itemsById, boolean containsProtectPlusProduct) {
+	private void validateProtectPlusSaleRequest(Sale sale, Map<Integer, Item> itemsById, boolean containsProtectPlusProduct) {
 		if (containsProtectPlusProduct && !containsProtectorForProtectPlusPurchase(itemsById)) {
 			throw new IllegalArgumentException("protectPlusPurchaseRequiresProtector");
 		}
+		if (containsProtectPlusProduct) {
+			validateProtectPlusCertificateDeviceModels(sale, itemsById);
+		}
 	}
 
-	private void validateRequiredSoldForDeviceModels(List<SaleItem> saleItems, Map<Integer, Item> itemsById) {
-		for (SaleItem saleItem : saleItems) {
+	private void validateRequiredSoldForDeviceModels(Sale sale, Map<Integer, Item> itemsById) {
+		for (SaleItem saleItem : sale.getSaleItems()) {
 			Item item = getItem(saleItem.getItemId(), itemsById);
 			if (Boolean.TRUE.equals(item.getSoldForDeviceModelRequired())
 					&& saleItem.getSoldForDeviceModelId() == null) {
 				throw new IllegalArgumentException("soldForDeviceModelRequired");
 			}
+			if (Boolean.TRUE.equals(item.getSoldForDeviceModelRequired())
+					&& deviceModelDao.isUnknownDeviceModel(saleItem.getSoldForDeviceModelId())
+					&& isBlank(sale.getDescription())) {
+				throw new IllegalArgumentException("soldForUnknownDeviceModelDescriptionRequired");
+			}
 		}
+	}
+
+	private boolean isBlank(String value) {
+		return value == null || value.trim().isEmpty();
 	}
 
 	private boolean containsProtectorForProtectPlusPurchase(Map<Integer, Item> itemsById) {
 		return itemsById.values().stream()
 				.anyMatch(item -> isProtector(item) && !isProtectPlusProduct(item));
+	}
+
+	private void validateProtectPlusCertificateDeviceModels(Sale sale, Map<Integer, Item> itemsById) {
+		List<SaleItem> protectPlusSaleItems = getProtectPlusSaleItems(sale.getSaleItems(), itemsById);
+		Set<Integer> protectorDeviceModelIds = getProtectorDeviceModelIds(sale.getSaleItems(), itemsById);
+
+		if (protectPlusSaleItems.size() > 1 || protectorDeviceModelIds.size() > 1) {
+			for (SaleItem protectPlusSaleItem : protectPlusSaleItems) {
+				Integer soldForDeviceModelId = protectPlusSaleItem.getSoldForDeviceModelId();
+				if (soldForDeviceModelId == null) {
+					throw new IllegalArgumentException("protectPlusSoldForDeviceModelRequired");
+				}
+				if (!protectorDeviceModelIds.contains(soldForDeviceModelId)) {
+					throw new IllegalArgumentException("protectPlusProtectorForDeviceModelRequired");
+				}
+				if (deviceModelDao.isUnknownDeviceModel(soldForDeviceModelId) && isBlank(sale.getDescription())) {
+					throw new IllegalArgumentException("soldForUnknownDeviceModelDescriptionRequired");
+				}
+			}
+		}
+
+		Map<Integer, Long> protectPlusDeviceModelCounts = getProtectPlusDeviceModelCounts(protectPlusSaleItems,
+				protectorDeviceModelIds);
+		Map<Integer, Long> protectorDeviceModelCounts = getProtectorDeviceModelCounts(sale.getSaleItems(), itemsById);
+		for (Map.Entry<Integer, Long> protectPlusDeviceModelCount : protectPlusDeviceModelCounts.entrySet()) {
+			Long protectorCount = protectorDeviceModelCounts.get(protectPlusDeviceModelCount.getKey());
+			if (protectorCount == null || protectorCount < protectPlusDeviceModelCount.getValue()) {
+				throw new IllegalArgumentException("protectPlusProtectorForDeviceModelRequired");
+			}
+		}
 	}
 
 //	private void saveSaleItems(Sale sale, Employee loggedInEmployee, DiscountCode discountCode, Integer saleId) {
@@ -295,10 +344,11 @@ public class SaleServiceImpl implements SaleService {
 //	}
 
 	private ProtectPlusDiscountUsage saveSaleItems(Sale sale, Integer saleId,
-			ProtectPlusCertificate protectPlusCertificate, Map<Integer, Item> itemsById) {
+			ProtectPlusCertificate protectPlusCertificate, ProtectPlusDiscountPolicy protectPlusDiscountPolicy,
+			Map<Integer, Item> itemsById) {
 		List<SaleItem> saleItems = sale.getSaleItems();
 		ProtectPlusDiscountUsage protectPlusDiscountUsage = saveSaleItemsWithoutDiscount(sale, saleId, saleItems,
-				protectPlusCertificate, itemsById);
+				protectPlusCertificate, protectPlusDiscountPolicy, itemsById);
 
 		List<SaleItem> percentageDiscounTypeItems = saleItems.stream()
 				.filter(item -> "PERCENTAGE".equals(item.getDiscountType())).collect(Collectors.toList());
@@ -351,7 +401,7 @@ public class SaleServiceImpl implements SaleService {
 
 					Item item = itemDao.getItem(saleItem.getItemId());
 					saleItem.setBonusPts(item.getProductBonusPts());
-					saleDao.insertSaleItem(saleItem);
+					insertSaleItem(saleItem);
 					stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), sale.getStoreId());
 				}
 			}
@@ -370,7 +420,7 @@ public class SaleServiceImpl implements SaleService {
 			BigDecimal salePrice = calculcateAmountDiscountValuePrice(itemPrice, new BigDecimal(saleItem.getDiscountValue()));
 			saleItem.setSalePrice(salePrice);
 
-			saleDao.insertSaleItem(saleItem);
+			insertSaleItem(saleItem);
 			stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), sale.getStoreId());
 		}
 	}
@@ -387,13 +437,14 @@ public class SaleServiceImpl implements SaleService {
 			BigDecimal salePrice = calculcatePercentageDiscountValuePrice(itemPrice, new BigDecimal(saleItem.getDiscountValue()));
 			saleItem.setSalePrice(salePrice);
 
-			saleDao.insertSaleItem(saleItem);
+			insertSaleItem(saleItem);
 			stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), sale.getStoreId());
 		}
 	}
 
 	private ProtectPlusDiscountUsage saveSaleItemsWithoutDiscount(Sale sale, Integer saleId,
-			List<SaleItem> saleItems, ProtectPlusCertificate protectPlusCertificate, Map<Integer, Item> itemsById) {
+			List<SaleItem> saleItems, ProtectPlusCertificate protectPlusCertificate,
+			ProtectPlusDiscountPolicy protectPlusDiscountPolicy, Map<Integer, Item> itemsById) {
 		ProtectPlusDiscountUsage protectPlusDiscountUsage = new ProtectPlusDiscountUsage(protectPlusCertificate);
 		for (SaleItem saleItem : saleItems) {
 			if (saleItem.getDiscountCode() == null) {
@@ -402,7 +453,8 @@ public class SaleServiceImpl implements SaleService {
 				Item item = getItem(saleItem.getItemId(), itemsById);
 				saleItem.setBonusPts(item.getProductBonusPts());
 				saleItem.setItemPrice(itemPrice);
-				BigDecimal protectPlusDiscountPercent = getProtectPlusDiscountPercent(saleItem, item, protectPlusDiscountUsage);
+				BigDecimal protectPlusDiscountPercent = getProtectPlusDiscountPercent(saleItem, item,
+						protectPlusDiscountUsage, protectPlusDiscountPolicy);
 				if (protectPlusDiscountPercent.compareTo(ZERO) > 0) {
 					saleItem.setSalePrice(calculcatePercentageDiscountValuePrice(itemPrice, protectPlusDiscountPercent));
 					saleItem.setProtectPlusApplied(true);
@@ -411,7 +463,7 @@ public class SaleServiceImpl implements SaleService {
 					saleItem.setProtectPlusApplied(false);
 				}
 
-				saleDao.insertSaleItem(saleItem);
+				insertSaleItem(saleItem);
 				stockService.updateTheQuantitiyOfSoldStock(saleItem.getItemId(), sale.getStoreId());
 			} else {
 				DiscountCode discountCode = discountDao.selectDiscountCode(saleItem.getDiscountCode());
@@ -427,6 +479,12 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		return protectPlusDiscountUsage;
+	}
+
+	private Integer insertSaleItem(SaleItem saleItem) {
+		Integer saleItemId = saleDao.insertSaleItem(saleItem);
+		saleItem.setId(saleItemId);
+		return saleItemId;
 	}
 
 	private BigDecimal calculcateAmountDiscountValuePrice(BigDecimal priceBeforeDiscount, BigDecimal discountValueAmount) {
@@ -447,7 +505,8 @@ public class SaleServiceImpl implements SaleService {
 		return priceBeforeDiscount.multiply(discountValueAmount).divide(ONE_HUNDRED).setScale(2, RoundingMode.HALF_UP);
 	}
 
-	private BigDecimal getProtectPlusDiscountPercent(SaleItem saleItem, Item item, ProtectPlusDiscountUsage protectPlusDiscountUsage) {
+	private BigDecimal getProtectPlusDiscountPercent(SaleItem saleItem, Item item,
+			ProtectPlusDiscountUsage protectPlusDiscountUsage, ProtectPlusDiscountPolicy protectPlusDiscountPolicy) {
 		ProtectPlusCertificate protectPlusCertificate = protectPlusDiscountUsage.getProtectPlusCertificate();
 		if (protectPlusCertificate == null || item == null) {
 			return ZERO;
@@ -455,25 +514,43 @@ public class SaleServiceImpl implements SaleService {
 		if (isFreeDisplayReplacementServiceForCertificate(saleItem, item, protectPlusCertificate)
 				&& protectPlusDiscountUsage.isFreeDisplayReplacementServiceAvailable()) {
 			protectPlusDiscountUsage.markFreeDisplayReplacementServiceUsed();
-			return PROTECT_PLUS_FREE_PROTECTOR_DISCOUNT_PERCENT;
+			return ONE_HUNDRED;
 		}
 		if (isFreeBatteryReplacementServiceForCertificate(saleItem, item, protectPlusCertificate)
 				&& protectPlusDiscountUsage.isFreeBatteryReplacementServiceAvailable()) {
 			protectPlusDiscountUsage.markFreeBatteryReplacementServiceUsed();
-			return PROTECT_PLUS_FREE_PROTECTOR_DISCOUNT_PERCENT;
+			return ONE_HUNDRED;
 		}
 		if (isProtectorForCertificate(saleItem, item, protectPlusCertificate)) {
 			if (protectPlusDiscountUsage.isFreeProtectorAvailable()) {
 				protectPlusDiscountUsage.markFreeProtectorUsed();
-				return PROTECT_PLUS_FREE_PROTECTOR_DISCOUNT_PERCENT;
+				return ONE_HUNDRED;
 			}
+		}
+
+		BigDecimal productSpecificDiscountPercent = protectPlusDiscountPolicy.getProductDiscountPercent(item.getProductId());
+		if (productSpecificDiscountPercent != null) {
+			protectPlusDiscountUsage.markProtectPlusApplied();
+			return productSpecificDiscountPercent;
+		}
+
+		if (isProtectorForCertificate(saleItem, item, protectPlusCertificate)) {
 
 			protectPlusDiscountUsage.markProtectPlusApplied();
-			return PROTECT_PLUS_DISCOUNT_PERCENT;
+			return protectPlusDiscountPolicy.getSameModelProtectorDiscountPercent();
 		}
 
 		protectPlusDiscountUsage.markProtectPlusApplied();
-		return PROTECT_PLUS_OTHER_PRODUCTS_DISCOUNT_PERCENT;
+		return protectPlusDiscountPolicy.getOtherProductsDiscountPercent();
+	}
+
+	private ProtectPlusDiscountPolicy getProtectPlusDiscountPolicy(ProtectPlusCertificate protectPlusCertificate,
+			Long timestamp) {
+		if (protectPlusCertificate == null) {
+			return null;
+		}
+
+		return protectPlusDiscountPolicyService.getActivePolicy(timestamp);
 	}
 
 	private boolean isProtectorForCertificate(SaleItem saleItem, Item item, ProtectPlusCertificate protectPlusCertificate) {
@@ -496,12 +573,14 @@ public class SaleServiceImpl implements SaleService {
 
 	private boolean isFreeDisplayReplacementServiceForCertificate(SaleItem saleItem, Item item,
 			ProtectPlusCertificate protectPlusCertificate) {
-		return isFreeDisplayReplacementService(item) && isForCertificateDeviceModel(saleItem, item, protectPlusCertificate);
+		return isFreeDisplayReplacementService(item)
+				&& isForCertificateDeviceModel(saleItem, item, protectPlusCertificate);
 	}
 
 	private boolean isFreeBatteryReplacementServiceForCertificate(SaleItem saleItem, Item item,
 			ProtectPlusCertificate protectPlusCertificate) {
-		return isFreeBatteryReplacementService(item) && isForCertificateDeviceModel(saleItem, item, protectPlusCertificate);
+		return isFreeBatteryReplacementService(item)
+				&& isForCertificateDeviceModel(saleItem, item, protectPlusCertificate);
 	}
 
 	private boolean isForCertificateDeviceModel(SaleItem saleItem, Item item, ProtectPlusCertificate protectPlusCertificate) {
@@ -518,16 +597,64 @@ public class SaleServiceImpl implements SaleService {
 		return item == null ? null : item.getDeviceModelId();
 	}
 
+	private void createPendingCertificatesForSale(List<SaleItem> saleItems, Map<Integer, Item> itemsById,
+			Integer saleId, Integer storeId, Integer employeeId) {
+		List<SaleItem> protectPlusSaleItems = getProtectPlusSaleItems(saleItems, itemsById);
+		Integer inferredDeviceModelId = resolvePendingCertificateDeviceModelId(saleItems, itemsById);
+
+		for (SaleItem protectPlusSaleItem : protectPlusSaleItems) {
+			Integer deviceModelId = protectPlusSaleItem.getSoldForDeviceModelId() != null
+					? protectPlusSaleItem.getSoldForDeviceModelId()
+					: inferredDeviceModelId;
+			protectPlusCertificateService.createPendingCertificateForSale(saleId, protectPlusSaleItem.getId(), storeId,
+					employeeId, deviceModelId);
+		}
+	}
+
 	private Integer resolvePendingCertificateDeviceModelId(List<SaleItem> saleItems, Map<Integer, Item> itemsById) {
-		Set<Integer> protectorDeviceModelIds = saleItems.stream()
+		Set<Integer> protectorDeviceModelIds = getProtectorDeviceModelIds(saleItems, itemsById);
+
+		return resolveSingleDeviceModelId(protectorDeviceModelIds);
+	}
+
+	private List<SaleItem> getProtectPlusSaleItems(List<SaleItem> saleItems, Map<Integer, Item> itemsById) {
+		return saleItems.stream()
+				.filter(saleItem -> isProtectPlusProduct(getItem(saleItem.getItemId(), itemsById)))
+				.collect(Collectors.toList());
+	}
+
+	private Set<Integer> getProtectorDeviceModelIds(List<SaleItem> saleItems, Map<Integer, Item> itemsById) {
+		return saleItems.stream()
 				.map(saleItem -> {
 					Item item = getItem(saleItem.getItemId(), itemsById);
 					return isProtector(item) && !isProtectPlusProduct(item) ? getEffectiveDeviceModelId(saleItem, item) : null;
 				})
 				.filter(deviceModelId -> deviceModelId != null)
 				.collect(Collectors.toSet());
+	}
 
-		return protectorDeviceModelIds.size() == 1 ? protectorDeviceModelIds.iterator().next() : null;
+	private Map<Integer, Long> getProtectorDeviceModelCounts(List<SaleItem> saleItems, Map<Integer, Item> itemsById) {
+		return saleItems.stream()
+				.map(saleItem -> {
+					Item item = getItem(saleItem.getItemId(), itemsById);
+					return isProtector(item) && !isProtectPlusProduct(item) ? getEffectiveDeviceModelId(saleItem, item) : null;
+				})
+				.filter(deviceModelId -> deviceModelId != null)
+				.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+	}
+
+	private Map<Integer, Long> getProtectPlusDeviceModelCounts(List<SaleItem> protectPlusSaleItems,
+			Set<Integer> protectorDeviceModelIds) {
+		return protectPlusSaleItems.stream()
+				.map(saleItem -> saleItem.getSoldForDeviceModelId() != null
+						? saleItem.getSoldForDeviceModelId()
+						: resolveSingleDeviceModelId(protectorDeviceModelIds))
+				.filter(deviceModelId -> deviceModelId != null)
+				.collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
+	}
+
+	private Integer resolveSingleDeviceModelId(Set<Integer> deviceModelIds) {
+		return deviceModelIds.size() == 1 ? deviceModelIds.iterator().next() : null;
 	}
 
 	private boolean isProtectPlusProduct(Item item) {
@@ -591,15 +718,40 @@ public class SaleServiceImpl implements SaleService {
 	}
 
 	@Override
+	public void updateSaleItemSoldForDeviceModel(Integer saleItemId, Integer deviceModelId) {
+		if (!Boolean.TRUE.equals(employeeService.isLoggedInEmployeeAdmin())) {
+			throw new IllegalArgumentException("adminRoleRequired");
+		}
+		if (saleItemId == null) {
+			throw new IllegalArgumentException("saleItemIdRequired");
+		}
+		if (deviceModelId == null || deviceModelDao.selectDeviceModel(deviceModelId) == null) {
+			throw new DomainObjectNotFoundException("deviceModelId", "Non-existing device model.");
+		}
+
+		saleDao.updateSaleItemSoldForDeviceModel(saleItemId, deviceModelId);
+	}
+
+	@Override
 	public SaleReport searchSaleItems(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
 			String productCode, Integer deviceBrandId, Integer deviceModelId, Integer masterProductTypeId,
 			Integer productTypeId, Float priceFrom, Float priceTo, String discountCampaignCode) {
+		return searchSaleItems(startDateMilliseconds, endDateMilliseconds, storeIds, productCode, deviceBrandId,
+				deviceModelId, masterProductTypeId, productTypeId, priceFrom, priceTo, discountCampaignCode, false, false);
+	}
+
+	@Override
+	public SaleReport searchSaleItems(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
+			String productCode, Integer deviceBrandId, Integer deviceModelId, Integer masterProductTypeId,
+			Integer productTypeId, Float priceFrom, Float priceTo, String discountCampaignCode,
+			Boolean onlyUnknownSoldForDeviceModel, Boolean onlyProtectPlusApplied) {
 		SaleReport saleReport = generateReport(storeIds, startDateMilliseconds, endDateMilliseconds, productCode,
 				deviceBrandId, deviceModelId);
 
 		List<SaleItem> saleItems = saleDao.searchSaleItems(startDateMilliseconds, endDateMilliseconds,
 				entityService.getConcatenatedStoreIdsForFiltering(storeIds), productCode, deviceBrandId, deviceModelId,
-				masterProductTypeId, productTypeId, priceFrom, priceTo, discountCampaignCode);
+				masterProductTypeId, productTypeId, priceFrom, priceTo, discountCampaignCode,
+				onlyUnknownSoldForDeviceModel, onlyProtectPlusApplied);
 
 		if (deviceModelId != null && productCode != null && productCode != "") {
 			saleReport.setWarehouseQuantity(stockService.getQuantitiyOfStockInWH(productCode, deviceModelId));
@@ -707,7 +859,7 @@ public class SaleServiceImpl implements SaleService {
 	    		totalSQS = ZERO;
 	    	}
 	    	if (ZERO.compareTo(totalProtectorCount) < 0 && ZERO.compareTo(totalProtectorPlusCount) < 0) {
-	    		totalAttachRate = totalProtectorPlusCount.divide(totalProtectorCount, 2, RoundingMode.HALF_UP).multiply(ONE_HUNDRED);
+	    		totalAttachRate = calculateProtectPlusKpiPercent(totalProtectorPlusCount, totalProtectorCount);
 	    	} else {
 	    		totalAttachRate = ZERO;
 	    	}
@@ -798,13 +950,16 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		if (request.getProtectPlusCertificateId() != null) {
-			ProtectPlusCertificate protectPlusCertificate = protectPlusCertificateService.validateActiveCertificate(request.getProtectPlusCertificateId());
+			ProtectPlusCertificate protectPlusCertificate = protectPlusCertificateService
+					.validateActiveCertificate(request.getProtectPlusCertificateId());
+			ProtectPlusDiscountPolicy protectPlusDiscountPolicy = getProtectPlusDiscountPolicy(protectPlusCertificate,
+					dateService.getCurrentMillisBGTimezone());
 			ProtectPlusDiscountUsage protectPlusDiscountUsage = new ProtectPlusDiscountUsage(protectPlusCertificate);
 			for (SaleItem selectedSaleItem : selectedSaleItems) {
 				if (selectedSaleItem.getDiscountCode() == null) {
 					Item item = itemDao.getItem(selectedSaleItem.getItemId());
 					BigDecimal protectPlusDiscountPercent = getProtectPlusDiscountPercent(selectedSaleItem, item,
-							protectPlusDiscountUsage);
+							protectPlusDiscountUsage, protectPlusDiscountPolicy);
 					if (protectPlusDiscountPercent.compareTo(ZERO) > 0) {
 						BigDecimal salePrice = calculcatePercentageDiscountValuePrice(selectedSaleItem.getItemPrice(),
 								protectPlusDiscountPercent);
@@ -979,9 +1134,9 @@ public class SaleServiceImpl implements SaleService {
 			report.setSelectedMonthDay(day);
 			report.setSelectedMonthMonth(currentMonth);
 			report.setSelectedMonthYear(currentYear);
-			previousYearPeriodInMillis = getMonthInMillis(currentYear - 1, currentMonth, day);
-			previousMonthPeriodInMillis = getMonthInMillis(previousMonthYear, previousMonthMonth, day);
-			selectedMonthPeriodInMillis = getMonthInMillis(currentYear, currentMonth, day);
+			previousYearPeriodInMillis = dateService.getMonthInMillis(currentYear - 1, currentMonth, day);
+			previousMonthPeriodInMillis = dateService.getMonthInMillis(previousMonthYear, previousMonthMonth, day);
+			selectedMonthPeriodInMillis = dateService.getMonthInMillis(currentYear, currentMonth, day);
 		} else if (selectedMonth > currentMonth) {
 			int selectedMonthDay = YearMonth.of(currentYear - 1, selectedMonth + 1).atEndOfMonth().getDayOfMonth();
 			int previousMonthDay = YearMonth.of(currentYear - 1, selectedMonth).atEndOfMonth().getDayOfMonth();
@@ -996,9 +1151,9 @@ public class SaleServiceImpl implements SaleService {
 			report.setSelectedMonthMonth(selectedMonth);
 			report.setSelectedMonthYear(currentYear - 1);
 
-			previousYearPeriodInMillis = getMonthInMillis(currentYear - 2, selectedMonth, selectedMonthDay);
-			previousMonthPeriodInMillis = getMonthInMillis(currentYear - 1, selectedMonth - 1, previousMonthDay);
-			selectedMonthPeriodInMillis = getMonthInMillis(currentYear - 1, selectedMonth, selectedMonthDay);
+			previousYearPeriodInMillis = dateService.getMonthInMillis(currentYear - 2, selectedMonth, selectedMonthDay);
+			previousMonthPeriodInMillis = dateService.getMonthInMillis(currentYear - 1, selectedMonth - 1, previousMonthDay);
+			selectedMonthPeriodInMillis = dateService.getMonthInMillis(currentYear - 1, selectedMonth, selectedMonthDay);
 		} else if (selectedMonth < currentMonth) {
 			int previousMonthDay;
 			int previousMonthMonth;
@@ -1025,9 +1180,9 @@ public class SaleServiceImpl implements SaleService {
 			report.setSelectedMonthMonth(selectedMonth);
 			report.setSelectedMonthYear(currentYear);
 
-			previousYearPeriodInMillis = getMonthInMillis(currentYear - 1, selectedMonth, selectedMonthDay);
-			previousMonthPeriodInMillis = getMonthInMillis(previousMonthYear, previousMonthMonth, previousMonthDay);
-			selectedMonthPeriodInMillis = getMonthInMillis(currentYear, selectedMonth, selectedMonthDay);
+			previousYearPeriodInMillis = dateService.getMonthInMillis(currentYear - 1, selectedMonth, selectedMonthDay);
+			previousMonthPeriodInMillis = dateService.getMonthInMillis(previousMonthYear, previousMonthMonth, previousMonthDay);
+			selectedMonthPeriodInMillis = dateService.getMonthInMillis(currentYear, selectedMonth, selectedMonthDay);
 		}
 
 		previousYearTurnover = saleDao.searchSaleByStore(previousYearPeriodInMillis.getStartDateTime(),
@@ -1055,6 +1210,221 @@ public class SaleServiceImpl implements SaleService {
 				mergeThePastPeriodTurnovers(previousYearTurnover, previousMonthTurnover, selectedMonthTurnover));
 
 		return report;
+	}
+
+	@Override
+	public ProtectPlusKpiReport searchProtectPlusKpiMonthReport(String month) {
+		ProtectPlusKpiReport report = new ProtectPlusKpiReport();
+		int selectedMonth = Integer.valueOf(month.split("-")[0]);
+		int selectedYear = Integer.valueOf(month.split("-")[1]);
+		PeriodInMillis selectedMonthPeriod = dateService.getFullMonthInMillis(selectedYear, selectedMonth);
+
+		report.setSelectedMonthMonth(selectedMonth);
+		report.setSelectedMonthYear(selectedYear);
+		List<ProtectPlusKpiRow> allStoreRows =
+				getProtectPlusAllStoreKpiRows(selectedMonthPeriod, selectedMonth, selectedYear,
+						DEFAULT_PROTECT_PLUS_UTILITY_USAGE_THRESHOLD);
+		List<ProtectPlusKpiRow> selectedMonthRows = getVisibleProtectPlusStoreRows(allStoreRows);
+		selectedMonthRows.add(0, createProtectPlusCompanyKpiRow(allStoreRows, selectedMonth, selectedYear));
+		report.setSelectedMonthRows(selectedMonthRows);
+
+		return report;
+	}
+
+	@Override
+	public ProtectPlusKpiReport searchProtectPlusKpiPeriodReport(Long startDateMilliseconds, Long endDateMilliseconds,
+			Integer utilityUsageThreshold) {
+		ProtectPlusKpiReport report = new ProtectPlusKpiReport();
+		PeriodInMillis selectedPeriod = new PeriodInMillis(startDateMilliseconds, endDateMilliseconds);
+		Integer resolvedUtilityUsageThreshold = resolveProtectPlusUtilityUsageThreshold(utilityUsageThreshold);
+
+		List<ProtectPlusKpiRow> allStoreRows = getProtectPlusAllStoreKpiRows(selectedPeriod, null, null,
+				resolvedUtilityUsageThreshold);
+		List<ProtectPlusKpiRow> selectedPeriodRows = getVisibleProtectPlusStoreRows(allStoreRows);
+		selectedPeriodRows.add(0, createProtectPlusCompanyKpiRow(allStoreRows, null, null));
+		report.setSelectedMonthRows(selectedPeriodRows);
+
+		return report;
+	}
+
+	@Override
+	public ProtectPlusKpiReport searchProtectPlusKpiTrendReport(String month, Integer storeId, Boolean includeStoreRows) {
+		ProtectPlusKpiReport report = new ProtectPlusKpiReport();
+		int selectedMonth = Integer.valueOf(month.split("-")[0]);
+		int selectedYear = Integer.valueOf(month.split("-")[1]);
+
+		report.setSelectedMonthMonth(selectedMonth);
+		report.setSelectedMonthYear(selectedYear);
+		report.setTrendRows(getProtectPlusKpiTrendRows(selectedYear, selectedMonth, storeId, Boolean.TRUE.equals(includeStoreRows)));
+
+		return report;
+	}
+
+	private List<ProtectPlusKpiRow> getProtectPlusKpiTrendRows(int selectedYear, int selectedMonth, Integer storeId,
+			boolean includeStoreRows) {
+		List<ProtectPlusKpiRow> trendRows = Lists.newArrayList();
+		Calendar monthCursor = Calendar.getInstance(timeZone);
+		monthCursor.set(Calendar.YEAR, selectedYear);
+		monthCursor.set(Calendar.MONTH, selectedMonth);
+		monthCursor.set(Calendar.DAY_OF_MONTH, 1);
+
+		for (int i = 0; i < 12; i++) {
+			int reportYear = monthCursor.get(Calendar.YEAR);
+			int reportMonth = monthCursor.get(Calendar.MONTH);
+			PeriodInMillis period = dateService.getFullMonthInMillis(reportYear, reportMonth);
+			trendRows.addAll(getProtectPlusKpiTrendRowsForMonth(period, reportMonth, reportYear, storeId, includeStoreRows));
+			monthCursor.add(Calendar.MONTH, -1);
+		}
+
+		return trendRows;
+	}
+
+	private List<ProtectPlusKpiRow> getProtectPlusKpiTrendRowsForMonth(PeriodInMillis period, int month, int year,
+			Integer storeId, boolean includeStoreRows) {
+		boolean companyTrend = Integer.valueOf(0).equals(storeId);
+		if (companyTrend && includeStoreRows) {
+			List<ProtectPlusKpiRow> allStoreRows = getProtectPlusAllStoreKpiRows(period, month, year,
+					DEFAULT_PROTECT_PLUS_UTILITY_USAGE_THRESHOLD);
+			List<ProtectPlusKpiRow> visibleRows = getVisibleProtectPlusStoreRows(allStoreRows);
+			visibleRows.add(0, createProtectPlusCompanyKpiRow(allStoreRows, month, year));
+			return visibleRows;
+		}
+		if (companyTrend) {
+			List<ProtectPlusKpiRow> companyRows = new ArrayList<ProtectPlusKpiRow>();
+			companyRows.add(getProtectPlusCompanyKpiRow(period, month, year));
+			return companyRows;
+		}
+
+		List<ProtectPlusKpiRow> rows = getProtectPlusKpiRows(period, month, year, storeId);
+		return rows;
+	}
+
+	private List<ProtectPlusKpiRow> getProtectPlusKpiRows(PeriodInMillis period, Integer month, Integer year, Integer storeId) {
+		List<ProtectPlusKpiRow> storeRows =
+				saleDao.searchProtectPlusKpiRows(period.getStartDateTime(), period.getEndDateTime(), storeId,
+						DEFAULT_PROTECT_PLUS_UTILITY_USAGE_THRESHOLD);
+		storeRows.forEach(row -> enrichProtectPlusKpiRow(row, month, year));
+
+		return storeRows;
+	}
+
+	private List<ProtectPlusKpiRow> getProtectPlusAllStoreKpiRows(PeriodInMillis period, Integer month, Integer year,
+			Integer utilityUsageThreshold) {
+		List<ProtectPlusKpiRow> storeRows =
+				saleDao.searchProtectPlusAllStoreKpiRows(period.getStartDateTime(), period.getEndDateTime(),
+						utilityUsageThreshold);
+		storeRows.forEach(row -> enrichProtectPlusKpiRow(row, month, year));
+
+		return storeRows;
+	}
+
+	private List<ProtectPlusKpiRow> getVisibleProtectPlusStoreRows(List<ProtectPlusKpiRow> storeRows) {
+		return storeRows.stream()
+				.filter(row -> Boolean.TRUE.equals(row.getIsStore()))
+				.collect(Collectors.toList());
+	}
+
+	private ProtectPlusKpiRow createProtectPlusCompanyKpiRow(List<ProtectPlusKpiRow> storeRows, Integer month, Integer year) {
+		ProtectPlusKpiRow companyRow = new ProtectPlusKpiRow();
+		companyRow.setStoreId(0);
+		companyRow.setStoreCode("COMPANY");
+		companyRow.setStoreName("Всички магазини");
+		companyRow.setIsStore(false);
+		companyRow.setActiveBase(sumProtectPlusKpiValue(storeRows, ProtectPlusKpiRow::getActiveBase));
+		companyRow.setSoldProtectPlusCount(sumProtectPlusKpiValue(storeRows, ProtectPlusKpiRow::getSoldProtectPlusCount));
+		companyRow.setSoldProtectorCount(sumProtectPlusKpiValue(storeRows, ProtectPlusKpiRow::getSoldProtectorCount));
+		companyRow.setProtectPlusTurnover(sumProtectPlusKpiValue(storeRows, ProtectPlusKpiRow::getProtectPlusTurnover));
+		companyRow.setTotalTurnover(sumProtectPlusKpiValue(storeRows, ProtectPlusKpiRow::getTotalTurnover));
+		companyRow.setUtilityCount(sumProtectPlusKpiValue(storeRows, ProtectPlusKpiRow::getUtilityCount));
+		companyRow.setUtilityCount1(sumProtectPlusKpiValue(storeRows, ProtectPlusKpiRow::getUtilityCount1));
+		companyRow.setUtilityCount2(sumProtectPlusKpiValue(storeRows, ProtectPlusKpiRow::getUtilityCount2));
+		enrichProtectPlusKpiRow(companyRow, month, year);
+
+		return companyRow;
+	}
+
+	private ProtectPlusKpiRow getProtectPlusCompanyKpiRow(PeriodInMillis period, Integer month, Integer year) {
+		ProtectPlusKpiRow companyRow =
+				saleDao.searchProtectPlusCompanyKpiRow(period.getStartDateTime(), period.getEndDateTime(),
+						DEFAULT_PROTECT_PLUS_UTILITY_USAGE_THRESHOLD);
+		enrichProtectPlusKpiRow(companyRow, month, year);
+
+		return companyRow;
+	}
+
+	private BigDecimal sumProtectPlusKpiValue(List<ProtectPlusKpiRow> rows,
+			Function<ProtectPlusKpiRow, BigDecimal> valueExtractor) {
+		return rows.stream()
+				.map(valueExtractor)
+				.filter(value -> value != null)
+				.reduce(ZERO, BigDecimal::add);
+	}
+
+	private void enrichProtectPlusKpiRow(ProtectPlusKpiRow row, Integer month, Integer year) {
+		row.setMonth(month);
+		row.setYear(year);
+		setCalculatedProtectPlusKpiValues(row);
+		setProtectPlusKpiForecastValues(row, month, year);
+	}
+
+	private void setCalculatedProtectPlusKpiValues(ProtectPlusKpiRow row) {
+		row.setAttachRate(calculateProtectPlusKpiPercent(row.getSoldProtectPlusCount(), row.getSoldProtectorCount()));
+		row.setProtectPlusShare(calculateProtectPlusKpiPercent(row.getProtectPlusTurnover(), row.getTotalTurnover()));
+		row.setRevenuePer100ActiveBase(calculateProtectPlusKpiPercent(row.getProtectPlusTurnover(), row.getActiveBase()));
+		row.setUtilityRate(calculateProtectPlusKpiPercent(row.getUtilityCount(), row.getActiveBase()));
+		row.setUtilityRate1(calculateProtectPlusKpiPercent(row.getUtilityCount1(), row.getActiveBase()));
+		row.setRetentionRate(calculateProtectPlusKpiPercent(row.getUtilityCount2(), row.getActiveBase()));
+	}
+
+	private void setProtectPlusKpiForecastValues(ProtectPlusKpiRow row, Integer month, Integer year) {
+		row.setProtectPlusTurnoverForecast(null);
+		row.setRevenuePer100ActiveBaseForecast(null);
+		if (month == null || year == null) {
+			return;
+		}
+
+		Calendar currentDate = Calendar.getInstance(timeZone);
+		currentDate.setTimeInMillis(dateService.getCurrentMillisBGTimezone());
+		if (currentDate.get(Calendar.YEAR) != year || currentDate.get(Calendar.MONTH) != month) {
+			return;
+		}
+
+		Integer elapsedDays = currentDate.get(Calendar.DAY_OF_MONTH);
+		Integer daysInMonth = currentDate.getActualMaximum(Calendar.DAY_OF_MONTH);
+		BigDecimal protectPlusTurnoverForecast = calculateProtectPlusMonthlyForecast(row.getProtectPlusTurnover(),
+				elapsedDays, daysInMonth);
+		row.setProtectPlusTurnoverForecast(protectPlusTurnoverForecast);
+		row.setRevenuePer100ActiveBaseForecast(calculateProtectPlusKpiPercent(protectPlusTurnoverForecast,
+				row.getActiveBase()));
+	}
+
+	private BigDecimal calculateProtectPlusMonthlyForecast(BigDecimal currentValue, Integer elapsedDays,
+			Integer daysInMonth) {
+		if (currentValue == null || elapsedDays == null || elapsedDays <= 0 || daysInMonth == null || daysInMonth <= 0) {
+			return ZERO;
+		}
+
+		return currentValue.multiply(new BigDecimal(daysInMonth))
+				.divide(new BigDecimal(elapsedDays), 2, RoundingMode.HALF_UP);
+	}
+
+	private Integer resolveProtectPlusUtilityUsageThreshold(Integer utilityUsageThreshold) {
+		if (utilityUsageThreshold == null) {
+			return DEFAULT_PROTECT_PLUS_UTILITY_USAGE_THRESHOLD;
+		}
+		if (utilityUsageThreshold < 0) {
+			throw new IllegalArgumentException("Protect+ utility usage threshold should be greater than or equal to 0.");
+		}
+
+		return utilityUsageThreshold;
+	}
+
+	private BigDecimal calculateProtectPlusKpiPercent(BigDecimal numerator, BigDecimal denominator) {
+		if (numerator == null || denominator == null || ZERO.compareTo(denominator) >= 0) {
+			return ZERO;
+		}
+
+		return numerator.multiply(ONE_HUNDRED).divide(denominator, 2, RoundingMode.HALF_UP);
 	}
 
 	private List<PastPeriodTurnover> mergeThePastPeriodTurnovers(List<SalesByStore> previousYearTurnoverList,
@@ -1169,42 +1539,6 @@ public class SaleServiceImpl implements SaleService {
 		}
 
 		return pastPeriodReportList;
-
-	}
-
-	private PeriodInMillis getMonthInMillis(int year, int month, int day) {
-//		List<SalesByStore> salesByStore = new ArrayList<>();
-//		if (day == 1) {
-//			return salesByStore;
-//		} else {
-			Calendar starDateCal = Calendar.getInstance(timeZone);
-			starDateCal.set(Calendar.YEAR, year);
-			starDateCal.set(Calendar.MONTH, month);
-			starDateCal.set(Calendar.DAY_OF_MONTH, 1);
-			starDateCal.set(Calendar.HOUR_OF_DAY, 0);
-			starDateCal.set(Calendar.MINUTE, 0);
-			starDateCal.set(Calendar.SECOND, 0);
-			starDateCal.set(Calendar.MILLISECOND, 000);
-			long startDateMilliseconds = starDateCal.getTimeInMillis();
-
-			Calendar endDateCal = Calendar.getInstance(timeZone);
-			endDateCal.set(Calendar.YEAR, year);
-			endDateCal.set(Calendar.MONTH, month);
-			if (endDateCal.getActualMaximum(Calendar.DAY_OF_MONTH) < day) {
-				endDateCal.set(Calendar.DAY_OF_MONTH, endDateCal.getActualMaximum(Calendar.DAY_OF_MONTH));
-			} else {
-				endDateCal.set(Calendar.DAY_OF_MONTH, day);
-			}
-			endDateCal.set(Calendar.HOUR_OF_DAY, 23);
-			endDateCal.set(Calendar.MINUTE, 59);
-			endDateCal.set(Calendar.SECOND, 59);
-			endDateCal.set(Calendar.MILLISECOND, 999);
-			long endDateMilliseconds = endDateCal.getTimeInMillis();
-
-			return new PeriodInMillis(startDateMilliseconds, endDateMilliseconds);
-
-//			return saleDao.searchSaleByStore(startDateMilliseconds, endDateMilliseconds, null, false);
-//		}
 
 	}
 

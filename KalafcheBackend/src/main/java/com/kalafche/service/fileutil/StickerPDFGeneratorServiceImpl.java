@@ -39,6 +39,11 @@ public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorServic
 	
 	@Override
 	public byte[] generateFullStickers(List<? extends BaseStock> newStocks) {
+		return generateFullStickers(newStocks, false);
+	}
+
+	@Override
+	public byte[] generateFullStickers(List<? extends BaseStock> newStocks, boolean euroOnly) {
 		Rectangle rect = new Rectangle(PageSize.A4);
 		System.out.println(rect.getHeight());
 		System.out.println(rect.getWidth());
@@ -95,12 +100,16 @@ public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorServic
 		        	stockTable.addCell(configureCell("Произход", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
 		        	stockTable.addCell(configureCell("Китай", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
 		        	
-		        	//Price BGN
-		        	stockTable.addCell(configureCell("Цена в лв", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
-		        	stockTable.addCell(configureCell(convertEurToBgn(stock.getProductPrice()) + "лв", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
+		        	if (!euroOnly) {
+			        	//Price BGN
+			        	stockTable.addCell(configureCell("Цена в лв", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
+			        	stockTable.addCell(configureCell(convertEurToBgn(stock.getProductPrice()) + "лв", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
+			        	stockTable.addCell(configureCell("Цена в EUR", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
+		        	} else {
+		        		stockTable.addCell(configureCell("Цена", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
+		        	}
 		        	
 		        	//Price EUR
-		        	stockTable.addCell(configureCell("Цена в EUR", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
 		        	stockTable.addCell(configureCell(stock.getProductPrice() + "€", NORMAL_7, null, 12f, null, Element.ALIGN_LEFT, null));
 		        	
 		        	if (!StringUtils.isEmpty(stock.getBarcode())) {
@@ -212,6 +221,11 @@ public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorServic
 
 	@Override
 	public byte[] generatePartialStickers(List<? extends BaseStock> newStocks) {
+		return generatePartialStickers(newStocks, false);
+	}
+
+	@Override
+	public byte[] generatePartialStickers(List<? extends BaseStock> newStocks, boolean euroOnly) {
 		Rectangle rect = new Rectangle(PageSize.A4);
 
 		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
@@ -231,11 +245,8 @@ public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorServic
 					PdfPTable stockTable = new PdfPTable(1);
 
 					stockTable.addCell(configureItemCell(stock.getProductCode(), stock.getDeviceModelName()));
-					stockTable
-							.addCell(configureCell(
-									"Цена: " + convertEurToBgn(stock.getProductPrice()) + "лв / "
-											+ stock.getProductPrice() + "€",
-									NORMAL_7, null, null, 1, Element.ALIGN_CENTER, Element.ALIGN_MIDDLE));
+					stockTable.addCell(configureCell(getPriceText(stock.getProductPrice(), euroOnly),
+							NORMAL_7, null, null, 1, Element.ALIGN_CENTER, Element.ALIGN_MIDDLE));
 
 					if (!StringUtils.isEmpty(stock.getBarcode())) {
 						try {
@@ -273,6 +284,14 @@ public class StickerPDFGeneratorServiceImpl implements StickerPDFGeneratorServic
 		}
 
 		return pdfBytes;
+	}
+
+	private String getPriceText(BigDecimal productPrice, boolean euroOnly) {
+		if (euroOnly) {
+			return "Цена: " + productPrice + "€";
+		}
+
+		return "Цена: " + convertEurToBgn(productPrice) + "лв / " + productPrice + "€";
 	}
 
 	private PdfPCell configureItemCell(String productCode, String deviceName) {

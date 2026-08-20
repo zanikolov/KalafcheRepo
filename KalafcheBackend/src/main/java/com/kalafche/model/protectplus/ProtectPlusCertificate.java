@@ -23,6 +23,7 @@ public class ProtectPlusCertificate {
 	private Integer soldByEmployeeId;
 	private String soldByEmployeeName;
 	private Integer soldSaleId;
+	private Integer soldSaleItemId;
 	private ProtectPlusCertificateStatus status;
 	private Long validFromTimestamp;
 	private Long validUntilTimestamp;

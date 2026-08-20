@@ -5,6 +5,7 @@ import java.util.List;
 
 import com.kalafche.model.DataReport;
 import com.kalafche.model.sale.PastPeriodSaleReport;
+import com.kalafche.model.sale.ProtectPlusKpiReport;
 import com.kalafche.model.sale.Sale;
 import com.kalafche.model.sale.SaleItem;
 import com.kalafche.model.sale.SaleReport;
@@ -20,8 +21,15 @@ public interface SaleService {
 
 	public List<SaleItem> getSaleItems(Integer saleId);
 
+	public void updateSaleItemSoldForDeviceModel(Integer saleItemId, Integer deviceModelId);
+
 	public SaleReport searchSaleItems(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
-			String productCode, Integer deviceBrandId, Integer deviceModelId, Integer productTypeId, Integer masterProductTypeId, Float priceFrom, Float priceTo, String discountCampaignCode);
+				String productCode, Integer deviceBrandId, Integer deviceModelId, Integer productTypeId, Integer masterProductTypeId, Float priceFrom, Float priceTo, String discountCampaignCode);
+
+	public SaleReport searchSaleItems(Long startDateMilliseconds, Long endDateMilliseconds, String storeIds,
+			String productCode, Integer deviceBrandId, Integer deviceModelId, Integer productTypeId,
+			Integer masterProductTypeId, Float priceFrom, Float priceTo, String discountCampaignCode,
+			Boolean onlyUnknownSoldForDeviceModel, Boolean onlyProtectPlusApplied);
 
 	//public TotalSumReport calculateTotalSum(TotalSumRequest totalSumRequest);
 
@@ -29,6 +37,13 @@ public interface SaleService {
 			Integer deviceBrandId, Integer deviceModelId, Integer productTypeId);
 
 	public PastPeriodSaleReport searchSalesForPastPeriodsByStores(String month);
+
+	public ProtectPlusKpiReport searchProtectPlusKpiMonthReport(String month);
+
+	public ProtectPlusKpiReport searchProtectPlusKpiPeriodReport(Long startDateMilliseconds, Long endDateMilliseconds,
+			Integer utilityUsageThreshold);
+
+	public ProtectPlusKpiReport searchProtectPlusKpiTrendReport(String month, Integer storeId, Boolean includeStoreRows);
 
 	public byte[] getProductTypeSplitReport(SaleSplitReportRequest saleSplitReportRequest);
 

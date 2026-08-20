@@ -1,8 +1,11 @@
 package com.kalafche.service;
 
 import com.kalafche.model.protectplus.ProtectPlusCertificate;
+import com.kalafche.model.email.EmailSendResult;
 
 public interface EmailService {
 
-	void sendProtectPlusActivationEmail(ProtectPlusCertificate certificate);
+	EmailSendResult sendProtectPlusActivationEmail(ProtectPlusCertificate certificate);
+
+	EmailSendResult sendProtectPlusDeviceModelChangeEmail(ProtectPlusCertificate certificate, String oldDeviceModelName);
 }

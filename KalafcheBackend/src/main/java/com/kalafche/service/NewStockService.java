@@ -26,6 +26,8 @@ public interface NewStockService {
 
 	byte[] printNewStockStickers(Integer storeId);
 
+	byte[] printNewStockStickers(Integer storeId, boolean euroOnly);
+
 	void submitNewStock(Integer productId, Integer deviceModelId, Integer quantity, Integer storeId);
 
 	List<NewStock> getNewStockByStoreId(Integer storeId);
@@ -33,5 +35,7 @@ public interface NewStockService {
 	void relocateNewStock(Integer storeId);
 
 	byte[] printNewStockPartialStickers(Integer storeId);
+
+	byte[] printNewStockPartialStickers(Integer storeId, boolean euroOnly);
 	
 }

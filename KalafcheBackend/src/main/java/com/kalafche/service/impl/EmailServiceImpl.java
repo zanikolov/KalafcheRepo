@@ -21,6 +21,7 @@ import org.apache.logging.log4j.Logger;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import com.kalafche.model.email.EmailSendResult;
 import com.kalafche.model.protectplus.ProtectPlusCertificate;
 import com.kalafche.service.EmailService;
 
@@ -46,14 +47,14 @@ public class EmailServiceImpl implements EmailService {
 	}
 
 	@Override
-	public void sendProtectPlusActivationEmail(ProtectPlusCertificate certificate) {
+	public EmailSendResult sendProtectPlusActivationEmail(ProtectPlusCertificate certificate) {
 		if (!isMailEnabled()) {
 			LOGGER.info("Protect+ activation email is not sent because email sending is disabled.");
-			return;
+			return EmailSendResult.failed("Email sending is disabled.");
 		}
 		if (certificate == null || StringUtils.isEmpty(certificate.getLoyalCustomerEmail())) {
 			LOGGER.warn("Protect+ activation email is not sent because customer email is missing.");
-			return;
+			return EmailSendResult.failed("Customer email is missing.");
 		}
 
 		try {
@@ -66,8 +67,41 @@ public class EmailServiceImpl implements EmailService {
 			message.setContent(buildProtectPlusActivationBody(certificate), "text/html; charset=UTF-8");
 
 			Transport.send(message);
+			return EmailSendResult.sent();
 		} catch (Exception exception) {
 			LOGGER.error("Protect+ activation email sending failed for certificate ID " + certificate.getId(), exception);
+			return EmailSendResult.failed(exception.getMessage());
+		}
+	}
+
+	@Override
+	public EmailSendResult sendProtectPlusDeviceModelChangeEmail(ProtectPlusCertificate certificate,
+			String oldDeviceModelName) {
+		if (!isMailEnabled()) {
+			LOGGER.info("Protect+ device model change email is not sent because email sending is disabled.");
+			return EmailSendResult.failed("Email sending is disabled.");
+		}
+		if (certificate == null || StringUtils.isEmpty(certificate.getLoyalCustomerEmail())) {
+			LOGGER.warn("Protect+ device model change email is not sent because customer email is missing.");
+			return EmailSendResult.failed("Customer email is missing.");
+		}
+
+		try {
+			String recipientEmail = certificate.getLoyalCustomerEmail().trim();
+
+			MimeMessage message = new MimeMessage(createMailSession());
+			message.setFrom(new InternetAddress(getRequiredProperty("mail.from.email"), getProperty("mail.from.name")));
+			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(recipientEmail));
+			message.setSubject(buildProtectPlusDeviceModelChangeSubject(certificate), "UTF-8");
+			message.setContent(buildProtectPlusDeviceModelChangeBody(certificate, oldDeviceModelName),
+					"text/html; charset=UTF-8");
+
+			Transport.send(message);
+			return EmailSendResult.sent();
+		} catch (Exception exception) {
+			LOGGER.error("Protect+ device model change email sending failed for certificate ID " + certificate.getId(),
+					exception);
+			return EmailSendResult.failed(exception.getMessage());
 		}
 	}
 
@@ -89,6 +123,10 @@ public class EmailServiceImpl implements EmailService {
 
 	private String buildProtectPlusActivationSubject(ProtectPlusCertificate certificate) {
 		return "ПАКЕТ ЗА ЗАЩИТА НА ДИСПЛЕЙ OT KEYSOO";
+	}
+
+	private String buildProtectPlusDeviceModelChangeSubject(ProtectPlusCertificate certificate) {
+		return "ПРОМЯНА НА УСТРОЙСТВО ПО KEYSOO PROTECT PLUS";
 	}
 
 	private String buildProtectPlusActivationBody(ProtectPlusCertificate certificate) {
@@ -132,6 +170,64 @@ public class EmailServiceImpl implements EmailService {
 		body.append("<p>Благодарим Ви, че избрахте Keysoo и Ви желаем приятно пазаруване!</p>");
 		body.append("</body></html>");
 		return body.toString();
+	}
+
+	private String buildProtectPlusDeviceModelChangeBody(ProtectPlusCertificate certificate, String oldDeviceModelName) {
+		String newDeviceModelName = StringUtils.isEmpty(certificate.getDeviceModelName())
+				? "Вашето устройство"
+				: certificate.getDeviceModelName();
+		String safeOldDeviceModelName = StringUtils.isEmpty(oldDeviceModelName)
+				? "Предишното устройство"
+				: oldDeviceModelName;
+		String newDeviceModelNameHtml = boldEscaped(newDeviceModelName);
+		String oldDeviceModelNameHtml = boldEscaped(safeOldDeviceModelName);
+
+		StringBuilder body = new StringBuilder();
+		body.append("<html><body>");
+		body.append("<p>Здравейте");
+		if (!StringUtils.isEmpty(certificate.getLoyalCustomerName())) {
+			body.append(", ").append(boldEscaped(certificate.getLoyalCustomerName()));
+		}
+		body.append("!</p>");
+		body.append("<p>Уведомяваме Ви, че по Ваше искане моделът телефон, за който е активиран пакетът Ви за защита Keysoo Protect PLUS, беше успешно променен.</p>");
+		body.append("<p>");
+		body.append("Стар модел: ").append(oldDeviceModelNameHtml).append("<br>");
+		body.append("Нов модел: ").append(newDeviceModelNameHtml);
+		body.append("</p>");
+		body.append("<p>Всички предимства и срокът на валидност на Вашия пакет се запазват без промяна.</p>");
+		body.append("<p>Вашият пакет за защита Protect PLUS е с номер ")
+				.append(bold(certificate.getCertificateNumber()));
+		body.append(" и вече е активен за ").append(newDeviceModelNameHtml).append(".</p>");
+		body.append("<p>Не изтривайте този имейл. Той удостоверява Вашите права и Ви предоставя следните привилегии");
+		if (certificate.getValidUntilTimestamp() != null) {
+			body.append(" до ").append(bold(formatDate(certificate.getValidUntilTimestamp()))).append(" г.");
+		}
+		body.append(":</p>");
+		body.append("<ul>");
+		body.append("<li>Безплатна еднократна смяна на протектор за ").append(newDeviceModelNameHtml).append(".</li>");
+		body.append("<li>50% отстъпка на всички протектори за екрана на ").append(newDeviceModelNameHtml)
+				.append(" в периода на валидност на пакета.</li>");
+		body.append("<li>15% отстъпка на всички останали продукти във всички магазини Keysoo в периода на валидност на пакета.</li>");
+		body.append("<li>Безплатен сервизен труд при една смяна на дисплей за ")
+				.append(newDeviceModelNameHtml).append(" по време на валидност на пакета.</li>");
+		body.append("<li>Безплатен сервизен труд при смяна на батерия за ")
+				.append(newDeviceModelNameHtml).append(" по време на валидност на пакета.</li>");
+		body.append("<li>Пакетът за защита Protect PLUS не се комбинира с други текущи промоции или отстъпки.</li>");
+		body.append("</ul>");
+		body.append("<p>Keysoo Protect PLUS е валиден във всички физически магазини на Keysoo.</p>");
+		body.append("<p>Уведомяваме Ви, че с извършената промяна беше използвана включената в пакета <strong>еднократна възможност за смяна на марката и модела на устройството</strong>. Всички останали привилегии по Вашия пакет Protect PLUS остават активни до изтичане на неговата валидност.</p>");
+		body.append("<p>При посещение в магазин е необходимо да покажете този имейл, за да бъдат приложени предвидените отстъпки и привилегии.</p>");
+		body.append("<p>Благодарим Ви, че избрахте Keysoo! Желаем Ви приятно пазаруване!</p>");
+		body.append("</body></html>");
+		return body.toString();
+	}
+
+	private String boldEscaped(String value) {
+		return bold(escapeHtml(value));
+	}
+
+	private String bold(Object value) {
+		return "<strong>" + value + "</strong>";
 	}
 
 	private boolean isMailEnabled() {

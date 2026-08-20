@@ -17,6 +17,8 @@ public interface DeviceModelDao {
 	
 	public abstract DeviceModel selectDeviceModel(Integer deviceModelId);
 
+	public abstract Boolean isUnknownDeviceModel(Integer deviceModelId);
+
 	public abstract List<Integer> getDeviceModelIdsForDailyRevision(Integer start, Integer count);
 
 	public abstract List<Integer> getAllDeviceModelIds();

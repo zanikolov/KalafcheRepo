@@ -48,11 +48,12 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			"iv.device_brand_id, " +
 			"iv.device_model_id, " +
 			"iv.device_model_name, " +
-				"iv.product_id, " +
-				"iv.product_code, " +
-				"iv.product_name, " +
-				"iv.sold_for_device_model_required, " +
-				"iv.barcode, " +
+			"iv.product_id, " +
+			"iv.product_type_name, " +
+			"iv.product_code, " +
+			"iv.product_name, " +
+			"iv.sold_for_device_model_required, " +
+			"iv.barcode, " +
 			"coalesce(psp.specific_price, iv.product_price) as product_price, " +
 			"ks.ID as store_id, " +
 			"CONCAT(ks.CITY,',',ks.NAME) as store_name, " +
@@ -95,11 +96,12 @@ public class StockDaoImpl extends JdbcDaoSupport {
 			"iv.device_brand_id, " +
 			"iv.device_model_id, " +
 			"iv.device_model_name, " +
-				"iv.product_id, " +
-				"iv.product_code, " +
-				"iv.product_name, " +
-				"iv.sold_for_device_model_required, " +
-				"iv.barcode, " +
+			"iv.product_id, " +
+			"iv.product_type_name, " +
+			"iv.product_code, " +
+			"iv.product_name, " +
+			"iv.sold_for_device_model_required, " +
+			"iv.barcode, " +
 			"coalesce(psp.specific_price, iv.product_price) as product_price, " +
 			"ks.ID as store_id, " +
 			"CONCAT(ks.CITY,\",\",ks.NAME) as store_name, " +

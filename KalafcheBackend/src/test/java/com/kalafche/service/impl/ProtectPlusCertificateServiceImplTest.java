@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -21,11 +22,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.kalafche.dao.LoyalCustomerDao;
 import com.kalafche.dao.ProtectPlusCertificateDao;
+import com.kalafche.dao.SaleDao;
 import com.kalafche.dao.DeviceModelDao;
 import com.kalafche.exceptions.IllegalStateTransferException;
 import com.kalafche.model.LoyalCustomer;
+import com.kalafche.model.Refund;
 import com.kalafche.model.device.DeviceModel;
+import com.kalafche.model.email.EmailSendResult;
 import com.kalafche.model.employee.Employee;
+import com.kalafche.model.protectplus.ProtectPlusActivationEmailResendReport;
+import com.kalafche.model.protectplus.ProtectPlusActivationEmailResendRequest;
 import com.kalafche.model.protectplus.ProtectPlusCallRecord;
 import com.kalafche.model.protectplus.ProtectPlusCertificate;
 import com.kalafche.model.protectplus.ProtectPlusCustomerEmailUpdateRequest;
@@ -36,6 +42,7 @@ import com.kalafche.service.DateService;
 import com.kalafche.service.EmailService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.EntityService;
+import com.kalafche.service.RefundService;
 import com.kalafche.service.fileutil.ImageUploadService;
 import com.kalafche.model.protectplus.ProtectPlusCertificateSearchResult;
 
@@ -52,6 +59,9 @@ public class ProtectPlusCertificateServiceImplTest {
 	private LoyalCustomerDao loyalCustomerDao;
 
 	@Mock
+	private SaleDao saleDao;
+
+	@Mock
 	private DateService dateService;
 
 	@Mock
@@ -65,6 +75,9 @@ public class ProtectPlusCertificateServiceImplTest {
 
 	@Mock
 	private EmailService emailService;
+
+	@Mock
+	private RefundService refundService;
 
 	@Mock
 	private MultipartFile gdprConsentImage;
@@ -168,7 +181,7 @@ public class ProtectPlusCertificateServiceImplTest {
 		when(protectPlusCertificateDao.getMaxCertificateNumber()).thenReturn(10005);
 		when(protectPlusCertificateDao.insertProtectPlusCertificate(any(ProtectPlusCertificate.class))).thenReturn(20);
 
-		protectPlusCertificateService.createPendingCertificateForSale(34, 3, 7, 1087);
+		protectPlusCertificateService.createPendingCertificateForSale(34, 35, 3, 7, 1087);
 
 		ArgumentCaptor<ProtectPlusCertificate> certificateCaptor = ArgumentCaptor.forClass(ProtectPlusCertificate.class);
 		verify(protectPlusCertificateDao).insertProtectPlusCertificate(certificateCaptor.capture());
@@ -178,10 +191,35 @@ public class ProtectPlusCertificateServiceImplTest {
 		assertEquals(Integer.valueOf(3), certificate.getSoldStoreId());
 		assertEquals(Integer.valueOf(7), certificate.getSoldByEmployeeId());
 		assertEquals(Integer.valueOf(34), certificate.getSoldSaleId());
+		assertEquals(Integer.valueOf(35), certificate.getSoldSaleItemId());
 		assertEquals(Integer.valueOf(1087), certificate.getDeviceModelId());
 		assertEquals(ProtectPlusCertificateStatus.INACTIVE, certificate.getStatus());
 		assertEquals(Boolean.FALSE, certificate.getFreeProtectorUsed());
 		assertEquals(Long.valueOf(currentTimestamp), certificate.getCreatedTimestamp());
+	}
+
+	@Test
+	public void testGetInactiveCertificatesDoesNotRestrictAdminWithStoreId() {
+		Employee admin = new Employee();
+		admin.setId(7);
+		admin.setStoreId(19);
+
+		ProtectPlusCertificateSearchResult searchResult = new ProtectPlusCertificateSearchResult();
+		searchResult.setCertificateNumber(10000);
+
+		when(employeeService.getLoggedInEmployee()).thenReturn(admin);
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(true);
+		when(protectPlusCertificateDao.searchProtectPlusCertificates(isNull(), isNull(),
+				eq(ProtectPlusCertificateStatus.INACTIVE), isNull(), isNull(), isNull(), isNull()))
+				.thenReturn(Arrays.asList(searchResult));
+
+		List<ProtectPlusCertificateSearchResult> results =
+				protectPlusCertificateService.getInactiveProtectPlusCertificatesForCurrentStore();
+
+		assertEquals(1, results.size());
+		verify(entityService, never()).getConcatenatedStoreIdsForFiltering(any());
+		verify(protectPlusCertificateDao).searchProtectPlusCertificates(isNull(), isNull(),
+				eq(ProtectPlusCertificateStatus.INACTIVE), isNull(), isNull(), isNull(), isNull());
 	}
 
 	@Test
@@ -256,6 +294,34 @@ public class ProtectPlusCertificateServiceImplTest {
 		verify(protectPlusCertificateDao).updateDeviceModel(10, 1090, true, 7, currentTimestamp);
 		verify(protectPlusCertificateDao).insertProtectPlusCertificateDeviceModelChange(10, 3, 7, 1087, 1090,
 				false, currentTimestamp);
+	}
+
+	@Test
+	public void testChangeDeviceModelSendsDeviceModelChangeEmail() {
+		long currentTimestamp = 1763654400000L;
+
+		ProtectPlusCertificate certificate = createValidActiveCertificate(10, 1087);
+		certificate.setDeviceModelName("Apple iPhone 17");
+		ProtectPlusCertificate updatedCertificate = createValidActiveCertificate(10, 1090);
+		updatedCertificate.setDeviceModelName("Apple iPhone 18");
+		updatedCertificate.setLoyalCustomerEmail("customer@example.com");
+
+		ProtectPlusDeviceModelChangeRequest request = new ProtectPlusDeviceModelChangeRequest();
+		request.setDeviceModelId(1090);
+
+		Employee loggedInEmployee = new Employee();
+		loggedInEmployee.setId(7);
+		loggedInEmployee.setStoreId(3);
+
+		when(protectPlusCertificateDao.getProtectPlusCertificate(10)).thenReturn(certificate, updatedCertificate);
+		when(dateService.getCurrentMillisBGTimezone()).thenReturn(currentTimestamp);
+		when(deviceModelDao.selectDeviceModel(1090)).thenReturn(new DeviceModel());
+		when(employeeService.getLoggedInEmployee()).thenReturn(loggedInEmployee);
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(false);
+
+		protectPlusCertificateService.changeDeviceModel(10, request);
+
+		verify(emailService).sendProtectPlusDeviceModelChangeEmail(updatedCertificate, "Apple iPhone 17");
 	}
 
 	@Test
@@ -409,6 +475,9 @@ public class ProtectPlusCertificateServiceImplTest {
 		certificate.setId(10);
 		certificate.setStatus(ProtectPlusCertificateStatus.INACTIVE);
 		certificate.setDeviceModelId(1087);
+		certificate.setSoldStoreId(19);
+		certificate.setSoldStoreId(19);
+		certificate.setSoldStoreId(19);
 
 		LoyalCustomer differentCustomer = new LoyalCustomer();
 		differentCustomer.setId(21);
@@ -471,6 +540,163 @@ public class ProtectPlusCertificateServiceImplTest {
 		protectPlusCertificateService.activateProtectPlusCertificate(10, request, gdprConsentImage);
 	}
 
+	@Test(expected = IllegalStateTransferException.class)
+	public void testActivateCertificateRejectsUnknownDeviceModel() {
+		ProtectPlusCertificate certificate = new ProtectPlusCertificate();
+		certificate.setId(10);
+		certificate.setStatus(ProtectPlusCertificateStatus.INACTIVE);
+		certificate.setDeviceModelId(1087);
+
+		LoyalCustomer requestCustomer = new LoyalCustomer();
+		requestCustomer.setName("Иван Иванов");
+		requestCustomer.setPhoneNumber("0894316055");
+		requestCustomer.setEmail("ivan@example.com");
+
+		ProtectPlusCertificateRequest request = new ProtectPlusCertificateRequest();
+		request.setLoyalCustomer(requestCustomer);
+		request.setDeviceModelId(1087);
+
+		when(gdprConsentImage.isEmpty()).thenReturn(false);
+		when(protectPlusCertificateDao.getProtectPlusCertificate(10)).thenReturn(certificate);
+		when(deviceModelDao.isUnknownDeviceModel(1087)).thenReturn(true);
+
+		protectPlusCertificateService.activateProtectPlusCertificate(10, request, gdprConsentImage);
+	}
+
+	@Test
+	public void testSaveInactiveCertificateDraftPersistsCustomerAndDeviceModel() {
+		long currentTimestamp = 1763654400000L;
+
+		ProtectPlusCertificate certificate = new ProtectPlusCertificate();
+		certificate.setId(10);
+		certificate.setStatus(ProtectPlusCertificateStatus.INACTIVE);
+		certificate.setDeviceModelId(1087);
+		certificate.setLoyalCustomerId(22);
+
+		DeviceModel newDeviceModel = new DeviceModel();
+		newDeviceModel.setId(1090);
+		newDeviceModel.setUnknownModel(false);
+
+		Employee loggedInEmployee = new Employee();
+		loggedInEmployee.setId(7);
+		loggedInEmployee.setStoreId(19);
+
+		LoyalCustomer requestCustomer = new LoyalCustomer();
+		requestCustomer.setName("Иван Иванов");
+		requestCustomer.setPhoneNumber("0894316055");
+		requestCustomer.setEmail("ivan@example.com");
+
+		ProtectPlusCertificateRequest request = new ProtectPlusCertificateRequest();
+		request.setLoyalCustomer(requestCustomer);
+		request.setDeviceModelId(1090);
+
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(true);
+		when(protectPlusCertificateDao.getProtectPlusCertificate(10)).thenReturn(certificate);
+		when(deviceModelDao.selectDeviceModel(1090)).thenReturn(newDeviceModel);
+		when(employeeService.getLoggedInEmployee()).thenReturn(loggedInEmployee);
+		when(dateService.getCurrentMillisBGTimezone()).thenReturn(currentTimestamp);
+
+		protectPlusCertificateService.saveInactiveCertificateDraft(10, request);
+
+		verify(loyalCustomerDao).updateLoyalCustomer(requestCustomer);
+		assertEquals(Integer.valueOf(22), requestCustomer.getId());
+		assertEquals(Integer.valueOf(7), requestCustomer.getUpdatedById());
+		assertEquals(Long.valueOf(currentTimestamp), requestCustomer.getLastUpdateTimestamp());
+		verify(protectPlusCertificateDao).updateInactiveProtectPlusCertificateDraft(10, 22, 1090, 7, currentTimestamp);
+		verify(protectPlusCertificateDao, never()).insertProtectPlusCertificateDeviceModelChange(any(), any(), any(),
+				any(), any(), any(), any());
+	}
+
+	@Test
+	public void testSaveInactiveCertificateDraftAllowsUnknownDeviceModel() {
+		long currentTimestamp = 1763654400000L;
+
+		ProtectPlusCertificate certificate = new ProtectPlusCertificate();
+		certificate.setId(10);
+		certificate.setStatus(ProtectPlusCertificateStatus.INACTIVE);
+		certificate.setDeviceModelId(1087);
+
+		DeviceModel unknownDeviceModel = new DeviceModel();
+		unknownDeviceModel.setId(1090);
+		unknownDeviceModel.setUnknownModel(true);
+
+		Employee loggedInEmployee = new Employee();
+		loggedInEmployee.setId(7);
+		loggedInEmployee.setStoreId(19);
+
+		ProtectPlusCertificateRequest request = new ProtectPlusCertificateRequest();
+		request.setDeviceModelId(1090);
+
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(true);
+		when(protectPlusCertificateDao.getProtectPlusCertificate(10)).thenReturn(certificate);
+		when(deviceModelDao.selectDeviceModel(1090)).thenReturn(unknownDeviceModel);
+		when(employeeService.getLoggedInEmployee()).thenReturn(loggedInEmployee);
+		when(dateService.getCurrentMillisBGTimezone()).thenReturn(currentTimestamp);
+
+		protectPlusCertificateService.saveInactiveCertificateDraft(10, request);
+
+		verify(protectPlusCertificateDao).updateInactiveProtectPlusCertificateDraft(10, null, 1090, 7, currentTimestamp);
+	}
+
+	@Test
+	public void testSaveInactiveCertificateDraftWithIncompleteCustomerDoesNotPersistLoyalCustomer() {
+		long currentTimestamp = 1763654400000L;
+
+		ProtectPlusCertificate certificate = new ProtectPlusCertificate();
+		certificate.setId(10);
+		certificate.setStatus(ProtectPlusCertificateStatus.INACTIVE);
+		certificate.setDeviceModelId(1087);
+		certificate.setSoldStoreId(19);
+
+		DeviceModel deviceModel = new DeviceModel();
+		deviceModel.setId(1087);
+
+		Employee loggedInEmployee = new Employee();
+		loggedInEmployee.setId(7);
+		loggedInEmployee.setStoreId(19);
+
+		LoyalCustomer requestCustomer = new LoyalCustomer();
+		requestCustomer.setName("Иван Иванов");
+
+		ProtectPlusCertificateRequest request = new ProtectPlusCertificateRequest();
+		request.setLoyalCustomer(requestCustomer);
+		request.setDeviceModelId(1087);
+
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(false);
+		when(protectPlusCertificateDao.getProtectPlusCertificate(10)).thenReturn(certificate);
+		when(employeeService.getLoggedInEmployee()).thenReturn(loggedInEmployee);
+		when(deviceModelDao.selectDeviceModel(1087)).thenReturn(deviceModel);
+		when(dateService.getCurrentMillisBGTimezone()).thenReturn(currentTimestamp);
+
+		protectPlusCertificateService.saveInactiveCertificateDraft(10, request);
+
+		verify(loyalCustomerDao, never()).insertLoyalCustomer(any(LoyalCustomer.class));
+		verify(loyalCustomerDao, never()).updateLoyalCustomer(any(LoyalCustomer.class));
+		verify(protectPlusCertificateDao).updateInactiveProtectPlusCertificateDraft(10, null, 1087, 7, currentTimestamp);
+	}
+
+	@Test(expected = IllegalStateTransferException.class)
+	public void testSaveInactiveCertificateDraftRejectsDeviceModelChangeForNonAdmin() {
+		ProtectPlusCertificate certificate = new ProtectPlusCertificate();
+		certificate.setId(10);
+		certificate.setStatus(ProtectPlusCertificateStatus.INACTIVE);
+		certificate.setDeviceModelId(1087);
+		certificate.setSoldStoreId(19);
+
+		Employee loggedInEmployee = new Employee();
+		loggedInEmployee.setId(7);
+		loggedInEmployee.setStoreId(19);
+
+		ProtectPlusCertificateRequest request = new ProtectPlusCertificateRequest();
+		request.setDeviceModelId(1090);
+
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(false);
+		when(protectPlusCertificateDao.getProtectPlusCertificate(10)).thenReturn(certificate);
+		when(employeeService.getLoggedInEmployee()).thenReturn(loggedInEmployee);
+
+		protectPlusCertificateService.saveInactiveCertificateDraft(10, request);
+	}
+
 	@Test
 	public void testUpdateCustomerEmailUpdatesLoyalCustomerWhenEmployeeIsAdmin() {
 		long currentTimestamp = 1763654400000L;
@@ -507,6 +733,169 @@ public class ProtectPlusCertificateServiceImplTest {
 		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(false);
 
 		protectPlusCertificateService.updateCustomerEmail(10, request);
+	}
+
+	@Test
+	public void testCancelUnusedCertificateRefundsPurchaseAndAnonymizesCustomer() {
+		long currentTimestamp = 1763654400000L;
+		Employee loggedInEmployee = new Employee();
+		loggedInEmployee.setId(7);
+
+		ProtectPlusCertificate certificate = createValidActiveCertificate(10, 1087);
+		certificate.setCertificateNumber(12345);
+		certificate.setLoyalCustomerId(22);
+		certificate.setSoldSaleItemId(33);
+		certificate.setFreeProtectorUsed(false);
+		certificate.setFreeDisplayReplacementServiceUsed(false);
+		certificate.setFreeBatteryReplacementServiceUsed(false);
+		certificate.setDeviceModelChangeUsed(true);
+		certificate.setUsageCount(0);
+
+		ProtectPlusCertificate cancelledCertificate = createValidActiveCertificate(10, 1087);
+		cancelledCertificate.setStatus(ProtectPlusCertificateStatus.CANCELLED);
+
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(true);
+		when(protectPlusCertificateDao.getProtectPlusCertificate(10)).thenReturn(certificate, cancelledCertificate);
+		when(employeeService.getLoggedInEmployee()).thenReturn(loggedInEmployee);
+		when(dateService.getCurrentMillisBGTimezone()).thenReturn(currentTimestamp);
+		when(protectPlusCertificateDao.countProtectPlusUsageSales(10)).thenReturn(0);
+		when(saleDao.isSaleItemRefunded(33)).thenReturn(false);
+
+		protectPlusCertificateService.cancelProtectPlusCertificate(10);
+
+		ArgumentCaptor<Refund> refundCaptor = ArgumentCaptor.forClass(Refund.class);
+		verify(refundService).submitProtectPlusCancellationRefund(refundCaptor.capture());
+		assertEquals(Integer.valueOf(33), refundCaptor.getValue().getSaleItemId());
+
+		ArgumentCaptor<LoyalCustomer> loyalCustomerCaptor = ArgumentCaptor.forClass(LoyalCustomer.class);
+		verify(loyalCustomerDao).updateLoyalCustomer(loyalCustomerCaptor.capture());
+		LoyalCustomer anonymizedCustomer = loyalCustomerCaptor.getValue();
+		assertEquals(Integer.valueOf(22), anonymizedCustomer.getId());
+		assertEquals(null, anonymizedCustomer.getName());
+		assertEquals(null, anonymizedCustomer.getPhoneNumber());
+		assertEquals(null, anonymizedCustomer.getEmail());
+		assertEquals(Integer.valueOf(7), anonymizedCustomer.getUpdatedById());
+		assertEquals(Long.valueOf(currentTimestamp), anonymizedCustomer.getLastUpdateTimestamp());
+		verify(protectPlusCertificateDao).cancelProtectPlusCertificate(10, 7, currentTimestamp);
+	}
+
+	@Test
+	public void testResendActivationEmailsDryRunDoesNotSendEmails() {
+		ProtectPlusActivationEmailResendRequest request = new ProtectPlusActivationEmailResendRequest();
+		request.setCertificateNumberFrom(21440);
+		request.setCertificateNumberTo(21183);
+		request.setDelayBetweenEmailsMillis(0);
+		request.setDryRun(true);
+
+		ProtectPlusCertificate certificate = createValidActiveCertificate(10, 1087);
+		certificate.setCertificateNumber(12345);
+		certificate.setLoyalCustomerEmail("customer@example.com");
+
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(true);
+		when(protectPlusCertificateDao.getProtectPlusCertificatesByCertificateNumberRange(21183, 21440))
+				.thenReturn(Arrays.asList(certificate));
+
+		ProtectPlusActivationEmailResendReport report = protectPlusCertificateService.resendActivationEmails(request);
+
+		assertEquals(true, report.isDryRun());
+		assertEquals(1, report.getCandidateCount());
+		assertEquals(0, report.getSentCount());
+		assertEquals(1, report.getSkippedCount());
+		assertEquals(0, report.getFailedCount());
+		assertEquals(Integer.valueOf(12345), report.getResults().get(0).getCertificateNumber());
+		assertEquals("customer@example.com", report.getResults().get(0).getCustomerEmail());
+		verify(emailService, never()).sendProtectPlusActivationEmail(any(ProtectPlusCertificate.class));
+	}
+
+	@Test
+	public void testResendActivationEmailsSendsEmailsAndReportsFailures() {
+		ProtectPlusActivationEmailResendRequest request = new ProtectPlusActivationEmailResendRequest();
+		request.setCertificateNumberFrom(21183);
+		request.setCertificateNumberTo(21440);
+		request.setDelayBetweenEmailsMillis(0);
+		request.setDryRun(false);
+
+		ProtectPlusCertificate sentCertificate = createValidActiveCertificate(10, 1087);
+		sentCertificate.setCertificateNumber(12345);
+		sentCertificate.setLoyalCustomerEmail("sent@example.com");
+		ProtectPlusCertificate failedCertificate = createValidActiveCertificate(11, 1088);
+		failedCertificate.setCertificateNumber(12346);
+		failedCertificate.setLoyalCustomerEmail("failed@example.com");
+
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(true);
+		when(protectPlusCertificateDao.getProtectPlusCertificatesByCertificateNumberRange(21183, 21440))
+				.thenReturn(Arrays.asList(sentCertificate, failedCertificate));
+		when(emailService.sendProtectPlusActivationEmail(sentCertificate)).thenReturn(EmailSendResult.sent());
+		when(emailService.sendProtectPlusActivationEmail(failedCertificate)).thenReturn(
+				EmailSendResult.failed("SMTP error"));
+
+		ProtectPlusActivationEmailResendReport report = protectPlusCertificateService.resendActivationEmails(request);
+
+		assertEquals(false, report.isDryRun());
+		assertEquals(2, report.getCandidateCount());
+		assertEquals(1, report.getSentCount());
+		assertEquals(0, report.getSkippedCount());
+		assertEquals(1, report.getFailedCount());
+		assertEquals(true, report.getResults().get(0).isSent());
+		assertEquals("SMTP error", report.getResults().get(1).getMessage());
+	}
+
+	@Test
+	public void testResendActivationEmailsStopsAfterGmailThrottleError() {
+		ProtectPlusActivationEmailResendRequest request = new ProtectPlusActivationEmailResendRequest();
+		request.setCertificateNumberFrom(21263);
+		request.setCertificateNumberTo(21440);
+		request.setDelayBetweenEmailsMillis(0);
+		request.setDryRun(false);
+
+		ProtectPlusCertificate throttledCertificate = createValidActiveCertificate(10, 1087);
+		throttledCertificate.setCertificateNumber(21263);
+		throttledCertificate.setLoyalCustomerEmail("throttled@example.com");
+		ProtectPlusCertificate skippedCertificate = createValidActiveCertificate(11, 1088);
+		skippedCertificate.setCertificateNumber(21264);
+		skippedCertificate.setLoyalCustomerEmail("skipped@example.com");
+
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(true);
+		when(protectPlusCertificateDao.getProtectPlusCertificatesByCertificateNumberRange(21263, 21440))
+				.thenReturn(Arrays.asList(throttledCertificate, skippedCertificate));
+		when(emailService.sendProtectPlusActivationEmail(throttledCertificate)).thenReturn(
+				EmailSendResult.failed("454-4.7.0 Too many login attempts, please try again later."));
+
+		ProtectPlusActivationEmailResendReport report = protectPlusCertificateService.resendActivationEmails(request);
+
+		assertEquals(2, report.getCandidateCount());
+		assertEquals(0, report.getSentCount());
+		assertEquals(1, report.getFailedCount());
+		assertEquals(1, report.getSkippedCount());
+		assertEquals(false, report.getResults().get(0).isSkipped());
+		assertEquals(true, report.getResults().get(1).isSkipped());
+		verify(emailService, times(1)).sendProtectPlusActivationEmail(any(ProtectPlusCertificate.class));
+	}
+
+	@Test
+	public void testCancelUsedCertificateDoesNotRefundPurchase() {
+		long currentTimestamp = 1763654400000L;
+		Employee loggedInEmployee = new Employee();
+		loggedInEmployee.setId(7);
+
+		ProtectPlusCertificate certificate = createValidActiveCertificate(10, 1087);
+		certificate.setLoyalCustomerId(22);
+		certificate.setSoldSaleItemId(33);
+		certificate.setUsageCount(0);
+
+		ProtectPlusCertificate cancelledCertificate = createValidActiveCertificate(10, 1087);
+		cancelledCertificate.setStatus(ProtectPlusCertificateStatus.CANCELLED);
+
+		when(employeeService.isLoggedInEmployeeAdmin()).thenReturn(true);
+		when(protectPlusCertificateDao.getProtectPlusCertificate(10)).thenReturn(certificate, cancelledCertificate);
+		when(employeeService.getLoggedInEmployee()).thenReturn(loggedInEmployee);
+		when(dateService.getCurrentMillisBGTimezone()).thenReturn(currentTimestamp);
+		when(protectPlusCertificateDao.countProtectPlusUsageSales(10)).thenReturn(1);
+
+		protectPlusCertificateService.cancelProtectPlusCertificate(10);
+
+		verify(refundService, never()).submitProtectPlusCancellationRefund(any(Refund.class));
+		verify(protectPlusCertificateDao).cancelProtectPlusCertificate(10, 7, currentTimestamp);
 	}
 
 	private ProtectPlusCertificate createValidActiveCertificate(Integer certificateId, Integer deviceModelId) {

@@ -1,29 +1,40 @@
 package com.kalafche.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.kalafche.dao.LoyalCustomerDao;
 import com.kalafche.dao.ProtectPlusCertificateDao;
+import com.kalafche.dao.SaleDao;
 import com.kalafche.dao.DeviceModelDao;
 import com.kalafche.exceptions.DomainObjectNotFoundException;
 import com.kalafche.exceptions.IllegalStateTransferException;
 import com.kalafche.model.LoyalCustomer;
+import com.kalafche.model.email.EmailSendResult;
+import com.kalafche.model.Refund;
 import com.kalafche.model.device.DeviceModel;
 import com.kalafche.model.employee.Employee;
+import com.kalafche.model.protectplus.ProtectPlusActivationEmailResendReport;
+import com.kalafche.model.protectplus.ProtectPlusActivationEmailResendRequest;
+import com.kalafche.model.protectplus.ProtectPlusActivationEmailResendResult;
 import com.kalafche.model.protectplus.ProtectPlusCallRecord;
 import com.kalafche.model.protectplus.ProtectPlusCallRecordDownload;
 import com.kalafche.model.protectplus.ProtectPlusCertificate;
 import com.kalafche.model.protectplus.ProtectPlusCustomerEmailUpdateRequest;
+import com.kalafche.model.protectplus.ProtectPlusCustomerNameUpdateRequest;
+import com.kalafche.model.protectplus.ProtectPlusCustomerPhoneUpdateRequest;
 import com.kalafche.model.protectplus.ProtectPlusDeviceModelChangeRecord;
 import com.kalafche.model.protectplus.ProtectPlusDeviceModelChangeRequest;
 import com.kalafche.model.protectplus.ProtectPlusCertificateRequest;
+import com.kalafche.model.protectplus.ProtectPlusCertificateSearchFilter;
 import com.kalafche.model.protectplus.ProtectPlusCertificateSearchResult;
 import com.kalafche.model.protectplus.ProtectPlusCertificateStatus;
 import com.kalafche.model.protectplus.ProtectPlusRenewalRecord;
@@ -33,6 +44,7 @@ import com.kalafche.service.EmailService;
 import com.kalafche.service.EmployeeService;
 import com.kalafche.service.EntityService;
 import com.kalafche.service.ProtectPlusCertificateService;
+import com.kalafche.service.RefundService;
 import com.kalafche.service.fileutil.ImageUploadService;
 
 @Service
@@ -41,6 +53,9 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 	private static final int INITIAL_VALIDITY_MONTHS = 12;
 	private static final int USAGE_EXTENSION_MONTHS = 6;
 	private static final String RENEWAL_SOURCE_SALE_USAGE = "SALE_USAGE";
+	private static final String PROTECT_PLUS_PRODUCT_CODE = "0500";
+	private static final int DEFAULT_ACTIVATION_EMAIL_RESEND_DELAY_MILLIS = 1500;
+	private static final int MAX_ACTIVATION_EMAIL_RESEND_DELAY_MILLIS = 60000;
 
 	@Autowired
 	ProtectPlusCertificateDao protectPlusCertificateDao;
@@ -50,6 +65,9 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 
 	@Autowired
 	LoyalCustomerDao loyalCustomerDao;
+
+	@Autowired
+	SaleDao saleDao;
 
 	@Autowired
 	DateService dateService;
@@ -66,8 +84,12 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 	@Autowired
 	EmailService emailService;
 
+	@Autowired
+	RefundService refundService;
+
 	@Override
-	public void createPendingCertificateForSale(Integer saleId, Integer storeId, Integer employeeId, Integer deviceModelId) {
+	public void createPendingCertificateForSale(Integer saleId, Integer saleItemId, Integer storeId, Integer employeeId,
+			Integer deviceModelId) {
 		long currentTimestamp = dateService.getCurrentMillisBGTimezone();
 
 		ProtectPlusCertificate certificate = new ProtectPlusCertificate();
@@ -76,6 +98,7 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 		certificate.setSoldStoreId(storeId);
 		certificate.setSoldByEmployeeId(employeeId);
 		certificate.setSoldSaleId(saleId);
+		certificate.setSoldSaleItemId(saleItemId);
 		certificate.setStatus(ProtectPlusCertificateStatus.INACTIVE);
 		certificate.setFreeProtectorUsed(false);
 		certificate.setDeviceModelChangeUsed(false);
@@ -94,9 +117,8 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 	@Override
 	public ProtectPlusCertificate activateProtectPlusCertificate(Integer certificateId, ProtectPlusCertificateRequest request,
 			MultipartFile gdprConsentImage) {
-		validateActivationRequest(request, gdprConsentImage);
-
 		ProtectPlusCertificate certificate = getProtectPlusCertificate(certificateId);
+		validateActivationRequest(request, certificate, gdprConsentImage);
 		if (ProtectPlusCertificateStatus.CANCELLED.equals(certificate.getStatus())) {
 			throw new IllegalStateTransferException("status", "Cancelled Protect+ certificate can not be activated.");
 		}
@@ -104,11 +126,15 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 			throw new IllegalStateTransferException("deviceModelId",
 					"Protect+ certificate can be activated only for the device model selected during sale.");
 		}
+		if (Boolean.TRUE.equals(deviceModelDao.isUnknownDeviceModel(request.getDeviceModelId()))) {
+			throw new IllegalStateTransferException("deviceModelId",
+					"Protect+ certificate can not be activated with Unknown device model.");
+		}
 
 		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
 		long currentTimestamp = dateService.getCurrentMillisBGTimezone();
 		Integer loyalCustomerId = resolveLoyalCustomerId(request, loggedInEmployee, currentTimestamp);
-		String gdprConsentFileId = imageUploadService.uploadProtectPlusGdprConsentImage(gdprConsentImage);
+		String gdprConsentFileId = resolveGdprConsentFileId(certificate, gdprConsentImage);
 
 		certificate.setStatus(ProtectPlusCertificateStatus.ACTIVE);
 		certificate.setLoyalCustomerId(loyalCustomerId);
@@ -143,10 +169,63 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 		return getProtectPlusCertificate(certificateId);
 	}
 
+	@Override
+	public ProtectPlusCertificate updateCustomerName(Integer certificateId, ProtectPlusCustomerNameUpdateRequest request) {
+		validateCustomerNameUpdateRequest(request);
+		if (!Boolean.TRUE.equals(employeeService.isLoggedInEmployeeAdmin())) {
+			throw new IllegalStateTransferException("employee", "Only admin can update Protect+ customer name.");
+		}
+
+		ProtectPlusCertificate certificate = validateActiveCertificate(certificateId);
+		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
+		long currentTimestamp = dateService.getCurrentMillisBGTimezone();
+		updateLoyalCustomerName(certificate, request.getName(), loggedInEmployee.getId(), currentTimestamp);
+
+		return getProtectPlusCertificate(certificateId);
+	}
+
+	@Override
+	public ProtectPlusCertificate updateCustomerPhone(Integer certificateId, ProtectPlusCustomerPhoneUpdateRequest request) {
+		validateCustomerPhoneUpdateRequest(request);
+		if (!Boolean.TRUE.equals(employeeService.isLoggedInEmployeeAdmin())) {
+			throw new IllegalStateTransferException("employee", "Only admin can update Protect+ customer phone.");
+		}
+
+		ProtectPlusCertificate certificate = validateActiveCertificate(certificateId);
+		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
+		long currentTimestamp = dateService.getCurrentMillisBGTimezone();
+		updateLoyalCustomerPhoneNumber(certificate, request.getPhoneNumber(), loggedInEmployee.getId(),
+				currentTimestamp);
+
+		return getProtectPlusCertificate(certificateId);
+	}
+
 	private void validateCustomerEmailUpdateRequest(ProtectPlusCustomerEmailUpdateRequest request) {
 		if (request == null || StringUtils.isEmpty(request.getEmail())) {
 			throw new IllegalArgumentException("Customer email is required.");
 		}
+	}
+
+	private void validateCustomerNameUpdateRequest(ProtectPlusCustomerNameUpdateRequest request) {
+		if (request == null || StringUtils.isEmpty(request.getName())) {
+			throw new IllegalArgumentException("Customer name is required.");
+		}
+	}
+
+	private void validateCustomerPhoneUpdateRequest(ProtectPlusCustomerPhoneUpdateRequest request) {
+		if (request == null || StringUtils.isEmpty(request.getPhoneNumber())) {
+			throw new IllegalArgumentException("Customer phone is required.");
+		}
+	}
+
+	private void updateLoyalCustomerName(ProtectPlusCertificate certificate, String name, Integer updatedById,
+			Long currentTimestamp) {
+		if (certificate.getLoyalCustomerId() == null) {
+			throw new IllegalStateTransferException("loyalCustomerId", "Protect+ certificate has no loyal customer.");
+		}
+
+		loyalCustomerDao.updateLoyalCustomerName(certificate.getLoyalCustomerId(), name, updatedById, currentTimestamp);
+		certificate.setLoyalCustomerName(name);
 	}
 
 	private void updateLoyalCustomerEmail(ProtectPlusCertificate certificate, String email, Integer updatedById,
@@ -157,6 +236,205 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 
 		loyalCustomerDao.updateLoyalCustomerEmail(certificate.getLoyalCustomerId(), email, updatedById, currentTimestamp);
 		certificate.setLoyalCustomerEmail(email);
+	}
+
+	private void updateLoyalCustomerPhoneNumber(ProtectPlusCertificate certificate, String phoneNumber, Integer updatedById,
+			Long currentTimestamp) {
+		if (certificate.getLoyalCustomerId() == null) {
+			throw new IllegalStateTransferException("loyalCustomerId", "Protect+ certificate has no loyal customer.");
+		}
+
+		loyalCustomerDao.updateLoyalCustomerPhoneNumber(certificate.getLoyalCustomerId(), phoneNumber, updatedById,
+				currentTimestamp);
+		certificate.setLoyalCustomerPhoneNumber(phoneNumber);
+	}
+
+	@Transactional
+	@Override
+	public ProtectPlusCertificate cancelProtectPlusCertificate(Integer certificateId) {
+		if (!Boolean.TRUE.equals(employeeService.isLoggedInEmployeeAdmin())) {
+			throw new IllegalStateTransferException("employee", "Only admin can cancel Protect+ certificate.");
+		}
+
+		ProtectPlusCertificate certificate = getProtectPlusCertificate(certificateId);
+		if (ProtectPlusCertificateStatus.CANCELLED.equals(certificate.getStatus())) {
+			throw new IllegalStateTransferException("status", "Protect+ certificate is already cancelled.");
+		}
+
+		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
+		long currentTimestamp = dateService.getCurrentMillisBGTimezone();
+		if (!isCertificateUsed(certificate)) {
+			refundCertificatePurchase(certificate);
+		}
+
+		cancelCertificate(certificate, loggedInEmployee.getId(), currentTimestamp);
+
+		return getProtectPlusCertificate(certificateId);
+	}
+
+	@Override
+	public ProtectPlusActivationEmailResendReport resendActivationEmails(
+			ProtectPlusActivationEmailResendRequest request) {
+		if (!Boolean.TRUE.equals(employeeService.isLoggedInEmployeeAdmin())) {
+			throw new IllegalStateTransferException("employee", "Only admin can resend Protect+ activation emails.");
+		}
+		validateActivationEmailResendRequest(request);
+
+		boolean dryRun = Boolean.TRUE.equals(request.getDryRun());
+		Integer delayBetweenEmailsMillis = resolveActivationEmailResendDelay(request.getDelayBetweenEmailsMillis());
+		Integer certificateNumberFrom = Math.min(request.getCertificateNumberFrom(), request.getCertificateNumberTo());
+		Integer certificateNumberTo = Math.max(request.getCertificateNumberFrom(), request.getCertificateNumberTo());
+		List<ProtectPlusCertificate> certificates = protectPlusCertificateDao.getProtectPlusCertificatesByCertificateNumberRange(
+				certificateNumberFrom, certificateNumberTo);
+		List<ProtectPlusActivationEmailResendResult> results = new ArrayList<ProtectPlusActivationEmailResendResult>();
+
+		for (int i = 0; i < certificates.size(); i++) {
+			ProtectPlusCertificate certificate = certificates.get(i);
+			ProtectPlusActivationEmailResendResult result = createActivationEmailResendResult(certificate);
+			if (dryRun) {
+				result.setSkipped(true);
+				result.setMessage("Dry run.");
+			} else {
+				EmailSendResult sendResult = emailService.sendProtectPlusActivationEmail(certificate);
+				result.setSent(sendResult.isSent());
+				result.setSkipped(false);
+				result.setMessage(sendResult.isSent() ? "Sent." : sendResult.getErrorMessage());
+				if (isActivationEmailThrottleError(sendResult.getErrorMessage())) {
+					results.add(result);
+					addSkippedActivationEmailResultsAfterThrottle(certificates, results, i + 1);
+					break;
+				}
+				sleepBetweenActivationEmails(delayBetweenEmailsMillis);
+			}
+			results.add(result);
+		}
+
+		ProtectPlusActivationEmailResendReport report = new ProtectPlusActivationEmailResendReport();
+		report.setDryRun(dryRun);
+		report.setCandidateCount(certificates.size());
+		report.setSentCount((int) results.stream().filter(ProtectPlusActivationEmailResendResult::isSent).count());
+		report.setSkippedCount((int) results.stream().filter(ProtectPlusActivationEmailResendResult::isSkipped).count());
+		report.setFailedCount((int) results.stream()
+				.filter(result -> !result.isSent() && !result.isSkipped())
+				.count());
+		report.setResults(results);
+		return report;
+	}
+
+	private void validateActivationEmailResendRequest(ProtectPlusActivationEmailResendRequest request) {
+		if (request == null) {
+			throw new IllegalArgumentException("Protect+ activation email resend request is required.");
+		}
+		if (request.getCertificateNumberFrom() == null) {
+			throw new IllegalArgumentException("Certificate number from is required.");
+		}
+		if (request.getCertificateNumberTo() == null) {
+			throw new IllegalArgumentException("Certificate number to is required.");
+		}
+	}
+
+	private Integer resolveActivationEmailResendDelay(Integer delayBetweenEmailsMillis) {
+		if (delayBetweenEmailsMillis == null) {
+			return DEFAULT_ACTIVATION_EMAIL_RESEND_DELAY_MILLIS;
+		}
+		if (delayBetweenEmailsMillis < 0 || delayBetweenEmailsMillis > MAX_ACTIVATION_EMAIL_RESEND_DELAY_MILLIS) {
+			throw new IllegalArgumentException("Delay between emails should be between 0 and 60000 milliseconds.");
+		}
+
+		return delayBetweenEmailsMillis;
+	}
+
+	private boolean isActivationEmailThrottleError(String errorMessage) {
+		if (errorMessage == null) {
+			return false;
+		}
+
+		return errorMessage.contains("454") && errorMessage.contains("Too many login attempts");
+	}
+
+	private void addSkippedActivationEmailResultsAfterThrottle(List<ProtectPlusCertificate> certificates,
+			List<ProtectPlusActivationEmailResendResult> results, int startIndex) {
+		for (int i = startIndex; i < certificates.size(); i++) {
+			ProtectPlusActivationEmailResendResult skippedResult = createActivationEmailResendResult(certificates.get(i));
+			skippedResult.setSkipped(true);
+			skippedResult.setMessage("Skipped because Gmail throttled SMTP login attempts.");
+			results.add(skippedResult);
+		}
+	}
+
+	private void sleepBetweenActivationEmails(Integer delayBetweenEmailsMillis) {
+		if (delayBetweenEmailsMillis == null || delayBetweenEmailsMillis <= 0) {
+			return;
+		}
+		try {
+			Thread.sleep(delayBetweenEmailsMillis);
+		} catch (InterruptedException exception) {
+			Thread.currentThread().interrupt();
+			throw new IllegalStateException("Protect+ activation email resend was interrupted.", exception);
+		}
+	}
+
+	private ProtectPlusActivationEmailResendResult createActivationEmailResendResult(ProtectPlusCertificate certificate) {
+		ProtectPlusActivationEmailResendResult result = new ProtectPlusActivationEmailResendResult();
+		result.setCertificateId(certificate.getId());
+		result.setCertificateNumber(certificate.getCertificateNumber());
+		result.setCustomerEmail(certificate.getLoyalCustomerEmail());
+		return result;
+	}
+
+	private boolean isCertificateUsed(ProtectPlusCertificate certificate) {
+		return Boolean.TRUE.equals(certificate.getFreeProtectorUsed())
+				|| Boolean.TRUE.equals(certificate.getFreeDisplayReplacementServiceUsed())
+				|| Boolean.TRUE.equals(certificate.getFreeBatteryReplacementServiceUsed())
+				|| (certificate.getUsageCount() != null && certificate.getUsageCount() > 0)
+				|| protectPlusCertificateDao.countProtectPlusUsageSales(certificate.getId()) > 0;
+	}
+
+	private void refundCertificatePurchase(ProtectPlusCertificate certificate) {
+		Integer saleItemId = resolveSoldSaleItemId(certificate);
+		if (saleItemId == null) {
+			throw new IllegalStateTransferException("soldSaleItemId",
+					"Protect+ certificate sale item can not be resolved for refund.");
+		}
+
+		Boolean refunded = saleDao.isSaleItemRefunded(saleItemId);
+		if (refunded == null) {
+			throw new DomainObjectNotFoundException("saleItemId", "Non-existing Protect+ certificate sale item.");
+		}
+		if (Boolean.TRUE.equals(refunded)) {
+			return;
+		}
+
+		refundService.submitProtectPlusCancellationRefund(new Refund(saleItemId,
+				"Protect+ certificate cancellation: " + certificate.getCertificateNumber()));
+	}
+
+	private void cancelCertificate(ProtectPlusCertificate certificate, Integer employeeId, Long currentTimestamp) {
+		anonymizeLoyalCustomer(certificate, employeeId, currentTimestamp);
+		protectPlusCertificateDao.cancelProtectPlusCertificate(certificate.getId(), employeeId, currentTimestamp);
+	}
+
+	private Integer resolveSoldSaleItemId(ProtectPlusCertificate certificate) {
+		if (certificate.getSoldSaleItemId() != null) {
+			return certificate.getSoldSaleItemId();
+		}
+		if (certificate.getSoldSaleId() == null) {
+			return null;
+		}
+
+		return saleDao.getSingleSaleItemIdBySaleIdAndProductCode(certificate.getSoldSaleId(), PROTECT_PLUS_PRODUCT_CODE);
+	}
+
+	private void anonymizeLoyalCustomer(ProtectPlusCertificate certificate, Integer updatedById, Long currentTimestamp) {
+		if (certificate.getLoyalCustomerId() == null) {
+			return;
+		}
+
+		LoyalCustomer loyalCustomer = new LoyalCustomer();
+		loyalCustomer.setId(certificate.getLoyalCustomerId());
+		loyalCustomer.setUpdatedById(updatedById);
+		loyalCustomer.setLastUpdateTimestamp(currentTimestamp);
+		loyalCustomerDao.updateLoyalCustomer(loyalCustomer);
 	}
 
 	@Override
@@ -265,6 +543,38 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 	}
 
 	@Override
+	public ProtectPlusCertificate saveInactiveCertificateDraft(Integer certificateId, ProtectPlusCertificateRequest request) {
+		return saveInactiveCertificateDraft(certificateId, request, null);
+	}
+
+	@Override
+	public ProtectPlusCertificate saveInactiveCertificateDraft(Integer certificateId, ProtectPlusCertificateRequest request,
+			MultipartFile gdprConsentImage) {
+		validateInactiveCertificateDraftRequest(request);
+		ProtectPlusCertificate certificate = getProtectPlusCertificate(certificateId);
+		if (!ProtectPlusCertificateStatus.INACTIVE.equals(certificate.getStatus())) {
+			throw new IllegalStateTransferException("status",
+					"Only inactive Protect+ certificate draft can be saved before activation.");
+		}
+
+		validateInactiveCertificateVisibility(certificate, request);
+		validateExistingDeviceModel(request.getDeviceModelId());
+
+		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
+		long currentTimestamp = dateService.getCurrentMillisBGTimezone();
+		Integer loyalCustomerId = resolveDraftLoyalCustomerId(certificate, request, loggedInEmployee, currentTimestamp);
+		protectPlusCertificateDao.updateInactiveProtectPlusCertificateDraft(certificateId, loyalCustomerId,
+				request.getDeviceModelId(), loggedInEmployee.getId(), currentTimestamp);
+		if (hasGdprConsentImage(gdprConsentImage)) {
+			String gdprConsentFileId = imageUploadService.uploadProtectPlusGdprConsentImage(gdprConsentImage);
+			protectPlusCertificateDao.updateGdprConsentFile(certificateId, gdprConsentFileId, loggedInEmployee.getId(),
+					currentTimestamp);
+		}
+
+		return getProtectPlusCertificate(certificateId);
+	}
+
+	@Override
 	public ProtectPlusCertificate changeDeviceModel(Integer certificateId, ProtectPlusDeviceModelChangeRequest request) {
 		validateDeviceModelChangeRequest(request);
 		ProtectPlusCertificate certificate = validateActiveCertificate(certificateId);
@@ -272,10 +582,7 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 			throw new IllegalArgumentException("New device model should be different from the current one.");
 		}
 
-		DeviceModel deviceModel = deviceModelDao.selectDeviceModel(request.getDeviceModelId());
-		if (deviceModel == null) {
-			throw new DomainObjectNotFoundException("deviceModelId", "Non-existing device model.");
-		}
+		validateExistingDeviceModel(request.getDeviceModelId());
 
 		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
 		boolean adminOverride = Boolean.TRUE.equals(employeeService.isLoggedInEmployeeAdmin());
@@ -292,7 +599,10 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 				loggedInEmployee.getStoreId(), loggedInEmployee.getId(), certificate.getDeviceModelId(),
 				request.getDeviceModelId(), adminOverride, currentTimestamp);
 
-		return getProtectPlusCertificate(certificateId);
+		ProtectPlusCertificate updatedCertificate = getProtectPlusCertificate(certificateId);
+		emailService.sendProtectPlusDeviceModelChangeEmail(updatedCertificate, certificate.getDeviceModelName());
+
+		return updatedCertificate;
 	}
 
 	@Override
@@ -323,12 +633,7 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 			throw new IllegalArgumentException("Employee store is required.");
 		}
 
-		Integer storeId = loggedInEmployee.getStoreId();
-		if (admin && (storeId == null || storeId == 0)) {
-			storeId = null;
-		}
-
-		String storeIds = resolveVisibleStoreIds(storeId);
+		String storeIds = admin ? null : resolveVisibleStoreIds(loggedInEmployee.getStoreId());
 		return protectPlusCertificateDao.searchProtectPlusCertificates(null, null,
 				ProtectPlusCertificateStatus.INACTIVE, storeIds, null, null, null);
 	}
@@ -349,6 +654,27 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 		List<ProtectPlusCertificateSearchResult> certificates = protectPlusCertificateDao.searchProtectPlusCertificates(
 				certificateNumber, phoneNumber, ProtectPlusCertificateStatus.ACTIVE, storeIds, resolvedDeviceBrandId,
 				resolvedDeviceModelId, limit);
+		return hidePersonalDataForNonAdmin(certificates);
+	}
+
+	@Override
+	public List<ProtectPlusCertificateSearchResult> searchActiveProtectPlusCertificates(
+			ProtectPlusCertificateSearchFilter filter) {
+		boolean admin = Boolean.TRUE.equals(employeeService.isLoggedInEmployeeAdmin());
+		if (!admin && filter.getCertificateNumber() == null && StringUtils.isEmpty(filter.getPhoneNumber())) {
+			throw new IllegalArgumentException("Certificate number or phone number is required.");
+		}
+
+		Integer limit = admin ? null : 1;
+		String storeIds = isDirectCertificateLookup(filter.getCertificateNumber(), filter.getPhoneNumber())
+				? null : resolveVisibleStoreIds(filter.getStoreId());
+		if (!admin) {
+			filter.setDeviceBrandId(null);
+			filter.setDeviceModelId(null);
+		}
+
+		List<ProtectPlusCertificateSearchResult> certificates = protectPlusCertificateDao.searchProtectPlusCertificates(
+				filter, ProtectPlusCertificateStatus.ACTIVE, storeIds, limit);
 		return hidePersonalDataForNonAdmin(certificates);
 	}
 
@@ -474,11 +800,12 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 		return certificateNumber != null || !StringUtils.isEmpty(phoneNumber);
 	}
 
-	private void validateActivationRequest(ProtectPlusCertificateRequest request, MultipartFile gdprConsentImage) {
+	private void validateActivationRequest(ProtectPlusCertificateRequest request, ProtectPlusCertificate certificate,
+			MultipartFile gdprConsentImage) {
 		if (request == null) {
 			throw new IllegalArgumentException("Protect+ certificate request is required.");
 		}
-		if (gdprConsentImage == null || gdprConsentImage.isEmpty()) {
+		if (!hasGdprConsentImage(gdprConsentImage) && StringUtils.isEmpty(certificate.getGdprConsentFileId())) {
 			throw new IllegalArgumentException("GDPR consent image is required.");
 		}
 		if (request.getDeviceModelId() == null) {
@@ -498,10 +825,95 @@ public class ProtectPlusCertificateServiceImpl implements ProtectPlusCertificate
 		}
 	}
 
+	private String resolveGdprConsentFileId(ProtectPlusCertificate certificate, MultipartFile gdprConsentImage) {
+		if (hasGdprConsentImage(gdprConsentImage)) {
+			return imageUploadService.uploadProtectPlusGdprConsentImage(gdprConsentImage);
+		}
+
+		return certificate.getGdprConsentFileId();
+	}
+
+	private boolean hasGdprConsentImage(MultipartFile gdprConsentImage) {
+		return gdprConsentImage != null && !gdprConsentImage.isEmpty();
+	}
+
+	private void validateInactiveCertificateDraftRequest(ProtectPlusCertificateRequest request) {
+		if (request == null) {
+			throw new IllegalArgumentException("Protect+ certificate request is required.");
+		}
+		if (request.getDeviceModelId() == null) {
+			throw new IllegalArgumentException("Device model is required.");
+		}
+	}
+
+	private void validateInactiveCertificateVisibility(ProtectPlusCertificate certificate,
+			ProtectPlusCertificateRequest request) {
+		if (Boolean.TRUE.equals(employeeService.isLoggedInEmployeeAdmin())) {
+			return;
+		}
+
+		Employee loggedInEmployee = employeeService.getLoggedInEmployee();
+		if (loggedInEmployee.getStoreId() == null || !loggedInEmployee.getStoreId().equals(certificate.getSoldStoreId())) {
+			throw new IllegalStateTransferException("employee",
+					"Employee can update only inactive Protect+ certificates sold in their store.");
+		}
+		if (certificate.getDeviceModelId() == null || !certificate.getDeviceModelId().equals(request.getDeviceModelId())) {
+			throw new IllegalStateTransferException("deviceModelId",
+					"Non-admin employee can not update inactive Protect+ certificate device model.");
+		}
+	}
+
+	private Integer resolveDraftLoyalCustomerId(ProtectPlusCertificate certificate, ProtectPlusCertificateRequest request,
+			Employee loggedInEmployee, long currentTimestamp) {
+		if (!hasValidDraftLoyalCustomer(request)) {
+			return certificate.getLoyalCustomerId();
+		}
+
+		LoyalCustomer requestCustomer = request.getLoyalCustomer();
+		if (certificate.getLoyalCustomerId() != null) {
+			requestCustomer.setId(certificate.getLoyalCustomerId());
+			requestCustomer.setUpdatedById(loggedInEmployee.getId());
+			requestCustomer.setLastUpdateTimestamp(currentTimestamp);
+			loyalCustomerDao.updateLoyalCustomer(requestCustomer);
+			return certificate.getLoyalCustomerId();
+		}
+
+		LoyalCustomer existingLoyalCustomer = findMatchingLoyalCustomer(requestCustomer);
+		if (existingLoyalCustomer != null) {
+			return existingLoyalCustomer.getId();
+		}
+
+		requestCustomer.setCreatedById(loggedInEmployee.getId());
+		requestCustomer.setCreatedTimestamp(currentTimestamp);
+		return loyalCustomerDao.insertLoyalCustomer(requestCustomer);
+	}
+
+	private boolean hasDraftCustomerData(ProtectPlusCertificateRequest request) {
+		return request.getLoyalCustomer() != null
+				&& (!StringUtils.isEmpty(request.getLoyalCustomer().getName())
+						|| !StringUtils.isEmpty(request.getLoyalCustomer().getPhoneNumber())
+						|| !StringUtils.isEmpty(request.getLoyalCustomer().getEmail()));
+	}
+
+	private boolean hasValidDraftLoyalCustomer(ProtectPlusCertificateRequest request) {
+		return hasDraftCustomerData(request)
+				&& !StringUtils.isEmpty(request.getLoyalCustomer().getName())
+				&& !StringUtils.isEmpty(request.getLoyalCustomer().getPhoneNumber());
+	}
+
 	private void validateDeviceModelChangeRequest(ProtectPlusDeviceModelChangeRequest request) {
 		if (request == null || request.getDeviceModelId() == null) {
 			throw new IllegalArgumentException("Device model is required.");
 		}
+	}
+
+	private DeviceModel validateExistingDeviceModel(Integer deviceModelId) {
+		DeviceModel deviceModel = deviceModelDao.selectDeviceModel(deviceModelId);
+		if (deviceModel == null) {
+			throw new DomainObjectNotFoundException("deviceModelId", "Non-existing device model.");
+		}
+
+		return deviceModel;
 	}
 
 	private void validateCallRecording(MultipartFile callRecording) {

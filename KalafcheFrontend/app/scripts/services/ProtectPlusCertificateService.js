@@ -6,15 +6,21 @@ angular.module('kalafcheFrontendApp')
 				getInactiveCertificates: getInactiveCertificates,
 				searchCertificates: searchCertificates,
 				activateCertificate: activateCertificate,
-	            changeDeviceModel: changeDeviceModel,
-	            getUsageRecords: getUsageRecords,
-	            getRenewalRecords: getRenewalRecords,
-	            getDeviceModelChangeRecords: getDeviceModelChangeRecords,
-	            getCallRecords: getCallRecords,
-	            uploadCallRecording: uploadCallRecording,
-	            downloadCallRecording: downloadCallRecording,
-	            downloadGdprConsent: downloadGdprConsent,
-	            updateCustomerEmail: updateCustomerEmail
+					saveInactiveCertificateDraft: saveInactiveCertificateDraft,
+					changeDeviceModel: changeDeviceModel,
+					getUsageRecords: getUsageRecords,
+					getRenewalRecords: getRenewalRecords,
+					getDeviceModelChangeRecords: getDeviceModelChangeRecords,
+					getCallRecords: getCallRecords,
+					uploadCallRecording: uploadCallRecording,
+					downloadCallRecording: downloadCallRecording,
+					downloadGdprConsent: downloadGdprConsent,
+					updateCustomerEmail: updateCustomerEmail,
+					updateCustomerName: updateCustomerName,
+					updateCustomerPhone: updateCustomerPhone,
+					cancelCertificate: cancelCertificate,
+					getDiscountPolicies: getDiscountPolicies,
+					saveDiscountPolicy: saveDiscountPolicy
 			});
 
 		function getInactiveCertificates() {
@@ -50,7 +56,9 @@ angular.module('kalafcheFrontendApp')
 		function activateCertificate(certificateId, certificate, gdprConsentImage) {
 			var fileFormData = new FormData();
 			fileFormData.append('certificate', new Blob([angular.toJson(certificate)], { type: 'application/json' }));
-			fileFormData.append('gdprConsentImage', gdprConsentImage);
+			if (gdprConsentImage) {
+				fileFormData.append('gdprConsentImage', gdprConsentImage);
+			}
 
 			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/' + certificateId + '/activate',
 				fileFormData, {
@@ -60,7 +68,23 @@ angular.module('kalafcheFrontendApp')
 					return response.data;
 				});
 		}
-		
+
+		function saveInactiveCertificateDraft(certificateId, certificate, gdprConsentImage) {
+			var fileFormData = new FormData();
+			fileFormData.append('certificate', new Blob([angular.toJson(certificate)], { type: 'application/json' }));
+			if (gdprConsentImage) {
+				fileFormData.append('gdprConsentImage', gdprConsentImage);
+			}
+
+			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/' + certificateId + '/draft',
+				fileFormData, {
+					transformRequest: angular.identity,
+					headers: {'Content-Type': undefined}
+				}).then(function(response) {
+					return response.data;
+				});
+		}
+
 		function getCallRecords(certificateId) {
 			return $http.get(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/' + certificateId + '/callRecords')
 				.then(function(response) {
@@ -89,21 +113,21 @@ angular.module('kalafcheFrontendApp')
 				});
 		}
 
-        function uploadCallRecording(certificateId, callRecording, note) {
-            var fileFormData = new FormData();
-            fileFormData.append('callRecording', callRecording);
-            if (note) {
-                fileFormData.append('note', note);
-            }
+		function uploadCallRecording(certificateId, callRecording, note) {
+			var fileFormData = new FormData();
+			fileFormData.append('callRecording', callRecording);
+			if (note) {
+				fileFormData.append('note', note);
+			}
 
-            return $http.post(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/' + certificateId + '/callRecording',
-                fileFormData, {
-                    transformRequest: angular.identity,
-                    headers: {'Content-Type': undefined}
-                }).then(function(response) {
-                    return response.data;
-                });
-        }
+			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/' + certificateId + '/callRecording',
+				fileFormData, {
+					transformRequest: angular.identity,
+					headers: {'Content-Type': undefined}
+				}).then(function(response) {
+					return response.data;
+				});
+		}
 
 		function downloadCallRecording(certificateId, callRecord) {
 			var params = {responseType: 'arraybuffer'};
@@ -132,6 +156,22 @@ angular.module('kalafcheFrontendApp')
 			});
 		}
 
+		function updateCustomerName(certificateId, name) {
+			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/' + certificateId + '/customerName', {
+				name: name
+			}).then(function(response) {
+				return response.data;
+			});
+		}
+
+		function updateCustomerPhone(certificateId, phoneNumber) {
+			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/' + certificateId + '/customerPhone', {
+				phoneNumber: phoneNumber
+			}).then(function(response) {
+				return response.data;
+			});
+		}
+
 		function changeDeviceModel(certificateId, deviceModelId) {
 			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/' + certificateId + '/deviceModel', {
 				deviceModelId: deviceModelId
@@ -140,4 +180,25 @@ angular.module('kalafcheFrontendApp')
 			});
 		}
 
-	});
+		function cancelCertificate(certificateId) {
+			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/' + certificateId + '/cancel')
+				.then(function(response) {
+					return response.data;
+				});
+		}
+
+		function getDiscountPolicies() {
+			return $http.get(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/discountPolicy')
+				.then(function(response) {
+					return response.data;
+				});
+		}
+
+		function saveDiscountPolicy(policy) {
+			return $http.post(Environment.apiEndpoint + '/KalafcheBackend/protectPlus/certificate/discountPolicy',
+				policy).then(function(response) {
+					return response.data;
+				});
+		}
+
+		});

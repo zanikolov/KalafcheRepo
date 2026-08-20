@@ -7,11 +7,13 @@ angular.module('kalafcheFrontendApp')
 
         function init() {
             $scope.sale = currentSale;
+            $scope.sale.paid = null;
             $scope.replacementSale = null;
             $scope.replacementSaleHasRefundedItem = false;
             $scope.discountCode = null;
             $scope.serverErrorMessages = {};
             $scope.submitSaleErrorMessage = null;
+            $scope.showSoldForDeviceModelValidation = false;
             $scope.protectPlusSearch = {};
             $scope.protectPlusCertificates = [];
             $scope.selectedProtectPlusCertificate = $scope.sale.selectedProtectPlusCertificate;
@@ -63,7 +65,7 @@ angular.module('kalafcheFrontendApp')
         }
 
 	        function calculateTotalSum() {
-	            if (hasMissingRequiredSoldForDeviceModel()) {
+	            if (hasMissingProductRequiredSoldForDeviceModel()) {
 	                return;
 	            }
 
@@ -89,13 +91,19 @@ angular.module('kalafcheFrontendApp')
             $scope.loading = true;
             $scope.serverErrorMessages = {};
             $scope.submitSaleErrorMessage = null;
+            if (hasMissingRequiredSoldForDeviceModel() || hasMissingUnknownSoldForDeviceModelDescription()) {
+                $scope.showSoldForDeviceModelValidation = true;
+                $scope.loading = false;
+                return;
+            }
             var requestBody = {};
 
             requestBody.isCashPayment = $scope.sale.isCashPayment;
-            requestBody.employeeId = $scope.sale.employeeId;
-            requestBody.replacementSaleUSI = $scope.sale.replacementSaleUSI;
-            requestBody.protectPlusCertificateId = $scope.sale.protectPlusCertificateId;
-            requestBody.storeId = SessionService.currentUser.employeeStoreId ? SessionService.currentUser.employeeStoreId : 0;
+	            requestBody.employeeId = $scope.sale.employeeId;
+	            requestBody.replacementSaleUSI = $scope.sale.replacementSaleUSI;
+	            requestBody.protectPlusCertificateId = $scope.sale.protectPlusCertificateId;
+	            requestBody.description = $scope.sale.description;
+	            requestBody.storeId = SessionService.currentUser.employeeStoreId ? SessionService.currentUser.employeeStoreId : 0;
             requestBody.saleItems = [];
             angular.forEach($scope.sale.selectedStocks, function(stock){
                 var item = {};
@@ -116,10 +124,12 @@ angular.module('kalafcheFrontendApp')
                     //         console.log("Error!");
                     //     }
                     // )
-                    $scope.sale.selectedStocks = [];
-                    $scope.sale.isCashPayment = null;
-                    $scope.sale.employeeId = null;
-                    $scope.sale.protectPlusCertificateId = null;
+	                    $scope.sale.selectedStocks = [];
+	                    $scope.sale.paid = null;
+	                    $scope.sale.isCashPayment = null;
+	                    $scope.sale.employeeId = null;
+	                    $scope.sale.description = null;
+	                    $scope.sale.protectPlusCertificateId = null;
                     $scope.sale.selectedProtectPlusCertificate = null;
                     $scope.selectedProtectPlusCertificate = null;
                     $mdDialog.cancel();
@@ -157,9 +167,10 @@ angular.module('kalafcheFrontendApp')
                 restoreStockQuantity(stock);
             });
             $scope.sale.selectedStocks = [];
-            $scope.sale.paid = null;
-            $scope.sale.currency = null;
-            $scope.sale.protectPlusCertificateId = null;
+	            $scope.sale.paid = null;
+	            $scope.sale.currency = null;
+	            $scope.sale.description = null;
+	            $scope.sale.protectPlusCertificateId = null;
             $scope.sale.selectedProtectPlusCertificate = null;
             $scope.selectedProtectPlusCertificate = null;
             $mdDialog.cancel();
@@ -209,12 +220,33 @@ angular.module('kalafcheFrontendApp')
 	            calculateTotalSum();
 	        }
 
-	        $scope.isSoldForDeviceModelRequired = isSoldForDeviceModelRequired;
-	        $scope.isSoldForDeviceModelMissing = isSoldForDeviceModelMissing;
-	        $scope.hasMissingRequiredSoldForDeviceModel = hasMissingRequiredSoldForDeviceModel;
+		        $scope.isSoldForDeviceModelRequired = isSoldForDeviceModelRequired;
+		        $scope.isSoldForDeviceModelMissing = isSoldForDeviceModelMissing;
+		        $scope.isSoldForUnknownDeviceModelSelected = isSoldForUnknownDeviceModelSelected;
+		        $scope.hasUnknownSoldForDeviceModel = hasUnknownSoldForDeviceModel;
+		        $scope.hasMissingUnknownSoldForDeviceModelDescription = hasMissingUnknownSoldForDeviceModelDescription;
+		        $scope.hasMissingRequiredSoldForDeviceModel = hasMissingRequiredSoldForDeviceModel;
 
 	        function isSoldForDeviceModelRequired(stock) {
-	            return stock && stock.soldForDeviceModelRequired === true;
+	            return stock && (stock.soldForDeviceModelRequired === true || isProtectPlusSoldForDeviceModelRequired(stock));
+	        }
+
+	        function isProtectPlusSoldForDeviceModelRequired(stock) {
+	            return isProtectPlusStock(stock) && getProtectPlusStocks().length > 1;
+	        }
+
+	        function isProtectPlusStock(stock) {
+	            return stock && stock.productCode === '0500';
+	        }
+
+	        function getProtectPlusStocks() {
+	            if (!$scope.sale.selectedStocks) {
+	                return [];
+	            }
+
+	            return $scope.sale.selectedStocks.filter(function(stock) {
+	                return isProtectPlusStock(stock);
+	            });
 	        }
 
 	        function isSoldForDeviceModelMissing(stock) {
@@ -227,17 +259,52 @@ angular.module('kalafcheFrontendApp')
 	            });
 	        }
 
+	        function hasMissingProductRequiredSoldForDeviceModel() {
+	            return $scope.sale.selectedStocks && $scope.sale.selectedStocks.some(function(stock) {
+	                return stock && stock.soldForDeviceModelRequired === true && !getSoldForDeviceModelId(stock);
+	            });
+	        }
+
+	        $scope.shouldShowSoldForDeviceModelMissing = function(stock) {
+	            return $scope.showSoldForDeviceModelValidation && isSoldForDeviceModelMissing(stock);
+	        }
+
+	        $scope.shouldShowMissingUnknownSoldForDeviceModelDescription = function() {
+	            return $scope.showSoldForDeviceModelValidation && hasMissingUnknownSoldForDeviceModelDescription();
+	        }
+
 	        $scope.clearSoldForDeviceModelSearchTerm = function(stock) {
 	            stock.soldForDeviceModelSearchTerm = "";
 	        }
 
-        function getSoldForDeviceModelId(stock) {
-            if (stock.soldForDeviceModel && stock.soldForDeviceModel.id) {
-                return stock.soldForDeviceModel.id;
-            }
+	        function getSoldForDeviceModelId(stock) {
+	            if (stock.soldForDeviceModel && stock.soldForDeviceModel.id) {
+	                return stock.soldForDeviceModel.id;
+	            }
 
-            return stock.soldForDeviceModelId;
-        }
+	            return stock.soldForDeviceModelId;
+	        }
+
+	        function isSoldForUnknownDeviceModelSelected(stock) {
+	            var soldForDeviceModelId = getSoldForDeviceModelId(stock);
+	            if (!soldForDeviceModelId) {
+	                return false;
+	            }
+
+	            return $scope.models.some(function(model) {
+	                return model.id == soldForDeviceModelId && model.unknownModel === true;
+	            });
+	        }
+
+	        function hasMissingUnknownSoldForDeviceModelDescription() {
+	            return hasUnknownSoldForDeviceModel() && (!$scope.sale.description || !$scope.sale.description.trim());
+	        }
+
+	        function hasUnknownSoldForDeviceModel() {
+	            return $scope.sale.selectedStocks && $scope.sale.selectedStocks.some(function(stock) {
+	                return isSoldForUnknownDeviceModelSelected(stock);
+	            });
+	        }
 
         $scope.onChangeReplacementSaleUSI = function () {
             if ($scope.sale.replacementSaleUSI && $scope.sale.replacementSaleUSI.length == 20) {
@@ -376,14 +443,23 @@ angular.module('kalafcheFrontendApp')
             if (errorCode === 'protectPlusPurchaseRequiresProtector') {
                 return 'Protect+ сертификат може да бъде закупен само заедно с протектор.';
             }
+	            if (errorCode === 'protectPlusSoldForDeviceModelRequired') {
+	                return 'Попълнете "Продаден за" за всеки Protect+ сертификат в продажбата.';
+	            }
+	            if (errorCode === 'protectPlusProtectorForDeviceModelRequired') {
+	                return 'За всеки Protect+ сертификат трябва да има протектор за същия модел устройство.';
+	            }
 	            if (errorCode === 'protectPlusPurchaseAndUsageInSameSale') {
 	                return 'Protect+ сертификат не може да бъде закупен и използван в една и съща продажба.';
 	            }
-	            if (errorCode === 'soldForDeviceModelRequired') {
-	                return 'Попълнете "Продаден за" за продуктите, които изискват модел устройство.';
-	            }
-	            return errorCode;
-	        }
+		            if (errorCode === 'soldForDeviceModelRequired') {
+		                return 'Попълнете "Продаден за" за продуктите, които изискват модел устройство.';
+		            }
+		            if (errorCode === 'soldForUnknownDeviceModelDescriptionRequired') {
+		                return 'Опишете реалния модел устройство, когато "Продаден за" е Unknown.';
+		            }
+		            return errorCode;
+		        }
 
         function getServerErrorMessages(errorResponse) {
             if (!errorResponse || !errorResponse.data) {

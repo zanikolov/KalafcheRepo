@@ -12,6 +12,7 @@ public class SaleItem {
 	private Integer id;
 	private Integer saleId;
 	private Long saleTimestamp;
+	private String saleDescription;
 	private Integer itemId;
 	private Integer productId;
 	private String productCode;
@@ -24,6 +25,7 @@ public class SaleItem {
 	private String deviceModelName;
 	private Integer soldForDeviceModelId;
 	private String soldForDeviceModelName;
+	private Boolean soldForDeviceModelUnknown;
 	private Boolean soldForDeviceModelRequired;
 	private Integer deviceBrandId;
 	private String deviceBrandName;

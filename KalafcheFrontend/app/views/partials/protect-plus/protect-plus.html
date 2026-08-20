@@ -24,23 +24,27 @@
                             <td colspan="5">
                                 <div class="protect-plus-activation-container">
                                     <form name="protectPlusActivationForm" server-validation novalidate>
-                                        <md-input-container class="protect-plus-call-record-note">
+                                        <md-input-container class="protect-plus-call-record-note protect-plus-activation-customer-field">
                                             <label>Име</label>
                                             <input ng-model="activationRequest.loyalCustomer.name" name="name" required>
                                             <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
                                         </md-input-container>
 
-                                        <md-input-container class="protect-plus-call-record-note">
+                                        <md-input-container class="protect-plus-call-record-note protect-plus-activation-customer-field">
                                             <label>Телефон</label>
                                             <input ng-model="activationRequest.loyalCustomer.phoneNumber" name="phoneNumber" required>
                                             <span ng-message="serverError" class="label label-error">{{serverErrorMessages.phoneNumber}}</span>
                                         </md-input-container>
 
-                                        <md-input-container class="protect-plus-call-record-note">
+                                        <md-input-container class="protect-plus-call-record-note protect-plus-activation-customer-field">
                                             <label>Имейл</label>
                                             <input type="email" ng-model="activationRequest.loyalCustomer.email" name="email" required>
                                             <span ng-message="serverError" class="label label-error">{{serverErrorMessages.email}}</span>
                                         </md-input-container>
+
+                                        <div class="protect-plus-draft-warning" ng-if="hasIncompleteDraftCustomerData()">
+                                            Клиентските данни няма да бъдат запазени, докато не са попълнени име и телефон.
+                                        </div>
 
                                         <div layout="row" layout-xs="column" class="protect-plus-form-row protect-plus-device-selector-row">
                                             <md-input-container flex="30" flex-xs="100">
@@ -75,14 +79,17 @@
                                         </div>
 
                                         <div class="protect-plus-file-row protect-plus-call-record-file-row">
-	                                            <label class="protect-plus-file-label">GDPR декларация *</label>
-	                                            <input type="file" file-model="selectedCertificate.gdprConsentImage" ng-model="selectedCertificate.gdprConsentImage" name="gdprConsentImage" accept="image/jpeg,image/png" required>
+                                            <label class="protect-plus-file-label">GDPR декларация *</label>
+                                            <input type="file" file-model="selectedCertificate.gdprConsentImage" ng-model="selectedCertificate.gdprConsentImage" name="gdprConsentImage" accept="image/jpeg,image/png" ng-required="!selectedCertificate.gdprConsentFileId">
                                             <span class="protect-plus-file-name" ng-if="selectedCertificate.gdprConsentImage">{{selectedCertificate.gdprConsentImage.name}}</span>
+                                            <span class="protect-plus-file-name" ng-if="!selectedCertificate.gdprConsentImage && selectedCertificate.gdprConsentFileId">GDPR файлът е качен.</span>
                                             <span ng-message="serverError" class="label label-error">{{serverErrorMessages.gdprConsentImage}}</span>
                                         </div>
                                     </form>
                                     <div layout="row" class="protect-plus-activation-actions">
-                                        <md-button ng-disabled="protectPlusActivationForm.$invalid || !selectedCertificate.gdprConsentImage" ng-click="activateCertificate()" class="md-raised md-primary">Активирай</md-button>
+                                        <md-button ng-disabled="!canSaveInactiveCertificateDraft()" ng-click="saveInactiveCertificateDraft()" class="md-raised md-primary">Запази</md-button>
+                                        <md-button ng-disabled="protectPlusActivationForm.$invalid || !hasGdprConsentImage() || isActivationDeviceModelUnknown()" ng-click="activateCertificate()" class="md-raised md-primary">Активирай</md-button>
+                                        <md-button ng-if="isAdmin()" class="md-raised md-primary" ng-click="cancelCertificate(certificate, $event)">Анулирай</md-button>
                                         <md-button class="md-raised md-primary" ng-click="resetActivationForm()">Отмени</md-button>
                                     </div>
                                 </div>
@@ -150,11 +157,108 @@
                                 </md-option>
                             </md-select>
                         </md-input-container>
-                        <md-input-container flex="15" flex-xs="100">
-                            <md-button class="md-raised md-primary" ng-disabled="!canSearchActiveCertificates()" ng-click="searchActiveCertificates()">Търси</md-button>
-                        </md-input-container>
-                    </div>
-                </form>
+	                        <md-input-container flex="15" flex-xs="100">
+	                            <md-button class="md-raised md-primary" ng-disabled="!canSearchActiveCertificates()" ng-click="searchActiveCertificates()">Търси</md-button>
+	                        </md-input-container>
+	                    </div>
+	                    <div ng-if="isAdmin()" class="protect-plus-advanced-search-toggle">
+	                        <a href="" ng-click="toggleAdvancedSearch()">
+	                            {{advancedSearchExpanded ? 'Скрий разширени филтри' : 'Покажи разширени филтри'}}
+	                        </a>
+	                    </div>
+	                    <div ng-if="isAdmin() && advancedSearchExpanded" class="protect-plus-advanced-search">
+	                        <div layout="row" layout-xs="column" layout-wrap>
+	                            <div flex="33" flex-xs="100" class="protect-plus-advanced-filter">
+	                                <div class="protect-plus-advanced-filter-title">Дата на активиране</div>
+	                                <div layout="row" layout-xs="column">
+	                                    <md-input-container flex="50" flex-xs="100">
+	                                        <md-datepicker ng-model="activeAdvancedSearch.activationFromDate" md-placeholder="От дата"></md-datepicker>
+	                                    </md-input-container>
+	                                    <md-input-container flex="50" flex-xs="100">
+	                                        <md-datepicker ng-model="activeAdvancedSearch.activationToDate" md-placeholder="До дата"></md-datepicker>
+	                                    </md-input-container>
+	                                </div>
+	                            </div>
+	                            <div flex="33" flex-xs="100" class="protect-plus-advanced-filter">
+	                                <div class="protect-plus-advanced-filter-title">Дата на използване</div>
+	                                <div layout="row" layout-xs="column">
+	                                    <md-input-container flex="50" flex-xs="100">
+	                                        <md-datepicker ng-model="activeAdvancedSearch.usageFromDate" md-placeholder="От дата"></md-datepicker>
+	                                    </md-input-container>
+	                                    <md-input-container flex="50" flex-xs="100">
+	                                        <md-datepicker ng-model="activeAdvancedSearch.usageToDate" md-placeholder="До дата"></md-datepicker>
+	                                    </md-input-container>
+	                                </div>
+	                            </div>
+	                            <div flex="33" flex-xs="100" class="protect-plus-advanced-filter">
+	                                <div class="protect-plus-advanced-filter-title">Дата на прозвъняване</div>
+	                                <div layout="row" layout-xs="column">
+	                                    <md-input-container flex="50" flex-xs="100">
+	                                        <md-datepicker ng-model="activeAdvancedSearch.callFromDate" md-placeholder="От дата"></md-datepicker>
+	                                    </md-input-container>
+	                                    <md-input-container flex="50" flex-xs="100">
+	                                        <md-datepicker ng-model="activeAdvancedSearch.callToDate" md-placeholder="До дата"></md-datepicker>
+	                                    </md-input-container>
+	                                </div>
+	                            </div>
+	                            <div flex="33" flex-xs="100" class="protect-plus-advanced-filter">
+	                                <div class="protect-plus-advanced-filter-title">Дата на изтичане</div>
+	                                <div layout="row" layout-xs="column">
+	                                    <md-input-container flex="50" flex-xs="100">
+	                                        <md-datepicker ng-model="activeAdvancedSearch.validUntilFromDate" md-placeholder="От дата"></md-datepicker>
+	                                    </md-input-container>
+	                                    <md-input-container flex="50" flex-xs="100">
+	                                        <md-datepicker ng-model="activeAdvancedSearch.validUntilToDate" md-placeholder="До дата"></md-datepicker>
+	                                    </md-input-container>
+	                                </div>
+	                            </div>
+	                            <div flex="33" flex-xs="100" class="protect-plus-advanced-filter">
+	                                <md-input-container>
+	                                    <label>Използвания &lt;=</label>
+	                                    <input type="number" min="0" step="1" ng-model="activeAdvancedSearch.usageCount">
+	                                </md-input-container>
+	                            </div>
+	                            <div flex="33" flex-xs="100" class="protect-plus-advanced-filter">
+	                                <md-input-container>
+	                                    <label>Прозвънявания &lt;=</label>
+	                                    <input type="number" min="0" step="1" ng-model="activeAdvancedSearch.callCount">
+	                                </md-input-container>
+	                            </div>
+	                            <div flex="25" flex-xs="100" class="protect-plus-advanced-filter">
+	                                <md-input-container>
+	                                    <label>Безплатен протектор</label>
+	                                    <md-select ng-model="activeAdvancedSearch.freeProtectorUsed">
+	                                        <md-option ng-repeat="option in usedFilterOptions" ng-value="option.value">{{option.label}}</md-option>
+	                                    </md-select>
+	                                </md-input-container>
+	                            </div>
+	                            <div flex="25" flex-xs="100" class="protect-plus-advanced-filter">
+	                                <md-input-container>
+	                                    <label>Безплатен сервиз дисплей</label>
+	                                    <md-select ng-model="activeAdvancedSearch.freeDisplayReplacementServiceUsed">
+	                                        <md-option ng-repeat="option in usedFilterOptions" ng-value="option.value">{{option.label}}</md-option>
+	                                    </md-select>
+	                                </md-input-container>
+	                            </div>
+	                            <div flex="25" flex-xs="100" class="protect-plus-advanced-filter">
+	                                <md-input-container>
+	                                    <label>Безплатен сервиз батерия</label>
+	                                    <md-select ng-model="activeAdvancedSearch.freeBatteryReplacementServiceUsed">
+	                                        <md-option ng-repeat="option in usedFilterOptions" ng-value="option.value">{{option.label}}</md-option>
+	                                    </md-select>
+	                                </md-input-container>
+	                            </div>
+	                            <div flex="25" flex-xs="100" class="protect-plus-advanced-filter">
+	                                <md-input-container>
+	                                    <label>Смяна на устройство</label>
+	                                    <md-select ng-model="activeAdvancedSearch.deviceModelChangeUsed">
+	                                        <md-option ng-repeat="option in usedFilterOptions" ng-value="option.value">{{option.label}}</md-option>
+	                                    </md-select>
+	                                </md-input-container>
+	                            </div>
+	                        </div>
+	                    </div>
+	                </form>
 
                 <table class="table table-hover table-condensed" ng-if="activeCertificates.length > 0">
                     <thead>
@@ -181,6 +285,10 @@
                         <tr dir-paginate-end ng-show="certificate.expanded" class="sale-details">
                             <td colspan="{{isAdmin() ? 7 : 4}}">
 	                                <div class="protect-plus-details-container">
+	                                    <div class="protect-plus-history-section" ng-if="isAdmin()">
+	                                        <md-button class="md-raised md-primary" ng-click="cancelCertificate(certificate, $event)">Анулирай</md-button>
+	                                    </div>
+
 	                                    <div class="protect-plus-history-section" ng-if="isAdmin()">
 	                                        <div class="protect-plus-details-section-title">Използвания</div>
 	                                        <table class="table table-condensed protect-plus-history-table protect-plus-usage-history-table" ng-if="usageRecords.length > 0">
@@ -235,6 +343,26 @@
                                     <div class="protect-plus-history-section" ng-if="isAdmin()">
                                         <div layout="row" layout-xs="column" layout-align="start start" class="protect-plus-form-row">
                                             <md-input-container flex="30" flex-xs="100">
+                                                <label>Име</label>
+                                                <input ng-model="customerNameUpdate.name" name="customerName">
+                                                <span ng-message="serverError" class="label label-error">{{serverErrorMessages.name}}</span>
+                                            </md-input-container>
+                                            <div flex="20" flex-xs="100">
+                                                <md-button ng-disabled="!customerNameUpdate.name || customerNameUpdate.name == certificate.customerName || customerNameUpdate.name == certificate.loyalCustomerName" ng-click="updateCustomerName(certificate); $event.stopPropagation()" class="md-raised md-primary">Запази</md-button>
+                                            </div>
+                                        </div>
+                                        <div layout="row" layout-xs="column" layout-align="start start" class="protect-plus-form-row">
+                                            <md-input-container flex="30" flex-xs="100">
+                                                <label>Телефон</label>
+                                                <input ng-model="customerPhoneUpdate.phoneNumber" name="customerPhone">
+                                                <span ng-message="serverError" class="label label-error">{{serverErrorMessages.phoneNumber}}</span>
+                                            </md-input-container>
+                                            <div flex="20" flex-xs="100">
+                                                <md-button ng-disabled="!customerPhoneUpdate.phoneNumber || customerPhoneUpdate.phoneNumber == certificate.phoneNumber || customerPhoneUpdate.phoneNumber == certificate.loyalCustomerPhoneNumber" ng-click="updateCustomerPhone(certificate); $event.stopPropagation()" class="md-raised md-primary">Запази</md-button>
+                                            </div>
+                                        </div>
+                                        <div layout="row" layout-xs="column" layout-align="start start" class="protect-plus-form-row">
+                                            <md-input-container flex="30" flex-xs="100">
                                                 <label>Имейл</label>
                                                 <input type="email" ng-model="customerEmailUpdate.email" name="customerEmail">
                                                 <span ng-message="serverError" class="label label-error">{{serverErrorMessages.email}}</span>
@@ -280,7 +408,7 @@
 	                                                        <span ng-message="serverError" class="label label-error">{{serverErrorMessages.deviceModelId}}</span>
 	                                                    </md-input-container>
 	                                                    <div layout="row" layout-sm="row" layout-xs="row" flex="30" flex-sm="100" flex-xs="100" class="protect-plus-device-model-change-actions">
-	                                                        <md-button ng-disabled="protectPlusDeviceModelChangeForm.$invalid || deviceModelChangeRequest.deviceModelId == certificate.deviceModelId" ng-click="changeCertificateDeviceModel()" class="md-raised md-primary">Запази</md-button>
+	                                                        <md-button ng-disabled="protectPlusDeviceModelChangeForm.$invalid || deviceModelChangeRequest.deviceModelId == certificate.deviceModelId" ng-click="changeCertificateDeviceModel(); $event.stopPropagation()" class="md-raised md-primary">Запази</md-button>
 	                                                        <md-button class="md-raised md-primary" ng-click="resetActiveCertificateDetails()">Отмени</md-button>
 	                                                    </div>
 	                                                </div>
@@ -364,7 +492,135 @@
                     <dir-pagination-controls pagination-id="activeCertificatesPagination" template-url="views/directives/dir-pagination.html"></dir-pagination-controls>
                 </div>
             </md-content>
-        </md-tab>
-    </md-tabs>
+	        </md-tab>
+	        <md-tab label="Кампании" ng-if="isAdmin()">
+	            <md-content layout-padding layout="column">
+	                <form name="protectPlusDiscountPolicyForm" server-validation novalidate class="protect-plus-discount-policy-form">
+	                    <div layout="row" layout-xs="column">
+	                        <div flex="50" flex-xs="100">
+	                            <md-input-container class="md-block">
+	                                <label>Име</label>
+	                                <input ng-model="discountPolicy.name" name="name" required>
+	                            </md-input-container>
+	                            <div layout="row" layout-xs="column">
+	                                <md-input-container flex="50" flex-xs="100">
+	                                    <label>Начало</label>
+	                                    <md-datepicker ng-model="discountPolicy.validFromDate" required></md-datepicker>
+	                                </md-input-container>
+	                                <md-input-container flex="50" flex-xs="100">
+	                                    <label>Край</label>
+	                                    <md-datepicker ng-model="discountPolicy.validUntilDate"></md-datepicker>
+	                                </md-input-container>
+	                            </div>
+	                            <md-input-container class="md-block">
+	                                <label>Протектор за модел %</label>
+	                                <input type="number" min="0" max="100" step="0.01" ng-model="discountPolicy.sameModelProtectorDiscountPercent" required>
+	                            </md-input-container>
+	                            <md-input-container class="md-block">
+	                                <label>Други продукти %</label>
+	                                <input type="number" min="0" max="100" step="0.01" ng-model="discountPolicy.otherProductsDiscountPercent" required>
+		                            </md-input-container>
+		                            <md-checkbox ng-model="discountPolicy.active" class="md-primary">Активна</md-checkbox>
+		                        </div>
+
+	                        <div flex-offset="5" flex="45" flex-xs="100" class="protect-plus-policy-product-rules">
+	                            <div class="protect-plus-details-section-title">Специфични продукти</div>
+	                            <div class="protect-plus-empty-result" ng-if="!discountPolicy.productRules || discountPolicy.productRules.length == 0">
+	                                Няма добавени продуктови правила.
+	                            </div>
+	                            <div ng-repeat="productRule in discountPolicy.productRules track by $index" layout="row" layout-xs="column" class="protect-plus-policy-product-rule">
+	                                <md-input-container flex="70" flex-xs="100">
+	                                    <label>Продукт</label>
+	                                    <md-select ng-model="productRule.productId"
+	                                               md-on-close="productSearchTerm = ''"
+	                                               data-md-container-class="selectSearchTermHeader"
+	                                               required>
+	                                        <md-select-header class="select-header">
+	                                            <input ng-model="productSearchTerm"
+	                                                   type="search"
+	                                                   class="header-searchbox md-text" ng-keydown="$event.stopPropagation()">
+	                                        </md-select-header>
+	                                        <md-option ng-repeat="product in products | filter:productSearchTerm" ng-value="product.id">
+	                                            {{product.code}} {{product.name}}
+	                                        </md-option>
+	                                    </md-select>
+	                                </md-input-container>
+	                                <md-input-container flex="20" flex-xs="100">
+	                                    <label>Отстъпка %</label>
+	                                    <input type="number" min="0" max="100" step="0.01" ng-model="productRule.discountPercent" required>
+	                                </md-input-container>
+	                                <div flex="10" flex-xs="100">
+	                                    <a href="" ng-click="removeDiscountPolicyProductRule($index)">
+	                                        <md-icon class="primary-icon" md-svg-src="images/icons/close.svg"></md-icon>
+	                                    </a>
+	                                </div>
+	                            </div>
+	                            <md-button class="md-raised md-primary" ng-click="addDiscountPolicyProductRule()">Добави продукт</md-button>
+	                        </div>
+	                    </div>
+
+	                    <md-content layout-padding layout="row" class="protect-plus-policy-actions">
+	                        <md-button class="md-raised md-primary" ng-disabled="protectPlusDiscountPolicyForm.$invalid" ng-click="saveDiscountPolicy()">Запази</md-button>
+	                        <md-button class="md-raised md-primary" ng-click="resetDiscountPolicyForm()">Отмени</md-button>
+	                    </md-content>
+	                    <div class="protect-plus-policy-error" ng-if="serverErrorMessages.request">
+	                        {{serverErrorMessages.request}}
+	                    </div>
+	                </form>
+
+	                <table class="table table-hover table-condensed" ng-if="discountPolicies.length > 0">
+	                    <thead>
+	                        <tr>
+	                            <th></th>
+	                            <th><label>Име</label></th>
+	                            <th><label>Период</label></th>
+		                            <th><label>Протектор</label></th>
+		                            <th><label>Други продукти</label></th>
+		                            <th><label>Активна</label></th>
+		                            <th></th>
+		                        </tr>
+	                    </thead>
+	                    <tbody>
+	                        <tr ng-repeat-start="policy in discountPolicies track by policy.id" class="item-row" ng-click="toggleDiscountPolicyProducts(policy)">
+	                            <td>{{$index + 1}}</td>
+	                            <td>{{policy.name}}</td>
+	                            <td>{{convertPolicyDate(policy.validFromTimestamp)}} - {{policy.validUntilTimestamp ? convertPolicyDate(policy.validUntilTimestamp) : 'без край'}}</td>
+		                            <td>{{policy.sameModelProtectorDiscountPercent}}%</td>
+		                            <td>{{policy.otherProductsDiscountPercent}}%</td>
+		                            <td>{{policy.active ? 'Да' : 'Не'}}</td>
+		                            <td>
+	                                <a href="" ng-click="$event.stopPropagation(); editDiscountPolicy(policy)">
+	                                    <md-icon class="primary-icon" md-svg-src="images/icons/edit.svg"></md-icon>
+	                                </a>
+	                            </td>
+		                        </tr>
+		                        <tr ng-repeat-end ng-if="policy.expanded">
+		                            <td colspan="7" class="protect-plus-policy-products-cell">
+	                                <div class="protect-plus-empty-result" ng-if="!hasDiscountPolicyProductRules(policy)">
+	                                    В тази кампания няма специфични продукти.
+	                                </div>
+	                                <table class="table table-hover table-condensed" ng-if="hasDiscountPolicyProductRules(policy)">
+	                                    <thead>
+	                                        <tr>
+	                                            <th><label>Код</label></th>
+	                                            <th><label>Продукт</label></th>
+	                                            <th><label>Отстъпка</label></th>
+	                                        </tr>
+	                                    </thead>
+	                                    <tbody>
+	                                        <tr ng-repeat="productRule in policy.productRules track by productRule.id">
+	                                            <td>{{productRule.productCode}}</td>
+	                                            <td>{{productRule.productName}}</td>
+	                                            <td>{{productRule.discountPercent}}%</td>
+	                                        </tr>
+	                                    </tbody>
+	                                </table>
+	                            </td>
+	                        </tr>
+	                    </tbody>
+	                </table>
+	            </md-content>
+	        </md-tab>
+	    </md-tabs>
 
 </div>

@@ -22,6 +22,7 @@ import org.springframework.util.StringUtils;
 import com.kalafche.dao.ProtectPlusCertificateDao;
 import com.kalafche.model.protectplus.ProtectPlusCallRecord;
 import com.kalafche.model.protectplus.ProtectPlusCertificate;
+import com.kalafche.model.protectplus.ProtectPlusCertificateSearchFilter;
 import com.kalafche.model.protectplus.ProtectPlusCertificateSearchResult;
 import com.kalafche.model.protectplus.ProtectPlusCertificateStatus;
 import com.kalafche.model.protectplus.ProtectPlusDeviceModelChangeRecord;
@@ -39,6 +40,7 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 			"ppc.sold_store_id, " +
 			"ppc.sold_by_employee_id, " +
 			"ppc.sold_sale_id, " +
+			"ppc.sold_sale_item_id, " +
 			"ppc.status, " +
 			"ppc.valid_from_timestamp, " +
 			"ppc.valid_until_timestamp, " +
@@ -103,18 +105,30 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 
 	private static final String BY_ID_CLAUSE = "where ppc.id = ? ";
 	private static final String BY_NUMBER_CLAUSE = "where ppc.certificate_number = ? ";
+	private static final String BY_SOLD_SALE_ITEM_ID_CLAUSE = "where ppc.sold_sale_item_id = ? ";
+	private static final String CERTIFICATE_NUMBER_RANGE_CLAUSE = "where ppc.status in (?, ?) "
+			+ "and ppc.certificate_number between ? and ? "
+			+ "and lc.email is not null and trim(lc.email) <> '' "
+			+ "order by ppc.certificate_number ";
 	private static final String INSERT_CERTIFICATE = "insert into protect_plus_certificate " +
 			"(certificate_number, loyal_customer_id, device_model_id, sold_store_id, sold_by_employee_id, sold_sale_id, " +
-			"status, valid_from_timestamp, valid_until_timestamp, gdpr_consent_file_id, free_protector_used, " +
+			"sold_sale_item_id, status, valid_from_timestamp, valid_until_timestamp, gdpr_consent_file_id, free_protector_used, " +
 			"free_display_replacement_service_used, free_battery_replacement_service_used, device_model_change_used, " +
 			"usage_count, created_by, created_timestamp) " +
-			"values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+			"values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	private static final String ACTIVATE_CERTIFICATE = "update protect_plus_certificate set status = ?, " +
 			"loyal_customer_id = ?, device_model_id = ?, valid_from_timestamp = ?, valid_until_timestamp = ?, " +
 			"activated_by = ?, activated_timestamp = ?, gdpr_consent_file_id = ?, last_update_timestamp = ?, updated_by = ? where id = ?";
+	private static final String UPDATE_INACTIVE_CERTIFICATE_DRAFT = "update protect_plus_certificate set " +
+			"loyal_customer_id = ?, device_model_id = ?, last_update_timestamp = ?, updated_by = ? where id = ?";
+	private static final String UPDATE_GDPR_CONSENT_FILE = "update protect_plus_certificate set " +
+			"gdpr_consent_file_id = ?, last_update_timestamp = ?, updated_by = ? where id = ?";
 	private static final String UPDATE_CERTIFICATE_USAGE = "update protect_plus_certificate set free_protector_used = ?, " +
 			"free_display_replacement_service_used = ?, free_battery_replacement_service_used = ?, " +
 			"usage_count = coalesce(usage_count, 0) + 1, valid_until_timestamp = ?, status = ?, last_update_timestamp = ?, updated_by = ? where id = ?";
+	private static final String UPDATE_CERTIFICATE_STATUS = "update protect_plus_certificate set status = ?, " +
+			"last_update_timestamp = ?, updated_by = ? where id = ?";
+	private static final String COUNT_USAGE_SALES = "select count(*) from sale where protect_plus_certificate_id = ?";
 	private static final String EXPIRE_ACTIVE_CERTIFICATES = "update protect_plus_certificate set status = ?, " +
 			"last_update_timestamp = ?, updated_by = null where status = ? and valid_until_timestamp is not null " +
 			"and valid_until_timestamp < ?";
@@ -200,6 +214,16 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 	private static final String SOLD_STORE_FILTER = " and ppc.sold_store_id in (%s) ";
 	private static final String DEVICE_BRAND_FILTER = " and db.id = ? ";
 	private static final String DEVICE_MODEL_FILTER = " and ppc.device_model_id = ? ";
+	private static final String ACTIVATION_FROM_FILTER = " and ppc.activated_timestamp >= ? ";
+	private static final String ACTIVATION_TO_FILTER = " and ppc.activated_timestamp <= ? ";
+	private static final String USAGE_COUNT_FILTER = " and coalesce(ppc.usage_count, 0) = ? ";
+	private static final String CALL_COUNT_FILTER = " and (select count(*) from protect_plus_certificate_call_record cr where cr.protect_plus_certificate_id = ppc.id) = ? ";
+	private static final String VALID_UNTIL_FROM_FILTER = " and ppc.valid_until_timestamp >= ? ";
+	private static final String VALID_UNTIL_TO_FILTER = " and ppc.valid_until_timestamp <= ? ";
+	private static final String FREE_PROTECTOR_USED_FILTER = " and ppc.free_protector_used = ? ";
+	private static final String FREE_DISPLAY_REPLACEMENT_SERVICE_USED_FILTER = " and ppc.free_display_replacement_service_used = ? ";
+	private static final String FREE_BATTERY_REPLACEMENT_SERVICE_USED_FILTER = " and ppc.free_battery_replacement_service_used = ? ";
+	private static final String DEVICE_MODEL_CHANGE_USED_FILTER = " and ppc.device_model_change_used = ? ";
 	private static final String ORDER_BY_VALIDITY = " order by ppc.valid_until_timestamp desc ";
 	private static final String ORDER_BY_CREATED = " order by ppc.created_timestamp desc ";
 
@@ -284,17 +308,18 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 				statement.setInt(4, certificate.getSoldStoreId());
 				statement.setInt(5, certificate.getSoldByEmployeeId());
 				setNullableInteger(statement, 6, certificate.getSoldSaleId());
-				statement.setString(7, certificate.getStatus().name());
-				setNullableLong(statement, 8, certificate.getValidFromTimestamp());
-				setNullableLong(statement, 9, certificate.getValidUntilTimestamp());
-				statement.setString(10, certificate.getGdprConsentFileId());
-				statement.setBoolean(11, Boolean.TRUE.equals(certificate.getFreeProtectorUsed()));
-				statement.setBoolean(12, Boolean.TRUE.equals(certificate.getFreeDisplayReplacementServiceUsed()));
-				statement.setBoolean(13, Boolean.TRUE.equals(certificate.getFreeBatteryReplacementServiceUsed()));
-				statement.setBoolean(14, Boolean.TRUE.equals(certificate.getDeviceModelChangeUsed()));
-				statement.setInt(15, certificate.getUsageCount() == null ? 0 : certificate.getUsageCount());
-				statement.setInt(16, certificate.getCreatedById());
-				statement.setLong(17, certificate.getCreatedTimestamp());
+				setNullableInteger(statement, 7, certificate.getSoldSaleItemId());
+				statement.setString(8, certificate.getStatus().name());
+				setNullableLong(statement, 9, certificate.getValidFromTimestamp());
+				setNullableLong(statement, 10, certificate.getValidUntilTimestamp());
+				statement.setString(11, certificate.getGdprConsentFileId());
+				statement.setBoolean(12, Boolean.TRUE.equals(certificate.getFreeProtectorUsed()));
+				statement.setBoolean(13, Boolean.TRUE.equals(certificate.getFreeDisplayReplacementServiceUsed()));
+				statement.setBoolean(14, Boolean.TRUE.equals(certificate.getFreeBatteryReplacementServiceUsed()));
+				statement.setBoolean(15, Boolean.TRUE.equals(certificate.getDeviceModelChangeUsed()));
+				statement.setInt(16, certificate.getUsageCount() == null ? 0 : certificate.getUsageCount());
+				statement.setInt(17, certificate.getCreatedById());
+				statement.setLong(18, certificate.getCreatedTimestamp());
 				return statement;
 			}
 		}, keyHolder);
@@ -315,6 +340,20 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 	}
 
 	@Override
+	public void updateInactiveProtectPlusCertificateDraft(Integer certificateId, Integer loyalCustomerId,
+			Integer deviceModelId, Integer updatedById, Long lastUpdateTimestamp) {
+		getJdbcTemplate().update(UPDATE_INACTIVE_CERTIFICATE_DRAFT, loyalCustomerId, deviceModelId, lastUpdateTimestamp,
+				updatedById, certificateId);
+	}
+
+	@Override
+	public void updateGdprConsentFile(Integer certificateId, String gdprConsentFileId, Integer updatedById,
+			Long lastUpdateTimestamp) {
+		getJdbcTemplate().update(UPDATE_GDPR_CONSENT_FILE, gdprConsentFileId, lastUpdateTimestamp, updatedById,
+				certificateId);
+	}
+
+	@Override
 	public void updateProtectPlusCertificateUsage(Integer certificateId, Boolean freeProtectorUsed,
 				Boolean freeDisplayReplacementServiceUsed, Boolean freeBatteryReplacementServiceUsed,
 				Long validUntilTimestamp, ProtectPlusCertificateStatus status, Integer updatedById, Long lastUpdateTimestamp) {
@@ -322,6 +361,17 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 				Boolean.TRUE.equals(freeDisplayReplacementServiceUsed),
 				Boolean.TRUE.equals(freeBatteryReplacementServiceUsed), validUntilTimestamp, status.name(), lastUpdateTimestamp,
 				updatedById, certificateId);
+	}
+
+	@Override
+	public void cancelProtectPlusCertificate(Integer certificateId, Integer updatedById, Long lastUpdateTimestamp) {
+		getJdbcTemplate().update(UPDATE_CERTIFICATE_STATUS, ProtectPlusCertificateStatus.CANCELLED.name(), lastUpdateTimestamp,
+				updatedById, certificateId);
+	}
+
+	@Override
+	public Integer countProtectPlusUsageSales(Integer certificateId) {
+		return getJdbcTemplate().queryForObject(COUNT_USAGE_SALES, Integer.class, certificateId);
 	}
 
 	@Override
@@ -426,25 +476,52 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 	}
 
 	@Override
+	public ProtectPlusCertificate getProtectPlusCertificateBySoldSaleItemId(Integer soldSaleItemId) {
+		List<ProtectPlusCertificate> certificates = getJdbcTemplate().query(
+				SELECT_CERTIFICATE + BY_SOLD_SALE_ITEM_ID_CLAUSE, getCertificateRowMapper(), soldSaleItemId);
+
+		return certificates.isEmpty() ? null : certificates.get(0);
+	}
+
+	@Override
+	public List<ProtectPlusCertificate> getProtectPlusCertificatesByCertificateNumberRange(Integer certificateNumberFrom,
+			Integer certificateNumberTo) {
+		return getJdbcTemplate().query(SELECT_CERTIFICATE + CERTIFICATE_NUMBER_RANGE_CLAUSE, getCertificateRowMapper(),
+				ProtectPlusCertificateStatus.ACTIVE.name(), ProtectPlusCertificateStatus.EXPIRED.name(),
+				certificateNumberFrom, certificateNumberTo);
+	}
+
+	@Override
 	public List<ProtectPlusCertificateSearchResult> searchProtectPlusCertificates(Integer certificateNumber,
 			String phoneNumber, ProtectPlusCertificateStatus status, String storeIds, Integer deviceBrandId, Integer deviceModelId,
 			Integer limit) {
-		if (certificateNumber == null && StringUtils.isEmpty(phoneNumber) && status == null
-				&& StringUtils.isEmpty(storeIds) && deviceBrandId == null && deviceModelId == null) {
+		ProtectPlusCertificateSearchFilter filter = new ProtectPlusCertificateSearchFilter();
+		filter.setCertificateNumber(certificateNumber);
+		filter.setPhoneNumber(phoneNumber);
+		filter.setDeviceBrandId(deviceBrandId);
+		filter.setDeviceModelId(deviceModelId);
+		return searchProtectPlusCertificates(filter, status, storeIds, limit);
+	}
+
+	@Override
+	public List<ProtectPlusCertificateSearchResult> searchProtectPlusCertificates(
+			ProtectPlusCertificateSearchFilter filter, ProtectPlusCertificateStatus status, String storeIds,
+			Integer limit) {
+		if (!hasSearchCriteria(filter) && status == null && StringUtils.isEmpty(storeIds)) {
 			return new ArrayList<ProtectPlusCertificateSearchResult>();
 		}
 
 		String query = SELECT_SEARCH_RESULT + "where 1 = 1 ";
 		List<Object> args = new ArrayList<Object>();
 
-		if (certificateNumber != null) {
+		if (filter.getCertificateNumber() != null) {
 			query += CERTIFICATE_NUMBER_FILTER;
-			args.add(certificateNumber);
+			args.add(filter.getCertificateNumber());
 		}
 
-		if (!StringUtils.isEmpty(phoneNumber)) {
+		if (!StringUtils.isEmpty(filter.getPhoneNumber())) {
 			query += PHONE_NUMBER_FILTER;
-			args.add(phoneNumber);
+			args.add(filter.getPhoneNumber());
 		}
 
 		if (status != null) {
@@ -462,15 +539,17 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 			query += String.format(SOLD_STORE_FILTER, storeIds);
 		}
 
-		if (deviceBrandId != null) {
+		if (filter.getDeviceBrandId() != null) {
 			query += DEVICE_BRAND_FILTER;
-			args.add(deviceBrandId);
+			args.add(filter.getDeviceBrandId());
 		}
 
-		if (deviceModelId != null) {
+		if (filter.getDeviceModelId() != null) {
 			query += DEVICE_MODEL_FILTER;
-			args.add(deviceModelId);
+			args.add(filter.getDeviceModelId());
 		}
+
+		query += addAdvancedSearchFilters(filter, args);
 
 		if (ProtectPlusCertificateStatus.INACTIVE.equals(status)) {
 			query += ORDER_BY_CREATED;
@@ -487,6 +566,111 @@ public class ProtectPlusCertificateDaoImpl extends JdbcDaoSupport implements Pro
 		argsArr = args.toArray(argsArr);
 
 		return getJdbcTemplate().query(query, argsArr, getSearchResultRowMapper());
+	}
+
+	private boolean hasSearchCriteria(ProtectPlusCertificateSearchFilter filter) {
+		return filter.getCertificateNumber() != null
+				|| !StringUtils.isEmpty(filter.getPhoneNumber())
+				|| filter.getDeviceBrandId() != null
+				|| filter.getDeviceModelId() != null
+				|| filter.getActivationFromTimestamp() != null
+				|| filter.getActivationToTimestamp() != null
+				|| filter.getUsageFromTimestamp() != null
+				|| filter.getUsageToTimestamp() != null
+				|| filter.getUsageCount() != null
+				|| filter.getCallFromTimestamp() != null
+				|| filter.getCallToTimestamp() != null
+				|| filter.getCallCount() != null
+				|| filter.getValidUntilFromTimestamp() != null
+				|| filter.getValidUntilToTimestamp() != null
+				|| filter.getFreeProtectorUsed() != null
+				|| filter.getFreeDisplayReplacementServiceUsed() != null
+				|| filter.getFreeBatteryReplacementServiceUsed() != null
+				|| filter.getDeviceModelChangeUsed() != null;
+	}
+
+	private String addAdvancedSearchFilters(ProtectPlusCertificateSearchFilter filter, List<Object> args) {
+		String query = "";
+
+		if (filter.getActivationFromTimestamp() != null) {
+			query += ACTIVATION_FROM_FILTER;
+			args.add(filter.getActivationFromTimestamp());
+		}
+		if (filter.getActivationToTimestamp() != null) {
+			query += ACTIVATION_TO_FILTER;
+			args.add(filter.getActivationToTimestamp());
+		}
+		query += addUsagePeriodFilter(filter.getUsageFromTimestamp(), filter.getUsageToTimestamp(), args);
+		if (filter.getUsageCount() != null) {
+			query += USAGE_COUNT_FILTER;
+			args.add(filter.getUsageCount());
+		}
+		query += addCallPeriodFilter(filter.getCallFromTimestamp(), filter.getCallToTimestamp(), args);
+		if (filter.getCallCount() != null) {
+			query += CALL_COUNT_FILTER;
+			args.add(filter.getCallCount());
+		}
+		if (filter.getValidUntilFromTimestamp() != null) {
+			query += VALID_UNTIL_FROM_FILTER;
+			args.add(filter.getValidUntilFromTimestamp());
+		}
+		if (filter.getValidUntilToTimestamp() != null) {
+			query += VALID_UNTIL_TO_FILTER;
+			args.add(filter.getValidUntilToTimestamp());
+		}
+		if (filter.getFreeProtectorUsed() != null) {
+			query += FREE_PROTECTOR_USED_FILTER;
+			args.add(filter.getFreeProtectorUsed());
+		}
+		if (filter.getFreeDisplayReplacementServiceUsed() != null) {
+			query += FREE_DISPLAY_REPLACEMENT_SERVICE_USED_FILTER;
+			args.add(filter.getFreeDisplayReplacementServiceUsed());
+		}
+		if (filter.getFreeBatteryReplacementServiceUsed() != null) {
+			query += FREE_BATTERY_REPLACEMENT_SERVICE_USED_FILTER;
+			args.add(filter.getFreeBatteryReplacementServiceUsed());
+		}
+		if (filter.getDeviceModelChangeUsed() != null) {
+			query += DEVICE_MODEL_CHANGE_USED_FILTER;
+			args.add(filter.getDeviceModelChangeUsed());
+		}
+
+		return query;
+	}
+
+	private String addUsagePeriodFilter(Long fromTimestamp, Long toTimestamp, List<Object> args) {
+		if (fromTimestamp == null && toTimestamp == null) {
+			return "";
+		}
+
+		String query = " and exists (select 1 from sale us where us.protect_plus_certificate_id = ppc.id ";
+		if (fromTimestamp != null) {
+			query += "and us.sale_timestamp >= ? ";
+			args.add(fromTimestamp);
+		}
+		if (toTimestamp != null) {
+			query += "and us.sale_timestamp <= ? ";
+			args.add(toTimestamp);
+		}
+		return query + ") ";
+	}
+
+	private String addCallPeriodFilter(Long fromTimestamp, Long toTimestamp, List<Object> args) {
+		if (fromTimestamp == null && toTimestamp == null) {
+			return "";
+		}
+
+		String query = " and exists (select 1 from protect_plus_certificate_call_record cr "
+				+ "where cr.protect_plus_certificate_id = ppc.id ";
+		if (fromTimestamp != null) {
+			query += "and cr.created_timestamp >= ? ";
+			args.add(fromTimestamp);
+		}
+		if (toTimestamp != null) {
+			query += "and cr.created_timestamp <= ? ";
+			args.add(toTimestamp);
+		}
+		return query + ") ";
 	}
 
 	@Override
